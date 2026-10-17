@@ -1,0 +1,838 @@
+{
+  'openapi': '3.1.0',
+  'info': { 'title': 'ChainVanta API', 'version': '0.2.0' },
+  'security': [{ 'Bearer': [] }],
+  'paths':
+    {
+      '/v1/session':
+        {
+          'get':
+            {
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            {
+                              'schema':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'tenantId': { 'type': 'string', 'format': 'uuid' },
+                                      'role': { 'enum': ['viewer', 'analyst', 'admin'] },
+                                    },
+                                  'required': ['tenantId', 'role'],
+                                },
+                            },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                },
+            },
+        },
+      '/v1/chains':
+        {
+          'get':
+            {
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            {
+                              'schema':
+                                {
+                                  'type': 'array',
+                                  'items':
+                                    {
+                                      'type': 'object',
+                                      'properties':
+                                        {
+                                          'chainId': { 'type': 'integer' },
+                                          'name': { 'type': 'string' },
+                                        },
+                                      'required': ['chainId', 'name'],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                },
+            },
+        },
+      '/v1/assessments':
+        {
+          'get':
+            {
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            {
+                              'schema':
+                                {
+                                  'type': 'array',
+                                  'items': { '$ref': '#/components/schemas/Assessment' },
+                                },
+                            },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                },
+            },
+          'post':
+            {
+              'parameters':
+                [
+                  {
+                    'in': 'header',
+                    'name': 'Idempotency-Key',
+                    'schema': { 'type': 'string', 'pattern': '^[a-zA-Z0-9_-]{8,128}$' },
+                  },
+                ],
+              'requestBody':
+                {
+                  'required': true,
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/ScanRequest' } },
+                    },
+                },
+              'responses':
+                {
+                  '201':
+                    {
+                      'description': 'Created or idempotent replay',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/Assessment' } },
+                        },
+                    },
+                  '409': { 'description': 'Idempotency key reused with different input' },
+                },
+            },
+        },
+      '/v1/assessments/{id}':
+        {
+          'get':
+            {
+              'parameters':
+                [
+                  {
+                    'in': 'path',
+                    'name': 'id',
+                    'required': true,
+                    'schema': { 'type': 'string', 'format': 'uuid' },
+                  },
+                ],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/Assessment' } },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                },
+            },
+        },
+      '/v1/assessments/{id}/findings/{ruleId}':
+        {
+          'patch':
+            {
+              'parameters':
+                [
+                  { 'in': 'path', 'name': 'id', 'required': true, 'schema': { 'type': 'string' } },
+                  {
+                    'in': 'path',
+                    'name': 'ruleId',
+                    'required': true,
+                    'schema': { 'type': 'string' },
+                  },
+                ],
+              'requestBody':
+                {
+                  'required': true,
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/FindingUpdate' } },
+                    },
+                },
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            {
+                              'schema':
+                                { 'type': 'object', 'properties': { 'ok': { 'type': 'boolean' } } },
+                            },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                },
+            },
+        },
+      '/v1/reports':
+        {
+          'get':
+            {
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content': { 'application/json': { 'schema': { 'type': 'object' } } },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                },
+            },
+        },
+      '/v1/history':
+        {
+          'get':
+            {
+              'parameters':
+                [
+                  {
+                    'in': 'query',
+                    'name': 'chainId',
+                    'required': true,
+                    'schema': { 'type': 'integer' },
+                  },
+                  {
+                    'in': 'query',
+                    'name': 'address',
+                    'required': true,
+                    'schema': { 'type': 'string' },
+                  },
+                ],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            {
+                              'schema':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'assessments':
+                                        {
+                                          'type': 'array',
+                                          'items': { '$ref': '#/components/schemas/Assessment' },
+                                        },
+                                      'drift': { 'type': 'array', 'items': { 'type': 'object' } },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                },
+            },
+        },
+      '/v1/graph':
+        {
+          'get':
+            {
+              'parameters':
+                [
+                  {
+                    'in': 'query',
+                    'name': 'source',
+                    'required': true,
+                    'schema': { 'type': 'string' },
+                  },
+                ],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { 'type': 'array', 'items': { 'type': 'object' } } },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                },
+            },
+        },
+      '/v1/audit':
+        {
+          'get':
+            {
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { 'type': 'array', 'items': { 'type': 'object' } } },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                },
+            },
+        },
+      '/v1/findings/events':
+        {
+          'get':
+            {
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { 'type': 'array', 'items': { 'type': 'object' } } },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                },
+            },
+        },
+    },
+  'components':
+    {
+      'securitySchemes':
+        {
+          'Bearer':
+            {
+              'type': 'http',
+              'scheme': 'bearer',
+              'description': 'Opaque tenant key or validated OIDC JWT access token',
+            },
+        },
+      'schemas':
+        {
+          'Assessment':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'schemaVersion': { 'type': 'string', 'const': '0.1' },
+                  'id':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'tenantId':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'createdAt':
+                    {
+                      'type': 'string',
+                      'format': 'date-time',
+                      'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    },
+                  'observation':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'chainId':
+                            {
+                              'type': 'integer',
+                              'exclusiveMinimum': 0,
+                              'maximum': 9007199254740991,
+                            },
+                          'address': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                          'blockNumber':
+                            { 'type': 'string', 'pattern': '^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$' },
+                          'blockHash': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                          'blockTimestamp':
+                            { 'type': 'string', 'pattern': '^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$' },
+                          'balanceWei': { 'type': 'string', 'pattern': "^\\d+$" },
+                          'transactionCount': { 'type': 'string', 'pattern': "^\\d+$" },
+                          'code': { 'type': 'string', 'pattern': '^0x(?:[0-9a-fA-F]{2})*$' },
+                          'source': { 'type': 'string' },
+                          'observedAt':
+                            {
+                              'type': 'string',
+                              'format': 'date-time',
+                              'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                            },
+                          'finality': { 'type': 'string', 'const': 'finalized' },
+                          'signature':
+                            {
+                              'type': 'object',
+                              'properties':
+                                {
+                                  'hash': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                                  'blockHash':
+                                    { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                                  'blockNumber':
+                                    {
+                                      'type': 'string',
+                                      'pattern': '^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$',
+                                    },
+                                  'sender': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                                  'algorithm': { 'type': 'string', 'const': 'ECDSA-secp256k1' },
+                                  'serializedTransaction':
+                                    { 'type': 'string', 'pattern': '^0x(?:[0-9a-fA-F]{2})*$' },
+                                  'receiptStatus':
+                                    { 'type': 'string', 'enum': ['success', 'reverted'] },
+                                  'parserVersion':
+                                    { 'type': 'string', 'const': 'evm-transaction/1.0.0' },
+                                },
+                              'required':
+                                [
+                                  'hash',
+                                  'blockHash',
+                                  'blockNumber',
+                                  'sender',
+                                  'algorithm',
+                                  'serializedTransaction',
+                                  'receiptStatus',
+                                  'parserVersion',
+                                ],
+                            },
+                          'token':
+                            {
+                              'type': 'object',
+                              'properties':
+                                {
+                                  'adapter': { 'type': 'string', 'const': 'ownable-erc20/1.0.0' },
+                                  'owner': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                                  'totalSupply': { 'type': 'string', 'pattern': "^\\d+$" },
+                                  'decimals': { 'type': 'integer', 'minimum': 0, 'maximum': 255 },
+                                  'calls':
+                                    {
+                                      'minItems': 3,
+                                      'maxItems': 3,
+                                      'type': 'array',
+                                      'items':
+                                        {
+                                          'type': 'object',
+                                          'properties':
+                                            {
+                                              'data':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x(?:[0-9a-fA-F]{2})*$',
+                                                },
+                                              'result':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x(?:[0-9a-fA-F]{2})*$',
+                                                },
+                                            },
+                                          'required': ['data', 'result'],
+                                        },
+                                    },
+                                  'limitation': { 'type': 'string' },
+                                },
+                              'required':
+                                [
+                                  'adapter',
+                                  'owner',
+                                  'totalSupply',
+                                  'decimals',
+                                  'calls',
+                                  'limitation',
+                                ],
+                            },
+                          'parserVersion': { 'type': 'string', 'const': 'evm-snapshot/1.0.0' },
+                          'demonstration': { 'type': 'boolean' },
+                        },
+                      'required':
+                        [
+                          'chainId',
+                          'address',
+                          'blockNumber',
+                          'blockHash',
+                          'blockTimestamp',
+                          'balanceWei',
+                          'transactionCount',
+                          'code',
+                          'source',
+                          'observedAt',
+                          'finality',
+                        ],
+                    },
+                  'evidenceHash': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                  'assetKind':
+                    { 'type': 'string', 'enum': ['code-bearing-account', 'no-code-account'] },
+                  'cbom':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'format': { 'type': 'string', 'const': 'chainvanta-cbom/0.1' },
+                          'components':
+                            {
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'algorithm': { 'type': 'string' },
+                                      'purpose': { 'type': 'string' },
+                                      'confidence':
+                                        {
+                                          'type': 'string',
+                                          'enum':
+                                            [
+                                              'observed',
+                                              'authenticated-integration',
+                                              'inferred',
+                                              'unknown',
+                                            ],
+                                        },
+                                      'basis': { 'type': 'string' },
+                                      'domain':
+                                        {
+                                          'type': 'string',
+                                          'enum':
+                                            [
+                                              'transaction-signature',
+                                              'account-authorization',
+                                              'application',
+                                              'transport',
+                                              'consensus',
+                                            ],
+                                        },
+                                      'evidenceRefs':
+                                        {
+                                          'type': 'array',
+                                          'items':
+                                            {
+                                              'type': 'string',
+                                              'pattern': '^sha256:[a-f0-9]{64}$',
+                                            },
+                                        },
+                                    },
+                                  'required': ['algorithm', 'purpose', 'confidence', 'basis'],
+                                },
+                            },
+                        },
+                      'required': ['format', 'components'],
+                    },
+                  'qbom':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'format': { 'type': 'string', 'const': 'chainvanta-qbom/0.1' },
+                          'status':
+                            {
+                              'type': 'string',
+                              'enum': ['unknown', 'classical-signature-observed'],
+                            },
+                          'reason': { 'type': 'string' },
+                          'migration': { 'type': 'string', 'const': 'requires-further-discovery' },
+                          'ruleVersion': { 'type': 'string' },
+                        },
+                      'required': ['format', 'status', 'reason', 'migration'],
+                    },
+                  'posture':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'status': { 'type': 'string', 'const': 'needs-review' },
+                          'rulepack': { 'type': 'string', 'const': 'wallet-baseline/0.1' },
+                          'findings':
+                            {
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'ruleId': { 'type': 'string' },
+                                      'ruleVersion': { 'type': 'string' },
+                                      'severity':
+                                        { 'type': 'string', 'enum': ['info', 'medium', 'high'] },
+                                      'title': { 'type': 'string' },
+                                      'rationale': { 'type': 'string' },
+                                      'confidence':
+                                        {
+                                          'type': 'string',
+                                          'enum':
+                                            [
+                                              'observed',
+                                              'authenticated-integration',
+                                              'inferred',
+                                              'unknown',
+                                            ],
+                                        },
+                                      'evidenceHash':
+                                        { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                                    },
+                                  'required':
+                                    [
+                                      'ruleId',
+                                      'severity',
+                                      'title',
+                                      'rationale',
+                                      'confidence',
+                                      'evidenceHash',
+                                    ],
+                                },
+                            },
+                        },
+                      'required': ['status', 'rulepack', 'findings'],
+                    },
+                  'trustGraph':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'nodes':
+                            {
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    { 'id': { 'type': 'string' }, 'kind': { 'type': 'string' } },
+                                  'required': ['id', 'kind'],
+                                },
+                            },
+                          'edges':
+                            {
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'from': { 'type': 'string' },
+                                      'to': { 'type': 'string' },
+                                      'relation': { 'type': 'string' },
+                                    },
+                                  'required': ['from', 'to', 'relation'],
+                                },
+                            },
+                        },
+                      'required': ['nodes', 'edges'],
+                    },
+                  'limitations': { 'type': 'array', 'items': { 'type': 'string' } },
+                },
+              'required':
+                [
+                  'schemaVersion',
+                  'id',
+                  'tenantId',
+                  'createdAt',
+                  'observation',
+                  'evidenceHash',
+                  'assetKind',
+                  'cbom',
+                  'qbom',
+                  'posture',
+                  'trustGraph',
+                  'limitations',
+                ],
+            },
+          'Observation':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'chainId':
+                    { 'type': 'integer', 'exclusiveMinimum': 0, 'maximum': 9007199254740991 },
+                  'address': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                  'blockNumber':
+                    { 'type': 'string', 'pattern': '^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$' },
+                  'blockHash': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                  'blockTimestamp':
+                    { 'type': 'string', 'pattern': '^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$' },
+                  'balanceWei': { 'type': 'string', 'pattern': "^\\d+$" },
+                  'transactionCount': { 'type': 'string', 'pattern': "^\\d+$" },
+                  'code': { 'type': 'string', 'pattern': '^0x(?:[0-9a-fA-F]{2})*$' },
+                  'source': { 'type': 'string' },
+                  'observedAt':
+                    {
+                      'type': 'string',
+                      'format': 'date-time',
+                      'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    },
+                  'finality': { 'type': 'string', 'const': 'finalized' },
+                  'signature':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'hash': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                          'blockHash': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                          'blockNumber':
+                            { 'type': 'string', 'pattern': '^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$' },
+                          'sender': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                          'algorithm': { 'type': 'string', 'const': 'ECDSA-secp256k1' },
+                          'serializedTransaction':
+                            { 'type': 'string', 'pattern': '^0x(?:[0-9a-fA-F]{2})*$' },
+                          'receiptStatus': { 'type': 'string', 'enum': ['success', 'reverted'] },
+                          'parserVersion': { 'type': 'string', 'const': 'evm-transaction/1.0.0' },
+                        },
+                      'required':
+                        [
+                          'hash',
+                          'blockHash',
+                          'blockNumber',
+                          'sender',
+                          'algorithm',
+                          'serializedTransaction',
+                          'receiptStatus',
+                          'parserVersion',
+                        ],
+                    },
+                  'token':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'adapter': { 'type': 'string', 'const': 'ownable-erc20/1.0.0' },
+                          'owner': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                          'totalSupply': { 'type': 'string', 'pattern': "^\\d+$" },
+                          'decimals': { 'type': 'integer', 'minimum': 0, 'maximum': 255 },
+                          'calls':
+                            {
+                              'minItems': 3,
+                              'maxItems': 3,
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'data':
+                                        { 'type': 'string', 'pattern': '^0x(?:[0-9a-fA-F]{2})*$' },
+                                      'result':
+                                        { 'type': 'string', 'pattern': '^0x(?:[0-9a-fA-F]{2})*$' },
+                                    },
+                                  'required': ['data', 'result'],
+                                },
+                            },
+                          'limitation': { 'type': 'string' },
+                        },
+                      'required':
+                        ['adapter', 'owner', 'totalSupply', 'decimals', 'calls', 'limitation'],
+                    },
+                  'parserVersion': { 'type': 'string', 'const': 'evm-snapshot/1.0.0' },
+                  'demonstration': { 'type': 'boolean' },
+                },
+              'required':
+                [
+                  'chainId',
+                  'address',
+                  'blockNumber',
+                  'blockHash',
+                  'blockTimestamp',
+                  'balanceWei',
+                  'transactionCount',
+                  'code',
+                  'source',
+                  'observedAt',
+                  'finality',
+                ],
+            },
+          'Finding':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'ruleId': { 'type': 'string' },
+                  'ruleVersion': { 'type': 'string' },
+                  'severity': { 'type': 'string', 'enum': ['info', 'medium', 'high'] },
+                  'title': { 'type': 'string' },
+                  'rationale': { 'type': 'string' },
+                  'confidence':
+                    {
+                      'type': 'string',
+                      'enum': ['observed', 'authenticated-integration', 'inferred', 'unknown'],
+                    },
+                  'evidenceHash': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                },
+              'required':
+                ['ruleId', 'severity', 'title', 'rationale', 'confidence', 'evidenceHash'],
+            },
+          'ScanRequest':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'address': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                  'chainId':
+                    { 'type': 'integer', 'exclusiveMinimum': 0, 'maximum': 9007199254740991 },
+                  'transactionHash': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                  'adapter': { 'type': 'string', 'const': 'ownable-erc20' },
+                },
+              'required': ['address', 'chainId'],
+              'additionalProperties': false,
+            },
+          'FindingUpdate':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'status':
+                    { 'type': 'string', 'enum': ['open', 'acknowledged', 'resolved', 'excepted'] },
+                  'reason': { 'type': 'string', 'minLength': 10, 'maxLength': 1000 },
+                  'expiresAt':
+                    {
+                      'type': 'string',
+                      'format': 'date-time',
+                      'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    },
+                },
+              'required': ['status', 'reason'],
+              'additionalProperties': false,
+            },
+        },
+    },
+}

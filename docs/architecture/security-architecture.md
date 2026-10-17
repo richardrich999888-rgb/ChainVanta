@@ -1,0 +1,17 @@
+# Security boundaries
+
+The API is a modular monolith with server-derived tenant context. An opaque tenant credential or a verified OIDC JWT establishes a principal; JWT tenant and role claims are not trusted. Operator membership configuration determines the tenant and role. Viewer reads, analyst assessments and admin finding/audit operations are checked before execution. OIDC integration currently covers API JWT verification, not browser authorization-code login.
+
+Each PostgreSQL operation starts a transaction and sets `app.tenant_id` with transaction-local scope. All evidence, assessment, asset, idempotency, graph, finding-event and audit tables enforce forced RLS. The application role has SELECT/INSERT and no superuser/BYPASSRLS capability. Immutable records reject UPDATE/DELETE. Tenants and migrations are operator-managed. RLS protects accidental missing predicates, not a compromised superuser or arbitrary SQL execution using the application's role and ability to set tenant context.
+
+Idempotent assessment writes acquire a transaction advisory lock and atomically insert evidence, assessment, asset/graph records, audit event and request key. The same key and input return the stored assessment; differing input returns 409. Collection failures leave no partial assessment. No external transaction is signed or submitted.
+
+Provider URLs are configuration-only. Caller-provided URLs are rejected. HTTPS is required except explicit local loopback HTTP; credentials in URL authorities, common metadata destinations, redirects, oversized responses, malformed quantities and inconsistent chain/block/transaction context are rejected. General DNS rebinding/private-network egress protection is **not complete**: use operator-managed allowlists and network egress controls. Provider result authenticity and consensus finality are not independently verified.
+
+Redis quotas are atomic and shared across API processes; Redis failure denies protected requests. Active collection concurrency is still process-local. Durable distributed leases, job queues and reassessment scheduling are not implemented. Go checkpoints are atomic local files with one writer per path; finalized reorgs halt for review, without automatically invalidating stored assessments.
+
+Console API-key sessions use HttpOnly, SameSite=Strict cookies, Secure in production, one-hour expiry and origin checks for mutations. The cookie contains an operator-provisioned API credential; it is not an independent server-side OIDC session. Credential rotation/revocation is operator-managed. HTTPS termination is required for production; local Compose uses loopback TCP without TLS or disk-encryption guarantees.
+
+Hashes are verified before serving stored records. They detect accidental changes, not a privileged attacker capable of replacing data and hashes. Audit records are append-only under runtime privileges; independent anchoring, WORM storage and signing remain planned. Reports disclose scope and limits; confidence and algorithm domain are explicit, and unknowns are never converted into quantum-safety claims.
+
+Release blockers: managed secrets and rotation, interactive SSO, authorization security review, DNS-pinned egress, encrypted infrastructure, restore drills, sustained-load testing, distributed checkpoint/lease design, external audit anchoring, telemetry integration and release approval. No FIPS, formal-verification, certification or production-readiness claim is made.

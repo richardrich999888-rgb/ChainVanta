@@ -1,0 +1,1381 @@
+{
+  "source": "User-provided ChainVanta repository tree",
+  "entries": [
+    {
+      "path": ".github",
+      "type": "directory"
+    },
+    {
+      "path": ".github/workflows",
+      "type": "directory"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "type": "file"
+    },
+    {
+      "path": ".github/workflows/security-scan.yml",
+      "type": "file"
+    },
+    {
+      "path": ".github/workflows/dependency-audit.yml",
+      "type": "file"
+    },
+    {
+      "path": ".github/workflows/codeql.yml",
+      "type": "file"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "type": "file"
+    },
+    {
+      "path": ".github/workflows/deploy-staging.yml",
+      "type": "file"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE",
+      "type": "directory"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "type": "file"
+    },
+    {
+      "path": ".github/CODEOWNERS",
+      "type": "file"
+    },
+    {
+      "path": "apps",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/app",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/app/dashboard",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/app/inventory",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/app/cbom",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/app/qbom",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/app/posture",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/app/trust-graph",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/app/findings",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/app/migrations",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/app/reports",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/app/settings",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/components",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/hooks",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/lib",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/src/styles",
+      "type": "directory"
+    },
+    {
+      "path": "apps/web-console/package.json",
+      "type": "file"
+    },
+    {
+      "path": "apps/admin-console",
+      "type": "directory"
+    },
+    {
+      "path": "apps/developer-portal",
+      "type": "directory"
+    },
+    {
+      "path": "apps/documentation-site",
+      "type": "directory"
+    },
+    {
+      "path": "services",
+      "type": "directory"
+    },
+    {
+      "path": "services/api-gateway",
+      "type": "directory"
+    },
+    {
+      "path": "services/identity-service",
+      "type": "directory"
+    },
+    {
+      "path": "services/tenant-service",
+      "type": "directory"
+    },
+    {
+      "path": "services/inventory-service",
+      "type": "directory"
+    },
+    {
+      "path": "services/assessment-service",
+      "type": "directory"
+    },
+    {
+      "path": "services/findings-service",
+      "type": "directory"
+    },
+    {
+      "path": "services/evidence-service",
+      "type": "directory"
+    },
+    {
+      "path": "services/reporting-service",
+      "type": "directory"
+    },
+    {
+      "path": "services/notification-service",
+      "type": "directory"
+    },
+    {
+      "path": "services/ingestion-orchestrator",
+      "type": "directory"
+    },
+    {
+      "path": "services/job-worker",
+      "type": "directory"
+    },
+    {
+      "path": "modules",
+      "type": "directory"
+    },
+    {
+      "path": "modules/01-wallet-intelligence",
+      "type": "directory"
+    },
+    {
+      "path": "modules/01-wallet-intelligence/src",
+      "type": "directory"
+    },
+    {
+      "path": "modules/01-wallet-intelligence/src/discovery",
+      "type": "directory"
+    },
+    {
+      "path": "modules/01-wallet-intelligence/src/signature-analysis",
+      "type": "directory"
+    },
+    {
+      "path": "modules/01-wallet-intelligence/src/key-dependencies",
+      "type": "directory"
+    },
+    {
+      "path": "modules/01-wallet-intelligence/src/wallet-risk",
+      "type": "directory"
+    },
+    {
+      "path": "modules/01-wallet-intelligence/src/assessment",
+      "type": "directory"
+    },
+    {
+      "path": "modules/01-wallet-intelligence/tests",
+      "type": "directory"
+    },
+    {
+      "path": "modules/01-wallet-intelligence/schemas",
+      "type": "directory"
+    },
+    {
+      "path": "modules/01-wallet-intelligence/README.md",
+      "type": "file"
+    },
+    {
+      "path": "modules/02-defi-trust-graph",
+      "type": "directory"
+    },
+    {
+      "path": "modules/02-defi-trust-graph/src",
+      "type": "directory"
+    },
+    {
+      "path": "modules/02-defi-trust-graph/src/graph-builder",
+      "type": "directory"
+    },
+    {
+      "path": "modules/02-defi-trust-graph/src/dependency-mapper",
+      "type": "directory"
+    },
+    {
+      "path": "modules/02-defi-trust-graph/src/protocol-analysis",
+      "type": "directory"
+    },
+    {
+      "path": "modules/02-defi-trust-graph/src/oracle-dependencies",
+      "type": "directory"
+    },
+    {
+      "path": "modules/02-defi-trust-graph/src/risk-propagation",
+      "type": "directory"
+    },
+    {
+      "path": "modules/02-defi-trust-graph/tests",
+      "type": "directory"
+    },
+    {
+      "path": "modules/02-defi-trust-graph/schemas",
+      "type": "directory"
+    },
+    {
+      "path": "modules/02-defi-trust-graph/README.md",
+      "type": "file"
+    },
+    {
+      "path": "modules/03-bridge-assurance",
+      "type": "directory"
+    },
+    {
+      "path": "modules/03-bridge-assurance/src",
+      "type": "directory"
+    },
+    {
+      "path": "modules/03-bridge-assurance/src/bridge-discovery",
+      "type": "directory"
+    },
+    {
+      "path": "modules/03-bridge-assurance/src/validator-analysis",
+      "type": "directory"
+    },
+    {
+      "path": "modules/03-bridge-assurance/src/signature-verification",
+      "type": "directory"
+    },
+    {
+      "path": "modules/03-bridge-assurance/src/relay-monitoring",
+      "type": "directory"
+    },
+    {
+      "path": "modules/03-bridge-assurance/src/bridge-risk",
+      "type": "directory"
+    },
+    {
+      "path": "modules/03-bridge-assurance/tests",
+      "type": "directory"
+    },
+    {
+      "path": "modules/03-bridge-assurance/schemas",
+      "type": "directory"
+    },
+    {
+      "path": "modules/03-bridge-assurance/README.md",
+      "type": "file"
+    },
+    {
+      "path": "modules/04-contract-crypto-agility",
+      "type": "directory"
+    },
+    {
+      "path": "modules/04-contract-crypto-agility/src",
+      "type": "directory"
+    },
+    {
+      "path": "modules/04-contract-crypto-agility/src/contract-analysis",
+      "type": "directory"
+    },
+    {
+      "path": "modules/04-contract-crypto-agility/src/signature-scheme-discovery",
+      "type": "directory"
+    },
+    {
+      "path": "modules/04-contract-crypto-agility/src/upgradeability",
+      "type": "directory"
+    },
+    {
+      "path": "modules/04-contract-crypto-agility/src/migration-readiness",
+      "type": "directory"
+    },
+    {
+      "path": "modules/04-contract-crypto-agility/src/compatibility-checks",
+      "type": "directory"
+    },
+    {
+      "path": "modules/04-contract-crypto-agility/contracts",
+      "type": "directory"
+    },
+    {
+      "path": "modules/04-contract-crypto-agility/tests",
+      "type": "directory"
+    },
+    {
+      "path": "modules/04-contract-crypto-agility/README.md",
+      "type": "file"
+    },
+    {
+      "path": "modules/05-validator-cpm",
+      "type": "directory"
+    },
+    {
+      "path": "modules/05-validator-cpm/src",
+      "type": "directory"
+    },
+    {
+      "path": "modules/05-validator-cpm/src/validator-discovery",
+      "type": "directory"
+    },
+    {
+      "path": "modules/05-validator-cpm/src/signing-posture",
+      "type": "directory"
+    },
+    {
+      "path": "modules/05-validator-cpm/src/key-lifecycle",
+      "type": "directory"
+    },
+    {
+      "path": "modules/05-validator-cpm/src/slashing-risk",
+      "type": "directory"
+    },
+    {
+      "path": "modules/05-validator-cpm/src/posture-monitoring",
+      "type": "directory"
+    },
+    {
+      "path": "modules/05-validator-cpm/tests",
+      "type": "directory"
+    },
+    {
+      "path": "modules/05-validator-cpm/README.md",
+      "type": "file"
+    },
+    {
+      "path": "modules/06-zk-crypto-inventory",
+      "type": "directory"
+    },
+    {
+      "path": "modules/06-zk-crypto-inventory/src",
+      "type": "directory"
+    },
+    {
+      "path": "modules/06-zk-crypto-inventory/src/proof-system-discovery",
+      "type": "directory"
+    },
+    {
+      "path": "modules/06-zk-crypto-inventory/src/circuit-dependencies",
+      "type": "directory"
+    },
+    {
+      "path": "modules/06-zk-crypto-inventory/src/trusted-setup-analysis",
+      "type": "directory"
+    },
+    {
+      "path": "modules/06-zk-crypto-inventory/src/crypto-assumptions",
+      "type": "directory"
+    },
+    {
+      "path": "modules/06-zk-crypto-inventory/src/quantum-exposure",
+      "type": "directory"
+    },
+    {
+      "path": "modules/06-zk-crypto-inventory/tests",
+      "type": "directory"
+    },
+    {
+      "path": "modules/06-zk-crypto-inventory/README.md",
+      "type": "file"
+    },
+    {
+      "path": "modules/07-custody-mpc-hsm",
+      "type": "directory"
+    },
+    {
+      "path": "modules/07-custody-mpc-hsm/src",
+      "type": "directory"
+    },
+    {
+      "path": "modules/07-custody-mpc-hsm/src/custody-inventory",
+      "type": "directory"
+    },
+    {
+      "path": "modules/07-custody-mpc-hsm/src/mpc-policy-analysis",
+      "type": "directory"
+    },
+    {
+      "path": "modules/07-custody-mpc-hsm/src/hsm-integration",
+      "type": "directory"
+    },
+    {
+      "path": "modules/07-custody-mpc-hsm/src/key-lifecycle",
+      "type": "directory"
+    },
+    {
+      "path": "modules/07-custody-mpc-hsm/src/controls-assessment",
+      "type": "directory"
+    },
+    {
+      "path": "modules/07-custody-mpc-hsm/tests",
+      "type": "directory"
+    },
+    {
+      "path": "modules/07-custody-mpc-hsm/README.md",
+      "type": "file"
+    },
+    {
+      "path": "modules/08-crosschain-pqc-migration",
+      "type": "directory"
+    },
+    {
+      "path": "modules/08-crosschain-pqc-migration/src",
+      "type": "directory"
+    },
+    {
+      "path": "modules/08-crosschain-pqc-migration/src/quantum-readiness",
+      "type": "directory"
+    },
+    {
+      "path": "modules/08-crosschain-pqc-migration/src/algorithm-compatibility",
+      "type": "directory"
+    },
+    {
+      "path": "modules/08-crosschain-pqc-migration/src/migration-planner",
+      "type": "directory"
+    },
+    {
+      "path": "modules/08-crosschain-pqc-migration/src/interoperability",
+      "type": "directory"
+    },
+    {
+      "path": "modules/08-crosschain-pqc-migration/src/migration-verification",
+      "type": "directory"
+    },
+    {
+      "path": "modules/08-crosschain-pqc-migration/tests",
+      "type": "directory"
+    },
+    {
+      "path": "modules/08-crosschain-pqc-migration/README.md",
+      "type": "file"
+    },
+    {
+      "path": "modules/09-stablecoin-assurance",
+      "type": "directory"
+    },
+    {
+      "path": "modules/09-stablecoin-assurance/src",
+      "type": "directory"
+    },
+    {
+      "path": "modules/09-stablecoin-assurance/src/issuer-discovery",
+      "type": "directory"
+    },
+    {
+      "path": "modules/09-stablecoin-assurance/src/mint-burn-authorities",
+      "type": "directory"
+    },
+    {
+      "path": "modules/09-stablecoin-assurance/src/privileged-roles",
+      "type": "directory"
+    },
+    {
+      "path": "modules/09-stablecoin-assurance/src/treasury-dependencies",
+      "type": "directory"
+    },
+    {
+      "path": "modules/09-stablecoin-assurance/src/authority-monitoring",
+      "type": "directory"
+    },
+    {
+      "path": "modules/09-stablecoin-assurance/tests",
+      "type": "directory"
+    },
+    {
+      "path": "modules/09-stablecoin-assurance/README.md",
+      "type": "file"
+    },
+    {
+      "path": "modules/10-web3-identity",
+      "type": "directory"
+    },
+    {
+      "path": "modules/10-web3-identity/src",
+      "type": "directory"
+    },
+    {
+      "path": "modules/10-web3-identity/src/did-analysis",
+      "type": "directory"
+    },
+    {
+      "path": "modules/10-web3-identity/src/credential-crypto",
+      "type": "directory"
+    },
+    {
+      "path": "modules/10-web3-identity/src/identity-dependencies",
+      "type": "directory"
+    },
+    {
+      "path": "modules/10-web3-identity/src/key-rotation",
+      "type": "directory"
+    },
+    {
+      "path": "modules/10-web3-identity/src/migration-readiness",
+      "type": "directory"
+    },
+    {
+      "path": "modules/10-web3-identity/tests",
+      "type": "directory"
+    },
+    {
+      "path": "modules/10-web3-identity/README.md",
+      "type": "file"
+    },
+    {
+      "path": "modules/11-digital-provenance",
+      "type": "directory"
+    },
+    {
+      "path": "modules/11-digital-provenance/src",
+      "type": "directory"
+    },
+    {
+      "path": "modules/11-digital-provenance/src/asset-verification",
+      "type": "directory"
+    },
+    {
+      "path": "modules/11-digital-provenance/src/content-integrity",
+      "type": "directory"
+    },
+    {
+      "path": "modules/11-digital-provenance/src/signature-validation",
+      "type": "directory"
+    },
+    {
+      "path": "modules/11-digital-provenance/src/ownership-evidence",
+      "type": "directory"
+    },
+    {
+      "path": "modules/11-digital-provenance/src/provenance-graph",
+      "type": "directory"
+    },
+    {
+      "path": "modules/11-digital-provenance/tests",
+      "type": "directory"
+    },
+    {
+      "path": "modules/11-digital-provenance/README.md",
+      "type": "file"
+    },
+    {
+      "path": "modules/12-depin-security",
+      "type": "directory"
+    },
+    {
+      "path": "modules/12-depin-security/src",
+      "type": "directory"
+    },
+    {
+      "path": "modules/12-depin-security/src/device-identity",
+      "type": "directory"
+    },
+    {
+      "path": "modules/12-depin-security/src/firmware-attestation",
+      "type": "directory"
+    },
+    {
+      "path": "modules/12-depin-security/src/secure-provisioning",
+      "type": "directory"
+    },
+    {
+      "path": "modules/12-depin-security/src/embedded-cryptography",
+      "type": "directory"
+    },
+    {
+      "path": "modules/12-depin-security/src/pqc-readiness",
+      "type": "directory"
+    },
+    {
+      "path": "modules/12-depin-security/tests",
+      "type": "directory"
+    },
+    {
+      "path": "modules/12-depin-security/README.md",
+      "type": "file"
+    },
+    {
+      "path": "core",
+      "type": "directory"
+    },
+    {
+      "path": "core/cryptographic-inventory",
+      "type": "directory"
+    },
+    {
+      "path": "core/cryptographic-inventory/asset-discovery",
+      "type": "directory"
+    },
+    {
+      "path": "core/cryptographic-inventory/algorithm-classification",
+      "type": "directory"
+    },
+    {
+      "path": "core/cryptographic-inventory/dependency-resolution",
+      "type": "directory"
+    },
+    {
+      "path": "core/cryptographic-inventory/inventory-normalization",
+      "type": "directory"
+    },
+    {
+      "path": "core/cbom-engine",
+      "type": "directory"
+    },
+    {
+      "path": "core/cbom-engine/generators",
+      "type": "directory"
+    },
+    {
+      "path": "core/cbom-engine/exporters",
+      "type": "directory"
+    },
+    {
+      "path": "core/cbom-engine/schema-validation",
+      "type": "directory"
+    },
+    {
+      "path": "core/cbom-engine/inventory-merging",
+      "type": "directory"
+    },
+    {
+      "path": "core/qbom-engine",
+      "type": "directory"
+    },
+    {
+      "path": "core/qbom-engine/quantum-risk-rules",
+      "type": "directory"
+    },
+    {
+      "path": "core/qbom-engine/algorithm-registry",
+      "type": "directory"
+    },
+    {
+      "path": "core/qbom-engine/migration-prioritization",
+      "type": "directory"
+    },
+    {
+      "path": "core/qbom-engine/dependency-analysis",
+      "type": "directory"
+    },
+    {
+      "path": "core/cpm-engine",
+      "type": "directory"
+    },
+    {
+      "path": "core/cpm-engine/posture-evaluation",
+      "type": "directory"
+    },
+    {
+      "path": "core/cpm-engine/policy-checks",
+      "type": "directory"
+    },
+    {
+      "path": "core/cpm-engine/drift-detection",
+      "type": "directory"
+    },
+    {
+      "path": "core/cpm-engine/continuous-assessment",
+      "type": "directory"
+    },
+    {
+      "path": "core/risk-engine",
+      "type": "directory"
+    },
+    {
+      "path": "core/risk-engine/risk-models",
+      "type": "directory"
+    },
+    {
+      "path": "core/risk-engine/risk-scoring",
+      "type": "directory"
+    },
+    {
+      "path": "core/risk-engine/severity-classification",
+      "type": "directory"
+    },
+    {
+      "path": "core/risk-engine/explainability",
+      "type": "directory"
+    },
+    {
+      "path": "core/trust-graph-engine",
+      "type": "directory"
+    },
+    {
+      "path": "core/trust-graph-engine/entities",
+      "type": "directory"
+    },
+    {
+      "path": "core/trust-graph-engine/relationships",
+      "type": "directory"
+    },
+    {
+      "path": "core/trust-graph-engine/graph-builders",
+      "type": "directory"
+    },
+    {
+      "path": "core/trust-graph-engine/graph-queries",
+      "type": "directory"
+    },
+    {
+      "path": "core/evidence-engine",
+      "type": "directory"
+    },
+    {
+      "path": "core/evidence-engine/evidence-collection",
+      "type": "directory"
+    },
+    {
+      "path": "core/evidence-engine/evidence-hashing",
+      "type": "directory"
+    },
+    {
+      "path": "core/evidence-engine/evidence-provenance",
+      "type": "directory"
+    },
+    {
+      "path": "core/evidence-engine/verification",
+      "type": "directory"
+    },
+    {
+      "path": "core/policy-engine",
+      "type": "directory"
+    },
+    {
+      "path": "core/policy-engine/policies",
+      "type": "directory"
+    },
+    {
+      "path": "core/policy-engine/evaluators",
+      "type": "directory"
+    },
+    {
+      "path": "core/policy-engine/exceptions",
+      "type": "directory"
+    },
+    {
+      "path": "core/policy-engine/rule-versioning",
+      "type": "directory"
+    },
+    {
+      "path": "core/migration-engine",
+      "type": "directory"
+    },
+    {
+      "path": "core/asset-registry",
+      "type": "directory"
+    },
+    {
+      "path": "core/tenant-authorization",
+      "type": "directory"
+    },
+    {
+      "path": "core/audit-ledger",
+      "type": "directory"
+    },
+    {
+      "path": "core/reporting-engine",
+      "type": "directory"
+    },
+    {
+      "path": "connectors",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/blockchains",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/blockchains/ethereum",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/blockchains/arbitrum",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/blockchains/optimism",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/blockchains/polygon",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/blockchains/base",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/blockchains/bnb-chain",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/blockchains/solana",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/blockchains/bitcoin",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/custody",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/custody/mpc-adapters",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/custody/hsm-adapters",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/custody/custody-platforms",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/infrastructure",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/infrastructure/blockchain-nodes",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/infrastructure/validator-clients",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/infrastructure/cloud-kms",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/infrastructure/pkcs11",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/decentralized-storage",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/decentralized-storage/ipfs",
+      "type": "directory"
+    },
+    {
+      "path": "connectors/decentralized-storage/arweave",
+      "type": "directory"
+    },
+    {
+      "path": "packages",
+      "type": "directory"
+    },
+    {
+      "path": "packages/domain-models",
+      "type": "directory"
+    },
+    {
+      "path": "packages/api-contracts",
+      "type": "directory"
+    },
+    {
+      "path": "packages/shared-types",
+      "type": "directory"
+    },
+    {
+      "path": "packages/schema-registry",
+      "type": "directory"
+    },
+    {
+      "path": "packages/chain-adapters",
+      "type": "directory"
+    },
+    {
+      "path": "packages/crypto-providers",
+      "type": "directory"
+    },
+    {
+      "path": "packages/rulepacks",
+      "type": "directory"
+    },
+    {
+      "path": "packages/config",
+      "type": "directory"
+    },
+    {
+      "path": "packages/logging",
+      "type": "directory"
+    },
+    {
+      "path": "packages/observability",
+      "type": "directory"
+    },
+    {
+      "path": "packages/errors",
+      "type": "directory"
+    },
+    {
+      "path": "packages/test-fixtures",
+      "type": "directory"
+    },
+    {
+      "path": "packages/ui-components",
+      "type": "directory"
+    },
+    {
+      "path": "sdks",
+      "type": "directory"
+    },
+    {
+      "path": "sdks/typescript",
+      "type": "directory"
+    },
+    {
+      "path": "sdks/python",
+      "type": "directory"
+    },
+    {
+      "path": "sdks/go",
+      "type": "directory"
+    },
+    {
+      "path": "sdks/rust",
+      "type": "directory"
+    },
+    {
+      "path": "cli",
+      "type": "directory"
+    },
+    {
+      "path": "cli/chainvanta",
+      "type": "directory"
+    },
+    {
+      "path": "cli/chainvanta/commands",
+      "type": "directory"
+    },
+    {
+      "path": "cli/chainvanta/commands/scan",
+      "type": "directory"
+    },
+    {
+      "path": "cli/chainvanta/commands/inventory",
+      "type": "directory"
+    },
+    {
+      "path": "cli/chainvanta/commands/cbom",
+      "type": "directory"
+    },
+    {
+      "path": "cli/chainvanta/commands/qbom",
+      "type": "directory"
+    },
+    {
+      "path": "cli/chainvanta/commands/posture",
+      "type": "directory"
+    },
+    {
+      "path": "cli/chainvanta/commands/assess",
+      "type": "directory"
+    },
+    {
+      "path": "cli/chainvanta/commands/report",
+      "type": "directory"
+    },
+    {
+      "path": "cli/chainvanta/tests",
+      "type": "directory"
+    },
+    {
+      "path": "workers",
+      "type": "directory"
+    },
+    {
+      "path": "workers/blockchain-indexer",
+      "type": "directory"
+    },
+    {
+      "path": "workers/event-processor",
+      "type": "directory"
+    },
+    {
+      "path": "workers/assessment-worker",
+      "type": "directory"
+    },
+    {
+      "path": "workers/evidence-worker",
+      "type": "directory"
+    },
+    {
+      "path": "workers/reporting-worker",
+      "type": "directory"
+    },
+    {
+      "path": "workers/alert-worker",
+      "type": "directory"
+    },
+    {
+      "path": "edge",
+      "type": "directory"
+    },
+    {
+      "path": "edge/rust-agent",
+      "type": "directory"
+    },
+    {
+      "path": "edge/device-adapters",
+      "type": "directory"
+    },
+    {
+      "path": "edge/firmware-verification",
+      "type": "directory"
+    },
+    {
+      "path": "edge/hardware-abstraction",
+      "type": "directory"
+    },
+    {
+      "path": "database",
+      "type": "directory"
+    },
+    {
+      "path": "database/migrations",
+      "type": "directory"
+    },
+    {
+      "path": "database/seeds",
+      "type": "directory"
+    },
+    {
+      "path": "database/schemas",
+      "type": "directory"
+    },
+    {
+      "path": "database/policies",
+      "type": "directory"
+    },
+    {
+      "path": "database/queries",
+      "type": "directory"
+    },
+    {
+      "path": "infrastructure",
+      "type": "directory"
+    },
+    {
+      "path": "infrastructure/terraform",
+      "type": "directory"
+    },
+    {
+      "path": "infrastructure/terraform/modules",
+      "type": "directory"
+    },
+    {
+      "path": "infrastructure/terraform/environments",
+      "type": "directory"
+    },
+    {
+      "path": "infrastructure/terraform/environments/development",
+      "type": "directory"
+    },
+    {
+      "path": "infrastructure/terraform/environments/staging",
+      "type": "directory"
+    },
+    {
+      "path": "infrastructure/terraform/environments/production",
+      "type": "directory"
+    },
+    {
+      "path": "infrastructure/docker",
+      "type": "directory"
+    },
+    {
+      "path": "infrastructure/kubernetes",
+      "type": "directory"
+    },
+    {
+      "path": "infrastructure/helm",
+      "type": "directory"
+    },
+    {
+      "path": "infrastructure/monitoring",
+      "type": "directory"
+    },
+    {
+      "path": "infrastructure/secrets",
+      "type": "directory"
+    },
+    {
+      "path": "infrastructure/backup-recovery",
+      "type": "directory"
+    },
+    {
+      "path": "security",
+      "type": "directory"
+    },
+    {
+      "path": "security/threat-models",
+      "type": "directory"
+    },
+    {
+      "path": "security/cryptographic-assurance",
+      "type": "directory"
+    },
+    {
+      "path": "security/dependency-audits",
+      "type": "directory"
+    },
+    {
+      "path": "security/sbom",
+      "type": "directory"
+    },
+    {
+      "path": "security/penetration-testing",
+      "type": "directory"
+    },
+    {
+      "path": "security/access-control",
+      "type": "directory"
+    },
+    {
+      "path": "security/incident-response",
+      "type": "directory"
+    },
+    {
+      "path": "security/supply-chain",
+      "type": "directory"
+    },
+    {
+      "path": "tests",
+      "type": "directory"
+    },
+    {
+      "path": "tests/unit",
+      "type": "directory"
+    },
+    {
+      "path": "tests/integration",
+      "type": "directory"
+    },
+    {
+      "path": "tests/end-to-end",
+      "type": "directory"
+    },
+    {
+      "path": "tests/security",
+      "type": "directory"
+    },
+    {
+      "path": "tests/performance",
+      "type": "directory"
+    },
+    {
+      "path": "tests/load",
+      "type": "directory"
+    },
+    {
+      "path": "tests/chaos",
+      "type": "directory"
+    },
+    {
+      "path": "tests/blockchain-reorg",
+      "type": "directory"
+    },
+    {
+      "path": "tests/multi-tenant-isolation",
+      "type": "directory"
+    },
+    {
+      "path": "tests/crypto-conformance",
+      "type": "directory"
+    },
+    {
+      "path": "docs",
+      "type": "directory"
+    },
+    {
+      "path": "docs/architecture",
+      "type": "directory"
+    },
+    {
+      "path": "docs/architecture/system-overview.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/architecture/service-boundaries.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/architecture/data-flow.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/architecture/security-architecture.md",
+      "type": "file"
+    },
+    {
+      "path": "docs/modules",
+      "type": "directory"
+    },
+    {
+      "path": "docs/api",
+      "type": "directory"
+    },
+    {
+      "path": "docs/deployment",
+      "type": "directory"
+    },
+    {
+      "path": "docs/development",
+      "type": "directory"
+    },
+    {
+      "path": "docs/security",
+      "type": "directory"
+    },
+    {
+      "path": "docs/compliance",
+      "type": "directory"
+    },
+    {
+      "path": "docs/customer-integration",
+      "type": "directory"
+    },
+    {
+      "path": "docs/operations",
+      "type": "directory"
+    },
+    {
+      "path": "docs/adr",
+      "type": "directory"
+    },
+    {
+      "path": "scripts",
+      "type": "directory"
+    },
+    {
+      "path": "scripts/bootstrap",
+      "type": "directory"
+    },
+    {
+      "path": "scripts/development",
+      "type": "directory"
+    },
+    {
+      "path": "scripts/database",
+      "type": "directory"
+    },
+    {
+      "path": "scripts/testing",
+      "type": "directory"
+    },
+    {
+      "path": "scripts/release",
+      "type": "directory"
+    },
+    {
+      "path": ".env.example",
+      "type": "file"
+    },
+    {
+      "path": ".gitignore",
+      "type": "file"
+    },
+    {
+      "path": ".editorconfig",
+      "type": "file"
+    },
+    {
+      "path": ".prettierrc",
+      "type": "file"
+    },
+    {
+      "path": "eslint.config.js",
+      "type": "file"
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "type": "file"
+    },
+    {
+      "path": "package.json",
+      "type": "file"
+    },
+    {
+      "path": "go.work",
+      "type": "file"
+    },
+    {
+      "path": "Cargo.toml",
+      "type": "file"
+    },
+    {
+      "path": "Makefile",
+      "type": "file"
+    },
+    {
+      "path": "docker-compose.yml",
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "type": "file"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "type": "file"
+    },
+    {
+      "path": "SECURITY.md",
+      "type": "file"
+    },
+    {
+      "path": "LICENSE",
+      "type": "file"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "type": "file"
+    }
+  ]
+}

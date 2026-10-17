@@ -1,0 +1,18 @@
+name: Bug report
+description: Report a reproducible non-sensitive defect
+body:
+  - type: markdown
+    attributes:
+      value: Do not report secrets or exploitable vulnerabilities publicly. Read SECURITY.md first.
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction and revision
+      description: Include commands, expected behavior, actual behavior and a sanitized revision/environment.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized evidence
+      description: Logs or tests supporting the report; remove API keys and customer data.

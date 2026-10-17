@@ -1,0 +1,37 @@
+name: Build release candidate
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check:structure
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm sbom
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chainvanta-candidate-${{ github.sha }}
+          path: |
+            dist/
+            apps/web-console/.next/
+            !apps/web-console/.next/cache/
+            .local/sbom.cdx.json
+          include-hidden-files: true
+          retention-days: 14
+      # Publishing, signing and deployment require a separate reviewed release process.

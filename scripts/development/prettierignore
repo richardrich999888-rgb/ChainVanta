@@ -1,0 +1,10 @@
+pnpm-lock.yaml
+node_modules
+dist
+.next
+test-results
+playwright-report
+docs/development/original-architecture.txt
+**/next-env.d.ts
+.local
+docs/development/repository-structure.txt

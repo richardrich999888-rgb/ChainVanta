@@ -1,0 +1,28 @@
+name: chainvanta
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: chainvanta_owner
+      POSTGRES_DB: chainvanta
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run pnpm bootstrap first}
+      POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD:?Run pnpm bootstrap first}
+    ports: ['127.0.0.1:5432:5432']
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U chainvanta_owner -d chainvanta']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--save', '', '--appendonly', 'no']
+    ports: ['127.0.0.1:6379:6379']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+volumes:
+  postgres-data:

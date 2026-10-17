@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.next/
+coverage/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+.DS_Store
+*.log
+.local/
+target/
+
+workers/blockchain-indexer/indexer

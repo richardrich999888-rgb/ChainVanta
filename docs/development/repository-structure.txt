@@ -1,0 +1,389 @@
+ChainVanta/
+│
+├── .github/
+│   ├── workflows/
+│   │   ├── ci.yml
+│   │   ├── security-scan.yml
+│   │   ├── dependency-audit.yml
+│   │   ├── codeql.yml
+│   │   ├── release.yml
+│   │   └── deploy-staging.yml
+│   ├── ISSUE_TEMPLATE/
+│   ├── PULL_REQUEST_TEMPLATE.md
+│   └── CODEOWNERS
+│
+├── apps/
+│   ├── web-console/                  # Next.js customer dashboard
+│   │   ├── src/
+│   │   │   ├── app/
+│   │   │   │   ├── dashboard/
+│   │   │   │   ├── inventory/
+│   │   │   │   ├── cbom/
+│   │   │   │   ├── qbom/
+│   │   │   │   ├── posture/
+│   │   │   │   ├── trust-graph/
+│   │   │   │   ├── findings/
+│   │   │   │   ├── migrations/
+│   │   │   │   ├── reports/
+│   │   │   │   └── settings/
+│   │   │   ├── components/
+│   │   │   ├── hooks/
+│   │   │   ├── lib/
+│   │   │   └── styles/
+│   │   └── package.json
+│   │
+│   ├── admin-console/
+│   ├── developer-portal/
+│   └── documentation-site/
+│
+├── services/
+│   ├── api-gateway/
+│   ├── identity-service/
+│   ├── tenant-service/
+│   ├── inventory-service/
+│   ├── assessment-service/
+│   ├── findings-service/
+│   ├── evidence-service/
+│   ├── reporting-service/
+│   ├── notification-service/
+│   ├── ingestion-orchestrator/
+│   └── job-worker/
+│
+├── modules/
+│   │
+│   ├── 01-wallet-intelligence/
+│   │   ├── src/
+│   │   │   ├── discovery/
+│   │   │   ├── signature-analysis/
+│   │   │   ├── key-dependencies/
+│   │   │   ├── wallet-risk/
+│   │   │   └── assessment/
+│   │   ├── tests/
+│   │   ├── schemas/
+│   │   └── README.md
+│   │
+│   ├── 02-defi-trust-graph/
+│   │   ├── src/
+│   │   │   ├── graph-builder/
+│   │   │   ├── dependency-mapper/
+│   │   │   ├── protocol-analysis/
+│   │   │   ├── oracle-dependencies/
+│   │   │   └── risk-propagation/
+│   │   ├── tests/
+│   │   ├── schemas/
+│   │   └── README.md
+│   │
+│   ├── 03-bridge-assurance/
+│   │   ├── src/
+│   │   │   ├── bridge-discovery/
+│   │   │   ├── validator-analysis/
+│   │   │   ├── signature-verification/
+│   │   │   ├── relay-monitoring/
+│   │   │   └── bridge-risk/
+│   │   ├── tests/
+│   │   ├── schemas/
+│   │   └── README.md
+│   │
+│   ├── 04-contract-crypto-agility/
+│   │   ├── src/
+│   │   │   ├── contract-analysis/
+│   │   │   ├── signature-scheme-discovery/
+│   │   │   ├── upgradeability/
+│   │   │   ├── migration-readiness/
+│   │   │   └── compatibility-checks/
+│   │   ├── contracts/
+│   │   ├── tests/
+│   │   └── README.md
+│   │
+│   ├── 05-validator-cpm/
+│   │   ├── src/
+│   │   │   ├── validator-discovery/
+│   │   │   ├── signing-posture/
+│   │   │   ├── key-lifecycle/
+│   │   │   ├── slashing-risk/
+│   │   │   └── posture-monitoring/
+│   │   ├── tests/
+│   │   └── README.md
+│   │
+│   ├── 06-zk-crypto-inventory/
+│   │   ├── src/
+│   │   │   ├── proof-system-discovery/
+│   │   │   ├── circuit-dependencies/
+│   │   │   ├── trusted-setup-analysis/
+│   │   │   ├── crypto-assumptions/
+│   │   │   └── quantum-exposure/
+│   │   ├── tests/
+│   │   └── README.md
+│   │
+│   ├── 07-custody-mpc-hsm/
+│   │   ├── src/
+│   │   │   ├── custody-inventory/
+│   │   │   ├── mpc-policy-analysis/
+│   │   │   ├── hsm-integration/
+│   │   │   ├── key-lifecycle/
+│   │   │   └── controls-assessment/
+│   │   ├── tests/
+│   │   └── README.md
+│   │
+│   ├── 08-crosschain-pqc-migration/
+│   │   ├── src/
+│   │   │   ├── quantum-readiness/
+│   │   │   ├── algorithm-compatibility/
+│   │   │   ├── migration-planner/
+│   │   │   ├── interoperability/
+│   │   │   └── migration-verification/
+│   │   ├── tests/
+│   │   └── README.md
+│   │
+│   ├── 09-stablecoin-assurance/
+│   │   ├── src/
+│   │   │   ├── issuer-discovery/
+│   │   │   ├── mint-burn-authorities/
+│   │   │   ├── privileged-roles/
+│   │   │   ├── treasury-dependencies/
+│   │   │   └── authority-monitoring/
+│   │   ├── tests/
+│   │   └── README.md
+│   │
+│   ├── 10-web3-identity/
+│   │   ├── src/
+│   │   │   ├── did-analysis/
+│   │   │   ├── credential-crypto/
+│   │   │   ├── identity-dependencies/
+│   │   │   ├── key-rotation/
+│   │   │   └── migration-readiness/
+│   │   ├── tests/
+│   │   └── README.md
+│   │
+│   ├── 11-digital-provenance/
+│   │   ├── src/
+│   │   │   ├── asset-verification/
+│   │   │   ├── content-integrity/
+│   │   │   ├── signature-validation/
+│   │   │   ├── ownership-evidence/
+│   │   │   └── provenance-graph/
+│   │   ├── tests/
+│   │   └── README.md
+│   │
+│   └── 12-depin-security/
+│       ├── src/
+│       │   ├── device-identity/
+│       │   ├── firmware-attestation/
+│       │   ├── secure-provisioning/
+│       │   ├── embedded-cryptography/
+│       │   └── pqc-readiness/
+│       ├── tests/
+│       └── README.md
+│
+├── core/
+│   ├── cryptographic-inventory/
+│   │   ├── asset-discovery/
+│   │   ├── algorithm-classification/
+│   │   ├── dependency-resolution/
+│   │   └── inventory-normalization/
+│   │
+│   ├── cbom-engine/
+│   │   ├── generators/
+│   │   ├── exporters/
+│   │   ├── schema-validation/
+│   │   └── inventory-merging/
+│   │
+│   ├── qbom-engine/
+│   │   ├── quantum-risk-rules/
+│   │   ├── algorithm-registry/
+│   │   ├── migration-prioritization/
+│   │   └── dependency-analysis/
+│   │
+│   ├── cpm-engine/
+│   │   ├── posture-evaluation/
+│   │   ├── policy-checks/
+│   │   ├── drift-detection/
+│   │   └── continuous-assessment/
+│   │
+│   ├── risk-engine/
+│   │   ├── risk-models/
+│   │   ├── risk-scoring/
+│   │   ├── severity-classification/
+│   │   └── explainability/
+│   │
+│   ├── trust-graph-engine/
+│   │   ├── entities/
+│   │   ├── relationships/
+│   │   ├── graph-builders/
+│   │   └── graph-queries/
+│   │
+│   ├── evidence-engine/
+│   │   ├── evidence-collection/
+│   │   ├── evidence-hashing/
+│   │   ├── evidence-provenance/
+│   │   └── verification/
+│   │
+│   ├── policy-engine/
+│   │   ├── policies/
+│   │   ├── evaluators/
+│   │   ├── exceptions/
+│   │   └── rule-versioning/
+│   │
+│   ├── migration-engine/
+│   ├── asset-registry/
+│   ├── tenant-authorization/
+│   ├── audit-ledger/
+│   └── reporting-engine/
+│
+├── connectors/
+│   ├── blockchains/
+│   │   ├── ethereum/
+│   │   ├── arbitrum/
+│   │   ├── optimism/
+│   │   ├── polygon/
+│   │   ├── base/
+│   │   ├── bnb-chain/
+│   │   ├── solana/
+│   │   └── bitcoin/
+│   │
+│   ├── custody/
+│   │   ├── mpc-adapters/
+│   │   ├── hsm-adapters/
+│   │   └── custody-platforms/
+│   │
+│   ├── infrastructure/
+│   │   ├── blockchain-nodes/
+│   │   ├── validator-clients/
+│   │   ├── cloud-kms/
+│   │   └── pkcs11/
+│   │
+│   └── decentralized-storage/
+│       ├── ipfs/
+│       └── arweave/
+│
+├── packages/
+│   ├── domain-models/
+│   ├── api-contracts/
+│   ├── shared-types/
+│   ├── schema-registry/
+│   ├── chain-adapters/
+│   ├── crypto-providers/
+│   ├── rulepacks/
+│   ├── config/
+│   ├── logging/
+│   ├── observability/
+│   ├── errors/
+│   ├── test-fixtures/
+│   └── ui-components/
+│
+├── sdks/
+│   ├── typescript/
+│   ├── python/
+│   ├── go/
+│   └── rust/
+│
+├── cli/
+│   └── chainvanta/
+│       ├── commands/
+│       │   ├── scan/
+│       │   ├── inventory/
+│       │   ├── cbom/
+│       │   ├── qbom/
+│       │   ├── posture/
+│       │   ├── assess/
+│       │   └── report/
+│       └── tests/
+│
+├── workers/
+│   ├── blockchain-indexer/
+│   ├── event-processor/
+│   ├── assessment-worker/
+│   ├── evidence-worker/
+│   ├── reporting-worker/
+│   └── alert-worker/
+│
+├── edge/
+│   ├── rust-agent/
+│   ├── device-adapters/
+│   ├── firmware-verification/
+│   └── hardware-abstraction/
+│
+├── database/
+│   ├── migrations/
+│   ├── seeds/
+│   ├── schemas/
+│   ├── policies/
+│   └── queries/
+│
+├── infrastructure/
+│   ├── terraform/
+│   │   ├── modules/
+│   │   └── environments/
+│   │       ├── development/
+│   │       ├── staging/
+│   │       └── production/
+│   │
+│   ├── docker/
+│   ├── kubernetes/
+│   ├── helm/
+│   ├── monitoring/
+│   ├── secrets/
+│   └── backup-recovery/
+│
+├── security/
+│   ├── threat-models/
+│   ├── cryptographic-assurance/
+│   ├── dependency-audits/
+│   ├── sbom/
+│   ├── penetration-testing/
+│   ├── access-control/
+│   ├── incident-response/
+│   └── supply-chain/
+│
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   ├── end-to-end/
+│   ├── security/
+│   ├── performance/
+│   ├── load/
+│   ├── chaos/
+│   ├── blockchain-reorg/
+│   ├── multi-tenant-isolation/
+│   └── crypto-conformance/
+│
+├── docs/
+│   ├── architecture/
+│   │   ├── system-overview.md
+│   │   ├── service-boundaries.md
+│   │   ├── data-flow.md
+│   │   └── security-architecture.md
+│   │
+│   ├── modules/
+│   ├── api/
+│   ├── deployment/
+│   ├── development/
+│   ├── security/
+│   ├── compliance/
+│   ├── customer-integration/
+│   ├── operations/
+│   └── adr/
+│
+├── scripts/
+│   ├── bootstrap/
+│   ├── development/
+│   ├── database/
+│   ├── testing/
+│   └── release/
+│
+├── .env.example
+├── .gitignore
+├── .editorconfig
+├── .prettierrc
+├── eslint.config.js
+├── pnpm-workspace.yaml
+├── package.json
+├── go.work
+├── Cargo.toml
+├── Makefile
+├── docker-compose.yml
+├── README.md
+├── CONTRIBUTING.md
+├── SECURITY.md
+├── LICENSE
+└── CHANGELOG.md

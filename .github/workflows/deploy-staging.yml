@@ -1,0 +1,13 @@
+name: Staging deployment (not configured)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  configuration-required:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require an implemented staging deployment
+        run: |
+          echo "::error::Staging deployment is not implemented. Configure infrastructure, secret delivery, migrations, health checks and rollback before enabling deployment. See docs/deployment/README.md."
+          exit 1

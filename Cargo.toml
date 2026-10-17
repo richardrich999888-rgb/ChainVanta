@@ -1,0 +1,5 @@
+# Reserved workspace for edge/rust-agent and sdks/rust.
+# No Rust package is implemented yet; add members when their manifests exist.
+[workspace]
+resolver = "3"
+members = []
