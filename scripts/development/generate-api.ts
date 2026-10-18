@@ -1,5 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import { z } from 'zod';
+import { cpmSchemas, cpmPaths } from './cpm-contracts.js';
 import {
   Assessment,
   Observation,
@@ -24,6 +25,7 @@ const doc = {
   info: { title: 'ChainVanta API', version: '0.2.0' },
   security: [{ Bearer: [] }],
   paths: {
+    ...cpmPaths,
     '/v1/session': {
       get: {
         responses: response({
@@ -120,7 +122,7 @@ const doc = {
         description: 'Opaque tenant key or validated OIDC JWT access token',
       },
     },
-    schemas,
+    schemas: { ...schemas, ...cpmSchemas },
   },
 };
 await writeFile(

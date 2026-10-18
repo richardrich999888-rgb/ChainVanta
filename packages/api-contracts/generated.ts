@@ -4,6 +4,1881 @@
  */
 
 export interface paths {
+  '/v1/cpm/assess': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Tenant authentication required; writes require analyst or administrator. */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['CpmAssessRequest'];
+        };
+      };
+      responses: {
+        /** @description Success */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['PostureSnapshot'];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/cpm/posture/{assetId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Tenant authentication required; writes require analyst or administrator. */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          assetId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['PostureResponse'];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/cpm/history/{assetId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Tenant authentication required; writes require analyst or administrator. */
+    get: {
+      parameters: {
+        query?: {
+          limit?: number;
+          offset?: number;
+        };
+        header?: never;
+        path: {
+          assetId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['HistoricalPosture'][];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/cpm/policies': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Tenant authentication required; writes require analyst or administrator. */
+    get: {
+      parameters: {
+        query?: {
+          limit?: number;
+          offset?: number;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['PolicyVersionRecord'][];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    /** @description Tenant administrator required. */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['CpmPolicy'];
+        };
+      };
+      responses: {
+        /** @description Success */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['CpmPolicy'];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/cpm/policies/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** @description Tenant administrator required. */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            active: boolean;
+          };
+        };
+      };
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              id: string;
+              active: boolean;
+            };
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    trace?: never;
+  };
+  '/v1/cpm/assignments': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Tenant administrator required. */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['PolicyAssignment'];
+        };
+      };
+      responses: {
+        /** @description Success */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['PolicyAssignment'];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/cpm/monitoring': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Tenant authentication required; writes require analyst or administrator. */
+    get: {
+      parameters: {
+        query?: {
+          limit?: number;
+          offset?: number;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MonitoringSchedule'][];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    /** @description Tenant authentication required; writes require analyst or administrator. */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['MonitoringRequest'];
+        };
+      };
+      responses: {
+        /** @description Success */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MonitoringSchedule'];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/cpm/monitoring/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** @description Tenant administrator required. */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MonitoringSchedule'];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    /** @description Tenant administrator required. */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['MonitoringUpdate'];
+        };
+      };
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MonitoringSchedule'];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    trace?: never;
+  };
+  '/v1/cpm/jobs/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Tenant authentication required; writes require analyst or administrator. */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['AssessmentJob'];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/cpm/jobs/{id}/cancel': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Tenant administrator required. */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': Record<string, never>;
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/cpm/drift': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Tenant authentication required; writes require analyst or administrator. */
+    get: {
+      parameters: {
+        query?: {
+          limit?: number;
+          offset?: number;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['DriftEvent'][];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/cpm/remediation': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Tenant authentication required; writes require analyst or administrator. */
+    get: {
+      parameters: {
+        query?: {
+          limit?: number;
+          offset?: number;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Remediation'][];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/cpm/notifications': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Tenant authentication required; writes require analyst or administrator. */
+    get: {
+      parameters: {
+        query?: {
+          limit?: number;
+          offset?: number;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': Record<string, never>[];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/cpm/findings/{snapshotId}/{ruleId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** @description Tenant administrator required. */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          snapshotId: string;
+          ruleId: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['FindingTransition'];
+        };
+      };
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': Record<string, never>;
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    trace?: never;
+  };
+  '/v1/cpm/migrations/assess': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Tenant authentication required; writes require analyst or administrator. */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['MigrationRequest'];
+        };
+      };
+      responses: {
+        /** @description Success */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MigrationResult'];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/cpm/migrations/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Tenant authentication required; writes require analyst or administrator. */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MigrationResult'];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/cpm/migrations/{id}/verify': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Tenant authentication required; writes require analyst or administrator. */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            assessmentId: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Success */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MigrationResult'];
+          };
+        };
+        /** @description Invalid input */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Tenant resource not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description State or immutable version conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Quota exceeded */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Collection failed */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dependency unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/v1/session': {
     parameters: {
       query?: never;
@@ -738,6 +2613,538 @@ export interface components {
       reason: string;
       /** Format: date-time */
       expiresAt?: string;
+    };
+    CpmPolicy: {
+      id: string;
+      version: string;
+      enabled: boolean;
+      /** @constant */
+      domain: 'evm-observed';
+      assetKinds: ('no-code-account' | 'code-bearing-account')[];
+      rules: {
+        id: string;
+        /** @enum {string} */
+        kind:
+          | 'quantum-signature'
+          | 'unknown-algorithm'
+          | 'signature-format'
+          | 'migration-required'
+          | 'inventory-completeness'
+          | 'missing-evidence'
+          | 'authority-concentration'
+          | 'key-lifecycle'
+          | 'policy-exception'
+          | 'migration-verification';
+        enabled: boolean;
+        /** @enum {string} */
+        severity: 'info' | 'medium' | 'high';
+        title: string;
+        evidenceRequirements: (
+          | 'account-state'
+          | 'transaction-signature'
+          | 'owner-accessor'
+          | 'custody'
+          | 'migration-verification'
+        )[];
+        remediation: string;
+        standards: string[];
+      }[];
+    };
+    PolicyAssignment: {
+      assetId: string;
+      policy: {
+        id: string;
+        version: string;
+      };
+      /**
+       * @default normal
+       * @enum {string}
+       */
+      operationalImportance: 'normal' | 'high' | 'critical';
+    };
+    CpmAssessRequest: {
+      /** Format: uuid */
+      assessmentId: string;
+      policy?: {
+        id: string;
+        version: string;
+      };
+    };
+    MonitoringRequest: {
+      input: {
+        address: string;
+        chainId: number;
+        transactionHash?: string;
+        /** @constant */
+        adapter?: 'ownable-erc20';
+      };
+      policy?: {
+        id: string;
+        version: string;
+      };
+      intervalSeconds: number;
+    };
+    MonitoringUpdate: {
+      enabled?: boolean;
+      intervalSeconds?: number;
+    };
+    FindingTransition: {
+      /** @enum {string} */
+      status:
+        | 'open'
+        | 'acknowledged'
+        | 'in_remediation'
+        | 'pending_verification'
+        | 'administratively_closed'
+        | 'excepted';
+      reason: string;
+      /** Format: date-time */
+      expiresAt?: string;
+    };
+    MigrationRequest: {
+      /** Format: uuid */
+      assessmentId: string;
+      /** @enum {string} */
+      goal: 'authorization-change' | 'cryptographic-migration';
+      scope: string;
+      criteria: (
+        | {
+            /** @constant */
+            kind: 'owner_equals';
+            expected: string;
+          }
+        | {
+            /** @constant */
+            kind: 'bytecode_hash_equals';
+            expected: string;
+          }
+        | {
+            /** @constant */
+            kind: 'signature_algorithm';
+            expected: string;
+          }
+      )[];
+    };
+    MigrationResult: {
+      /** @enum {string} */
+      validity?: 'provider-finalized' | 'invalidated';
+      /** @enum {string} */
+      effectiveStatus?: 'PENDING_VERIFICATION';
+      /** Format: uuid */
+      id: string;
+      assetId: string;
+      /** Format: uuid */
+      assessmentId: string;
+      /** Format: uuid */
+      baselineAssessmentId: string;
+      /** @enum {string} */
+      status:
+        | 'READY_FOR_PLANNING'
+        | 'NEEDS_ADDITIONAL_EVIDENCE'
+        | 'TECHNICALLY_BLOCKED'
+        | 'MIGRATION_IN_PROGRESS'
+        | 'PENDING_VERIFICATION'
+        | 'VERIFIED_FOR_DEFINED_SCOPE';
+      scope: string;
+      checks: {
+        criterion:
+          | {
+              /** @constant */
+              kind: 'owner_equals';
+              expected: string;
+            }
+          | {
+              /** @constant */
+              kind: 'bytecode_hash_equals';
+              expected: string;
+            }
+          | {
+              /** @constant */
+              kind: 'signature_algorithm';
+              expected: string;
+            };
+        /** @enum {string} */
+        result: 'satisfied' | 'not_satisfied' | 'unknown';
+        reason: string;
+      }[];
+      evidenceReferences: string[];
+      missingEvidence: string[];
+      limitations: string[];
+    };
+    PostureSnapshot: {
+      id: string;
+      assetId: string;
+      chainId: number;
+      /** Format: uuid */
+      assessmentId: string;
+      policyId: string;
+      policyVersion: string;
+      policyHash: string;
+      /** @constant */
+      evaluatorVersion: 'web3-cpm/1.0.0';
+      /** Format: date-time */
+      assessedAt: string;
+      observedAlgorithms: string[];
+      /** @enum {string} */
+      quantumExposure: 'exposed' | 'potential' | 'not_observed' | 'unknown';
+      /** @enum {string} */
+      publicKeyExposure: 'recoverable-from-verified-signature' | 'not_observed';
+      /** @enum {string} */
+      migrationReadiness: 'ready' | 'partially_ready' | 'blocked' | 'unknown';
+      /** @enum {string} */
+      confidence: 'observed' | 'authenticated-integration' | 'inferred' | 'unknown';
+      findings: {
+        ruleId: string;
+        ruleVersion?: string;
+        /** @enum {string} */
+        severity: 'info' | 'medium' | 'high';
+        title: string;
+        rationale: string;
+        /** @enum {string} */
+        confidence: 'observed' | 'authenticated-integration' | 'inferred' | 'unknown';
+        evidenceHash: string;
+      }[];
+      evaluations: {
+        ruleId: string;
+        ruleHash: string;
+        /** @enum {string} */
+        result: 'violation' | 'satisfied' | 'unknown' | 'not_applicable';
+        /** @enum {string} */
+        confidence: 'observed' | 'authenticated-integration' | 'inferred' | 'unknown';
+        rationale: string;
+        evidenceReferences: string[];
+      }[];
+      evidenceReferences: string[];
+      coverage: {
+        /** @constant */
+        account: true;
+        signature: boolean;
+        owner: boolean;
+        /** @constant */
+        authorization: false;
+        /** @constant */
+        custody: false;
+      };
+      owner?: string;
+      signatureType?: string;
+      dependencies: string[];
+      demonstration: boolean;
+      limitations: string[];
+    };
+    PostureResponse: {
+      snapshot: {
+        id: string;
+        assetId: string;
+        chainId: number;
+        /** Format: uuid */
+        assessmentId: string;
+        policyId: string;
+        policyVersion: string;
+        policyHash: string;
+        /** @constant */
+        evaluatorVersion: 'web3-cpm/1.0.0';
+        /** Format: date-time */
+        assessedAt: string;
+        observedAlgorithms: string[];
+        /** @enum {string} */
+        quantumExposure: 'exposed' | 'potential' | 'not_observed' | 'unknown';
+        /** @enum {string} */
+        publicKeyExposure: 'recoverable-from-verified-signature' | 'not_observed';
+        /** @enum {string} */
+        migrationReadiness: 'ready' | 'partially_ready' | 'blocked' | 'unknown';
+        /** @enum {string} */
+        confidence: 'observed' | 'authenticated-integration' | 'inferred' | 'unknown';
+        findings: {
+          ruleId: string;
+          ruleVersion?: string;
+          /** @enum {string} */
+          severity: 'info' | 'medium' | 'high';
+          title: string;
+          rationale: string;
+          /** @enum {string} */
+          confidence: 'observed' | 'authenticated-integration' | 'inferred' | 'unknown';
+          evidenceHash: string;
+        }[];
+        evaluations: {
+          ruleId: string;
+          ruleHash: string;
+          /** @enum {string} */
+          result: 'violation' | 'satisfied' | 'unknown' | 'not_applicable';
+          /** @enum {string} */
+          confidence: 'observed' | 'authenticated-integration' | 'inferred' | 'unknown';
+          rationale: string;
+          evidenceReferences: string[];
+        }[];
+        evidenceReferences: string[];
+        coverage: {
+          /** @constant */
+          account: true;
+          signature: boolean;
+          owner: boolean;
+          /** @constant */
+          authorization: false;
+          /** @constant */
+          custody: false;
+        };
+        owner?: string;
+        signatureType?: string;
+        dependencies: string[];
+        demonstration: boolean;
+        limitations: string[];
+        /** @enum {string} */
+        validity: 'provider-finalized' | 'invalidated';
+        invalidationReason: string | null;
+      };
+      lifecycle: {
+        status: string;
+        effectiveStatus: string;
+        policy_id: string;
+        rule_id: string;
+        /** Format: uuid */
+        assessment_id: string;
+        snapshot_id: string;
+        verification_snapshot_id: string | null;
+      }[];
+      currentFindings: {
+        ruleId: string;
+        ruleVersion?: string;
+        /** @enum {string} */
+        severity: 'info' | 'medium' | 'high';
+        title: string;
+        rationale: string;
+        /** @enum {string} */
+        confidence: 'observed' | 'authenticated-integration' | 'inferred' | 'unknown';
+        evidenceHash: string;
+        policyId: string;
+        /** Format: uuid */
+        lastObservedAssessmentId: string;
+        lastObservedSnapshotId: string;
+        /** @enum {string} */
+        evidenceValidity: 'provider-finalized' | 'invalidated';
+        effectiveStatus: string;
+      }[];
+      /** @enum {string} */
+      currentStatus: 'observed' | 'collection_failed' | 'stale';
+      /** @enum {string} */
+      currentQuantumExposure: 'exposed' | 'potential' | 'not_observed' | 'unknown';
+      monitoring: {
+        last_success_at: string | null;
+        last_failure_at: string | null;
+        last_failure: string | null;
+        /** Format: date-time */
+        next_run_at: string;
+        enabled: boolean;
+      }[];
+    };
+    HistoricalPosture: {
+      id: string;
+      assetId: string;
+      chainId: number;
+      /** Format: uuid */
+      assessmentId: string;
+      policyId: string;
+      policyVersion: string;
+      policyHash: string;
+      /** @constant */
+      evaluatorVersion: 'web3-cpm/1.0.0';
+      /** Format: date-time */
+      assessedAt: string;
+      observedAlgorithms: string[];
+      /** @enum {string} */
+      quantumExposure: 'exposed' | 'potential' | 'not_observed' | 'unknown';
+      /** @enum {string} */
+      publicKeyExposure: 'recoverable-from-verified-signature' | 'not_observed';
+      /** @enum {string} */
+      migrationReadiness: 'ready' | 'partially_ready' | 'blocked' | 'unknown';
+      /** @enum {string} */
+      confidence: 'observed' | 'authenticated-integration' | 'inferred' | 'unknown';
+      findings: {
+        ruleId: string;
+        ruleVersion?: string;
+        /** @enum {string} */
+        severity: 'info' | 'medium' | 'high';
+        title: string;
+        rationale: string;
+        /** @enum {string} */
+        confidence: 'observed' | 'authenticated-integration' | 'inferred' | 'unknown';
+        evidenceHash: string;
+      }[];
+      evaluations: {
+        ruleId: string;
+        ruleHash: string;
+        /** @enum {string} */
+        result: 'violation' | 'satisfied' | 'unknown' | 'not_applicable';
+        /** @enum {string} */
+        confidence: 'observed' | 'authenticated-integration' | 'inferred' | 'unknown';
+        rationale: string;
+        evidenceReferences: string[];
+      }[];
+      evidenceReferences: string[];
+      coverage: {
+        /** @constant */
+        account: true;
+        signature: boolean;
+        owner: boolean;
+        /** @constant */
+        authorization: false;
+        /** @constant */
+        custody: false;
+      };
+      owner?: string;
+      signatureType?: string;
+      dependencies: string[];
+      demonstration: boolean;
+      limitations: string[];
+      /** @enum {string} */
+      validity: 'provider-finalized' | 'invalidated';
+      invalidationReason: string | null;
+    };
+    MonitoringSchedule: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      tenant_id: string;
+      asset_id: string;
+      input: {
+        address: string;
+        chainId: number;
+        transactionHash?: string;
+        /** @constant */
+        adapter?: 'ownable-erc20';
+      };
+      policy_id: string;
+      policy_version: string;
+      interval_seconds: number;
+      enabled: boolean;
+      /** Format: date-time */
+      next_run_at: string;
+      last_success_at: string | null;
+      last_failure_at: string | null;
+      last_failure: string | null;
+      actor: string;
+      /** Format: date-time */
+      created_at: string;
+      worker_state?: string | null;
+      latest_job_id?: string | null;
+      error_code?: string | null;
+      heartbeat_at?: string | null;
+    };
+    AssessmentJob: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      tenant_id: string;
+      /** Format: uuid */
+      schedule_id: string;
+      idempotency_key: string;
+      input: {
+        address: string;
+        chainId: number;
+        transactionHash?: string;
+        /** @constant */
+        adapter?: 'ownable-erc20';
+      };
+      policy_id: string;
+      policy_version: string;
+      /** @enum {string} */
+      status: 'queued' | 'running' | 'retry' | 'succeeded' | 'failed' | 'cancelled';
+      attempts: number;
+      /** Format: date-time */
+      available_at: string;
+      lease_until: string | null;
+      worker_id: string | null;
+      started_at: string | null;
+      finished_at: string | null;
+      assessment_id: string | null;
+      error_code: string | null;
+      /** Format: date-time */
+      created_at: string;
+    };
+    PolicyVersionRecord: {
+      active: boolean;
+      document: {
+        id: string;
+        version: string;
+        enabled: boolean;
+        /** @constant */
+        domain: 'evm-observed';
+        assetKinds: ('no-code-account' | 'code-bearing-account')[];
+        rules: {
+          id: string;
+          /** @enum {string} */
+          kind:
+            | 'quantum-signature'
+            | 'unknown-algorithm'
+            | 'signature-format'
+            | 'migration-required'
+            | 'inventory-completeness'
+            | 'missing-evidence'
+            | 'authority-concentration'
+            | 'key-lifecycle'
+            | 'policy-exception'
+            | 'migration-verification';
+          enabled: boolean;
+          /** @enum {string} */
+          severity: 'info' | 'medium' | 'high';
+          title: string;
+          evidenceRequirements: (
+            | 'account-state'
+            | 'transaction-signature'
+            | 'owner-accessor'
+            | 'custody'
+            | 'migration-verification'
+          )[];
+          remediation: string;
+          standards: string[];
+        }[];
+      };
+      content_hash: string;
+      actor: string;
+      /** Format: date-time */
+      created_at: string;
+    };
+    DriftEvent: {
+      id: string;
+      assetId: string;
+      previousSnapshotId: string;
+      currentSnapshotId: string;
+      /** Format: uuid */
+      previousAssessmentId: string;
+      /** Format: uuid */
+      currentAssessmentId: string;
+      /** Format: date-time */
+      detectedAt: string;
+      /** @enum {string} */
+      type:
+        | 'ALGORITHM_OBSERVED'
+        | 'ALGORITHM_NO_LONGER_OBSERVED'
+        | 'QUANTUM_EXPOSURE_CHANGED'
+        | 'SIGNATURE_POSTURE_CHANGED'
+        | 'CONTRACT_AUTHORITY_CHANGED'
+        | 'DEPENDENCY_CHANGED'
+        | 'POLICY_VIOLATION'
+        | 'POLICY_REMEDIATED'
+        | 'EVIDENCE_COVERAGE_CHANGED'
+        | 'MIGRATION_STATUS_CHANGED'
+        | 'POLICY_VERSION_CHANGED';
+      /** @enum {string} */
+      confidence: 'observed' | 'incomplete' | 'policy_change';
+      before: unknown;
+      after: unknown;
+      evidenceReferences: string[];
+    };
+    Remediation: {
+      assetId: string;
+      snapshotId: string;
+      ruleId: string;
+      /** @enum {string} */
+      priority: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'NEEDS_EVIDENCE';
+      dependency: string;
+      rationale: string;
+      evidenceReferences: string[];
+      constraints: string[];
+      nextAction: string;
+      verificationRequirements: string[];
     };
   };
   responses: never;

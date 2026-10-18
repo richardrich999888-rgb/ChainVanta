@@ -17,6 +17,7 @@
     "../../packages/**/*.ts",
     "../../connectors/**/*.ts",
     "../../services/**/*.ts",
+    "../../workers/**/*.ts",
     "../../modules/**/*.ts",
     "../../scripts/**/*.ts",
     "../../cli/**/*.ts",

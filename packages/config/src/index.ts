@@ -30,7 +30,7 @@ export const Chains = z
   );
 
 export function readConfig(env: NodeJS.ProcessEnv = process.env) {
-  return {
+  const config = {
     oidc: env.OIDC_CONFIG ? OidcConfig.parse(JSON.parse(env.OIDC_CONFIG)) : undefined,
     redisUrl: z.url().parse(env.REDIS_URL ?? 'redis://127.0.0.1:6379'),
     databaseUrl: z.string().min(1).parse(env.DATABASE_URL),
@@ -44,5 +44,15 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env) {
       .parse(env.PORT ?? 4000),
     host: env.API_HOST ?? '127.0.0.1',
   };
+  if (
+    env.NODE_ENV === 'production' &&
+    config.chains.some(
+      (chain) => chain.demonstration || new URL(chain.rpcUrl).protocol !== 'https:',
+    )
+  )
+    throw new Error(
+      'Production requires approved HTTPS RPC providers and prohibits demonstration chains',
+    );
+  return config;
 }
 export type Config = ReturnType<typeof readConfig>;

@@ -34,6 +34,11 @@ export async function testDatabase() {
     "DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'chainvanta_test_app') THEN CREATE ROLE chainvanta_test_app NOSUPERUSER NOBYPASSRLS; END IF; END $$; GRANT USAGE ON SCHEMA public TO chainvanta_test_app; GRANT SELECT, INSERT ON evidence, assessments, assets, scan_requests, graph_edges, finding_events, audit_events TO chainvanta_test_app; GRANT SELECT ON schema_migrations TO chainvanta_test_app;",
   );
   if (native) await admin(`GRANT USAGE ON SCHEMA ${schema} TO chainvanta_test_app`);
+  await admin(
+    (
+      await readFile(new URL('../../../database/policies/cpm-runtime.sql', import.meta.url), 'utf8')
+    ).replaceAll('chainvanta_runtime', 'chainvanta_test_app'),
+  );
   // Serialize embedded connections; native tests use real PoolClients and independent transactions.
   let tail = Promise.resolve();
   const connect = async () => {

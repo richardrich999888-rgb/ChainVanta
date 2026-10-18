@@ -23,7 +23,13 @@ try {
   await pool.query(
     "DO $$ BEGIN IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'chainvanta_app') THEN GRANT SELECT, INSERT ON evidence, assessments, assets, scan_requests, graph_edges, finding_events, audit_events TO chainvanta_app; GRANT SELECT ON schema_migrations TO chainvanta_app; END IF; END $$",
   );
-  console.log('Applied migrations 001–002 and provisioned configured tenants.');
+  if ((await pool.query("SELECT 1 FROM pg_roles WHERE rolname='chainvanta_app'")).rowCount)
+    await pool.query(
+      (
+        await readFile(new URL('../../database/policies/cpm-runtime.sql', import.meta.url), 'utf8')
+      ).replaceAll('chainvanta_runtime', 'chainvanta_app'),
+    );
+  console.log('Applied migrations through 010_cpm and provisioned configured tenants.');
 } finally {
   await pool.end();
 }

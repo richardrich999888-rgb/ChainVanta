@@ -2,10 +2,8 @@ import 'reflect-metadata';
 import {
   ArgumentsHost,
   Body,
-  CanActivate,
   Catch,
   Controller,
-  ExecutionContext,
   ExceptionFilter,
   Get,
   HttpException,
@@ -30,7 +28,10 @@ import {
   Address,
 } from '../../../packages/domain-models/src/index.js';
 import type { Config } from '../../../packages/config/src/index.js';
-import { Authenticator, type Principal } from '../../identity-service/auth.js';
+import { Authenticator } from '../../identity-service/auth.js';
+import { TenantGuard, type TenantRequest } from './tenant-guard.js';
+import { CpmController } from './cpm-controller.js';
+import { CpmRepository } from '../../inventory-service/src/cpm-repository.js';
 import {
   TestLimiter,
   type RequestLimiter,
@@ -38,33 +39,7 @@ import {
 import { report, compareSnapshots } from '../../../core/reporting-engine/src/index.js';
 import { RpcFailure } from '../../../connectors/blockchains/ethereum/src/index.js';
 import { AssessmentService } from '../../assessment-service/src/index.js';
-import type { Repository } from '../../inventory-service/src/repository.js';
-
-type TenantRequest = Request & Principal;
-class TenantGuard implements CanActivate {
-  constructor(
-    @Inject('AUTH') private readonly auth: Authenticator,
-    @Inject('LIMITER') private limiter: RequestLimiter,
-  ) {}
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<TenantRequest>();
-    const principal = await this.auth.authenticate(request.headers.authorization);
-    if (!principal) throw new HttpException('Valid tenant credential required', 401);
-    if (!['GET', 'HEAD'].includes(request.method) && principal.role === 'viewer')
-      throw new HttpException('Analyst role required', 403);
-    if (request.method === 'PATCH' && principal.role !== 'admin')
-      throw new HttpException('Admin role required', 403);
-    try {
-      if (!(await this.limiter.consume(principal.tenantId)))
-        throw new HttpException('Request limit reached; retry in one minute', 429);
-    } catch (error) {
-      if (error instanceof HttpException) throw error;
-      throw new HttpException('Rate limiter unavailable', 503);
-    }
-    Object.assign(request, principal);
-    return true;
-  }
-}
+import { PostgresRepository, type Repository } from '../../inventory-service/src/repository.js';
 
 @Catch()
 class ApiErrors implements ExceptionFilter {
@@ -207,12 +182,17 @@ export async function createApp(
   transport: typeof fetch = fetch,
   limiter: RequestLimiter = new TestLimiter(),
 ) {
+  const cpm = repository instanceof PostgresRepository ? new CpmRepository(repository) : null;
   @Module({
-    controllers: [ApiController, HealthController],
+    controllers: [ApiController, HealthController, CpmController],
     providers: [
       { provide: 'AUTH', useValue: new Authenticator(config.tenantKeys, config.oidc) },
       { provide: 'LIMITER', useValue: limiter },
-      { provide: 'SERVICE', useValue: new AssessmentService(repository, config.chains, transport) },
+      {
+        provide: 'SERVICE',
+        useValue: new AssessmentService(repository, config.chains, transport, cpm ?? undefined),
+      },
+      { provide: 'CPM', useValue: cpm },
       TenantGuard,
     ],
   })

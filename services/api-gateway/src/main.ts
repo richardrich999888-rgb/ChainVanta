@@ -1,3 +1,4 @@
+import { createRpcTransport } from '../../../connectors/blockchains/ethereum/src/transport.js';
 import { createClient } from 'redis';
 import { RedisLimiter } from '../../../core/tenant-authorization/src/rate-limit.js';
 import { Pool } from 'pg';
@@ -25,7 +26,13 @@ async function main() {
   });
   redis.on('error', () => console.error(JSON.stringify({ event: 'redis_unavailable' })));
   await redis.connect();
-  const app = await createApp(config, repository, fetch, new RedisLimiter(redis));
+  const app = await createApp(
+    config,
+    repository,
+    createRpcTransport(config.chains),
+    new RedisLimiter(redis),
+  );
+  app.enableShutdownHooks();
   const server = await app.listen(config.port, config.host);
   server.on('close', () => {
     void pool.end();
