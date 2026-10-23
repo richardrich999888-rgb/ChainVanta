@@ -45,6 +45,7 @@ const methods = new Set([
   'eth_getBalance',
   'eth_getTransactionCount',
   'eth_getCode',
+  'eth_getStorageAt',
   'eth_getTransactionByHash',
   'eth_getTransactionReceipt',
   'eth_call',

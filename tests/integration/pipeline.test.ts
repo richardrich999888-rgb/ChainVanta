@@ -1,5 +1,12 @@
 import { signedTransactionFixture } from '../../packages/test-fixtures/src/transaction.js';
-import { encodeFunctionResult, parseAbi } from 'viem';
+import {
+  SENTINEL,
+  addr,
+  encode,
+  fakeChainTransport,
+  selector,
+} from '../../packages/test-fixtures/src/account-structure.js';
+import { encodeFunctionResult, parseAbi, toFunctionSelector } from 'viem';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { INestApplication } from '@nestjs/common';
 import { createApp } from '../../services/api-gateway/src/app.js';
@@ -266,24 +273,82 @@ describe('Authenticated RPC → PostgreSQL → inventory pipeline', () => {
       activeTransport = fixtureTransport;
     }
   });
+  it('persists Safe structure evidence and graph edges, isolated by tenant', async () => {
+    const owners = [addr('44'), addr('55')];
+    const module = addr('77');
+    activeTransport = fakeChainTransport({
+      code: { [ADDRESS]: '0x6080604052' },
+      calls: {
+        [ADDRESS]: {
+          [selector('getOwners')]: encode('getOwners', owners),
+          [selector('getThreshold')]: encode('getThreshold', 2n),
+          // Duplicate modules from a hostile contract must not break edge persistence.
+          [selector('getModulesPaginated')]: encode('getModulesPaginated', [
+            [module, module],
+            SENTINEL,
+          ]),
+        },
+      },
+    });
+    try {
+      const response = await request('/v1/assessments', KEY_A, {
+        method: 'POST',
+        body: JSON.stringify({ address: ADDRESS, chainId: 1 }),
+      });
+      expect(response.status).toBe(201);
+      const record = await response.json();
+      expect(record.observation.structure.safe).toMatchObject({ owners, threshold: 2 });
+      expect(record.posture.findings.map((f: { ruleId: string }) => f.ruleId)).toContain(
+        'CV-SAFE-002',
+      );
+      const stored = await (await request(`/v1/assessments/${record.id}`)).json();
+      expect(stored.observation.structure).toEqual(record.observation.structure);
+      const graph = await (await request(`/v1/graph?source=eip155:1:${ADDRESS}`)).json();
+      const relations = graph
+        .filter((e: { assessment_id: string }) => e.assessment_id === record.id)
+        .map((e: { relation: string }) => e.relation);
+      expect(relations.filter((r: string) => r === 'safe-owner-accessor-reports')).toHaveLength(2);
+      expect(relations.filter((r: string) => r === 'safe-module-accessor-reports')).toHaveLength(1);
+      expect(await (await request(`/v1/graph?source=eip155:1:${ADDRESS}`, KEY_B)).json()).toEqual(
+        [],
+      );
+    } finally {
+      activeTransport = fixtureTransport;
+    }
+  });
   it('collects an opt-in token adapter without inventing mint permissions', async () => {
     const abi = parseAbi([
       'function owner() view returns (address)',
       'function totalSupply() view returns (uint256)',
       'function decimals() view returns (uint8)',
     ]);
-    const results = [
-      encodeFunctionResult({ abi, functionName: 'owner', result: ADDRESS }),
-      encodeFunctionResult({ abi, functionName: 'totalSupply', result: 123456789n }),
-      encodeFunctionResult({ abi, functionName: 'decimals', result: 6 }),
-    ];
-    let index = 0;
+    // A plain ownable ERC20: answers its own selectors, reverts others, has empty proxy slots.
+    const results: Record<string, string> = Object.fromEntries(
+      (
+        [
+          ['owner', ADDRESS],
+          ['totalSupply', 123456789n],
+          ['decimals', 6],
+        ] as const
+      ).map(([functionName, result]) => [
+        toFunctionSelector(abi.find((f) => f.name === functionName)!),
+        encodeFunctionResult({ abi, functionName, result } as never),
+      ]),
+    );
     activeTransport = async (url, init) => {
       const call = JSON.parse(String(init?.body));
       if (call.method === 'eth_getCode')
         return Response.json({ jsonrpc: '2.0', id: 1, result: '0x6000' });
-      if (call.method === 'eth_call')
-        return Response.json({ jsonrpc: '2.0', id: 1, result: results[index++] });
+      if (call.method === 'eth_getStorageAt')
+        return Response.json({ jsonrpc: '2.0', id: 1, result: `0x${'0'.repeat(64)}` });
+      if (call.method === 'eth_call') {
+        const result = results[String(call.params[0].data).slice(0, 10)];
+        return Response.json(
+          result
+            ? { jsonrpc: '2.0', id: 1, result }
+            : { jsonrpc: '2.0', id: 1, error: { code: -32000, message: 'execution reverted' } },
+        );
+      }
       return fixtureTransport(url, init);
     };
     try {
@@ -296,6 +361,14 @@ describe('Authenticated RPC → PostgreSQL → inventory pipeline', () => {
       expect(record.observation.token.totalSupply).toBe('123456789');
       expect(record.observation.token.limitation).toContain('mint/burn');
       expect(record.qbom.status).toBe('unknown');
+      // Structure probes ran, found nothing, and did not invent a proxy, Safe or smart account.
+      expect(record.observation.structure).toMatchObject({
+        delegation: null,
+        minimalProxy: null,
+        eip1967: null,
+        safe: null,
+        erc4337: null,
+      });
     } finally {
       activeTransport = fixtureTransport;
     }

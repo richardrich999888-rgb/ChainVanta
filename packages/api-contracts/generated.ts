@@ -2532,6 +2532,60 @@ export interface components {
           }[];
           limitation: string;
         };
+        structure?: {
+          /** @constant */
+          parserVersion: 'evm-account-structure/1.0.0';
+          delegation: {
+            /** @constant */
+            standard: 'eip-7702';
+            delegate: string;
+          } | null;
+          minimalProxy: {
+            /** @constant */
+            standard: 'eip-1167';
+            implementation: string;
+            implementationCodeHash: string | null;
+          } | null;
+          eip1967: {
+            implementation: string | null;
+            implementationCodeHash: string | null;
+            admin: string | null;
+            beacon: string | null;
+            beaconImplementation: string | null;
+            malformedSlots: ('implementation' | 'admin' | 'beacon')[];
+          } | null;
+          safe: {
+            owners: string[];
+            threshold: number;
+            version: string | null;
+            singleton: string | null;
+            modules: string[];
+            modulesComplete: boolean;
+            ownerCode: {
+              owner: string;
+              /** @enum {string} */
+              kind: 'no-code' | 'eip-7702-delegated' | 'contract' | 'not-checked';
+            }[];
+          } | null;
+          erc4337: {
+            entryPoint: string;
+            entryPointHasCode: boolean;
+          } | null;
+          reads: {
+            /** @enum {string} */
+            method: 'eth_getStorageAt' | 'eth_call' | 'eth_getCode';
+            target: string;
+            input: string;
+            /** @enum {string} */
+            outcome: 'returned' | 'reverted';
+            result?: string;
+            resultHash?: string;
+            resultSize?: number;
+            codeHash?: string;
+            codeSize?: number;
+          }[];
+          limitations: string[];
+        };
         /** @constant */
         parserVersion?: 'evm-snapshot/1.0.0';
         demonstration?: boolean;
@@ -2636,6 +2690,60 @@ export interface components {
           result: string;
         }[];
         limitation: string;
+      };
+      structure?: {
+        /** @constant */
+        parserVersion: 'evm-account-structure/1.0.0';
+        delegation: {
+          /** @constant */
+          standard: 'eip-7702';
+          delegate: string;
+        } | null;
+        minimalProxy: {
+          /** @constant */
+          standard: 'eip-1167';
+          implementation: string;
+          implementationCodeHash: string | null;
+        } | null;
+        eip1967: {
+          implementation: string | null;
+          implementationCodeHash: string | null;
+          admin: string | null;
+          beacon: string | null;
+          beaconImplementation: string | null;
+          malformedSlots: ('implementation' | 'admin' | 'beacon')[];
+        } | null;
+        safe: {
+          owners: string[];
+          threshold: number;
+          version: string | null;
+          singleton: string | null;
+          modules: string[];
+          modulesComplete: boolean;
+          ownerCode: {
+            owner: string;
+            /** @enum {string} */
+            kind: 'no-code' | 'eip-7702-delegated' | 'contract' | 'not-checked';
+          }[];
+        } | null;
+        erc4337: {
+          entryPoint: string;
+          entryPointHasCode: boolean;
+        } | null;
+        reads: {
+          /** @enum {string} */
+          method: 'eth_getStorageAt' | 'eth_call' | 'eth_getCode';
+          target: string;
+          input: string;
+          /** @enum {string} */
+          outcome: 'returned' | 'reverted';
+          result?: string;
+          resultHash?: string;
+          resultSize?: number;
+          codeHash?: string;
+          codeSize?: number;
+        }[];
+        limitations: string[];
       };
       /** @constant */
       parserVersion?: 'evm-snapshot/1.0.0';
