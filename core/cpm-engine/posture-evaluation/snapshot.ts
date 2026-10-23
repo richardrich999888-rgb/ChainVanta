@@ -3,6 +3,13 @@ import { CpmPolicy, PostureSnapshot } from '../../../packages/domain-models/src/
 import { evidenceHash } from '../../evidence-engine/evidence-hashing/index.js';
 import { evaluateRules } from '../../policy-engine/evaluators/index.js';
 import { policyHash } from '../../policy-engine/rule-versioning/index.js';
+import { STRUCTURE_RELATIONS } from '../../trust-graph-engine/graph-builders/index.js';
+
+const DEPENDENCY_RELATIONS: readonly string[] = [
+  'verified-signature-uses',
+  'owner-accessor-reports',
+  ...STRUCTURE_RELATIONS,
+];
 
 export function evaluateCpm(input: Assessment, definition: CpmPolicy): PostureSnapshot {
   const a = Assessment.parse(input),
@@ -78,7 +85,7 @@ export function evaluateCpm(input: Assessment, definition: CpmPolicy): PostureSn
         }
       : {}),
     dependencies: a.trustGraph.edges
-      .filter((e) => ['verified-signature-uses', 'owner-accessor-reports'].includes(e.relation))
+      .filter((e) => DEPENDENCY_RELATIONS.includes(e.relation))
       .map((e) => `${e.relation}:${e.to}`)
       .sort(),
     demonstration: a.observation.demonstration ?? false,

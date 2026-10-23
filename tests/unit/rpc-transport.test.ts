@@ -78,13 +78,27 @@ describe('RPC destination and socket boundary', () => {
       }
     });
     expect((await (await transport(url, init)).json()).result).toBe('0x1');
+    const storage = JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'eth_getStorageAt',
+      params: ['0x' + '00'.repeat(20), '0x0', 'latest'],
+    });
+    expect((await transport(url, { method: 'POST', body: storage })).ok).toBe(true);
+    for (const method of ['eth_setStorageAt', 'hardhat_setStorageAt', 'anvil_setStorageAt'])
+      await expect(
+        transport(url, {
+          method: 'POST',
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params: [] }),
+        }),
+      ).rejects.toThrow();
     await expect(
       transport(url, {
         method: 'POST',
         body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_sendRawTransaction', params: ['0x'] }),
       }),
     ).rejects.toThrow();
-    expect(calls).toBe(1);
+    expect(calls).toBe(2);
     mode = 'redirect';
     await expect(transport(url, init)).rejects.toThrow();
     mode = 'oversize';

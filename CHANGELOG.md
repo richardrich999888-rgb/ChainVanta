@@ -5,6 +5,12 @@
 - Export CBOMs as CycloneDX 1.6 (`GET /v1/assessments/:id/cbom`), validated against a strict model of the emitted subset. Sample output was also validated against the official 1.6 JSON Schema during development.
 - Activate CLI commands `assess`, `cbom`, `qbom` and `posture` (CPM posture by asset). SDK adds `cbom()`.
 
+## Unreleased — EVM account structure
+
+- Detect EIP-7702 delegated accounts, EIP-1167 minimal proxies, EIP-1967 proxies (implementation, admin, beacon), Safe multisig owners/threshold/modules and ERC-4337 entry points for code-bearing accounts. Reads are pinned to the snapshot block hash and bounded.
+- CBOM, QBOM (`quantum-exposure/1.1.0`), posture findings and trust graph consume the structure evidence; CPM tracks structure edges as dependencies for drift.
+- Collector: treat EVM execution failures (reverts and halts) from probe calls as answers while failing on all other provider errors; accept JSON-RPC error replies that carry no `result`. Transport allows read-only `eth_getStorageAt`.
+
 ## 0.1.0 — Unreleased
 
 - Establish modular TypeScript application and all 12 domain module boundaries.

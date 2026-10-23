@@ -35,6 +35,106 @@ export const TokenEvidence = z.object({
   calls: z.array(z.object({ data: HexData, result: HexData })).length(3),
   limitation: z.string(),
 });
+// --- EVM account structure evidence (EIP-7702, EIP-1167, EIP-1967, Safe, ERC-4337).
+/** Upper bounds keep evidence size and RPC usage predictable for hostile or unusual contracts. */
+export const STRUCTURE_LIMITS = {
+  /** Safe owner lists above this length are not recorded; the Safe is reported as unsupported. */
+  maxSafeOwners: 50,
+  /** Owner code is read for at most this many owners; the rest stay `not-checked`. */
+  maxOwnerCodeReads: 10,
+  /** One page of Safe modules; a further page means the module list is incomplete. */
+  safeModulePageSize: 10,
+  /** Raw reads recorded per observation. */
+  maxReads: 40,
+  /**
+   * Call return data above this size is not stored or decoded (hash and size only). The largest
+   * legitimate probe answer, 50 Safe owners, is about 1.7 KB; this stops a contract from inflating
+   * stored evidence up to the 1 MB RPC response limit per call.
+   */
+  maxReturnBytes: 4096,
+} as const;
+
+/** One raw chain read, recorded so a reviewer can replay the classification at the same block. */
+export const StructureRead = z
+  .object({
+    method: z.enum(['eth_getStorageAt', 'eth_call', 'eth_getCode']),
+    target: Address,
+    /** Storage slot, calldata, or `0x` for code reads. */
+    input: HexData,
+    outcome: z.enum(['returned', 'reverted']),
+    /** Storage word or call return data. Code and oversized returns record a hash and size. */
+    result: HexData.optional(),
+    resultHash: Hash.optional(),
+    resultSize: z.number().int().nonnegative().optional(),
+    codeHash: Hash.optional(),
+    codeSize: z.number().int().nonnegative().optional(),
+  })
+  .strict();
+
+export const OwnerCodeKind = z.enum([
+  /** No code: on standard EVM chains only ECDSA secp256k1 can authorize for this address today. */
+  'no-code',
+  /** EIP-7702 delegation designator: the address keeps a secp256k1 key. */
+  'eip-7702-delegated',
+  /** Other code: authorizes through contract logic (EIP-1271), scheme unknown. */
+  'contract',
+  /** Not read because of `maxOwnerCodeReads`. */
+  'not-checked',
+]);
+
+export const AccountStructure = z
+  .object({
+    parserVersion: z.literal('evm-account-structure/1.0.0'),
+    /** EIP-7702: code is exactly 0xef0100 || delegate. */
+    delegation: z
+      .object({ standard: z.literal('eip-7702'), delegate: Address })
+      .strict()
+      .nullable(),
+    /** EIP-1167 canonical minimal proxy runtime code. */
+    minimalProxy: z
+      .object({
+        standard: z.literal('eip-1167'),
+        implementation: Address,
+        implementationCodeHash: Hash.nullable(),
+      })
+      .strict()
+      .nullable(),
+    /** EIP-1967 storage slots. Null when no slot holds a value. */
+    eip1967: z
+      .object({
+        implementation: Address.nullable(),
+        implementationCodeHash: Hash.nullable(),
+        admin: Address.nullable(),
+        beacon: Address.nullable(),
+        beaconImplementation: Address.nullable(),
+        /** Slots whose upper 12 bytes are non-zero: not an address, not interpreted. */
+        malformedSlots: z.array(z.enum(['implementation', 'admin', 'beacon'])),
+      })
+      .strict()
+      .nullable(),
+    /** Safe-compatible accessors. Reported by the contract; a lookalike can return the same data. */
+    safe: z
+      .object({
+        owners: z.array(Address).min(1).max(STRUCTURE_LIMITS.maxSafeOwners),
+        threshold: z.number().int().min(1),
+        version: z.string().max(32).nullable(),
+        /** Storage slot 0 of a Safe proxy holds the singleton (master copy). */
+        singleton: Address.nullable(),
+        modules: z.array(Address),
+        modulesComplete: z.boolean(),
+        ownerCode: z.array(z.object({ owner: Address, kind: OwnerCodeKind }).strict()),
+      })
+      .strict()
+      .nullable(),
+    /** ERC-4337 `entryPoint()` accessor. Owner/validation semantics are vendor-specific. */
+    erc4337: z.object({ entryPoint: Address, entryPointHasCode: z.boolean() }).strict().nullable(),
+    reads: z.array(StructureRead).max(STRUCTURE_LIMITS.maxReads),
+    limitations: z.array(z.string()),
+  })
+  .strict();
+export type AccountStructure = z.infer<typeof AccountStructure>;
+export type StructureRead = z.infer<typeof StructureRead>;
+
 export const Observation = z.object({
   chainId: z.number().int().positive().safe(),
   address: Address,
@@ -49,6 +149,7 @@ export const Observation = z.object({
   finality: z.literal('finalized'),
   signature: SignatureEvidence.optional(),
   token: TokenEvidence.optional(),
+  structure: AccountStructure.optional(),
   parserVersion: z.literal('evm-snapshot/1.0.0').optional(),
   demonstration: z.boolean().optional(),
 });
