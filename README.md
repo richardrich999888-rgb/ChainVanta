@@ -43,7 +43,7 @@ supporting framework files retained alongside the supplied tree.
 
 ## Start locally
 
-Requirements: Node 22 or 24 LTS recommended (this session also tested Node 25.2.1), pnpm 9.15.4, Docker with a running daemon. Go 1.27.2 is required only for the optional worker; Rust and Python are intentionally deferred.
+Requirements: Node 22 or 24 LTS recommended (this session also tested Node 25.2.1), pnpm 9.15.4, Docker with a running daemon. Go 1.27.3 is required only for the optional worker; Rust and Python are intentionally deferred.
 
 ```sh
 pnpm install --frozen-lockfile

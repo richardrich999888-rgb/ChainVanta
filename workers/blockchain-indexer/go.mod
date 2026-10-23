@@ -1,6 +1,6 @@
 module github.com/richardrich999888-rgb/ChainVanta/workers/blockchain-indexer
 
-go 1.27.2
+go 1.27.3
 
 require github.com/ethereum/go-ethereum v1.17.8
 

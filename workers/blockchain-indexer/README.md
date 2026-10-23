@@ -13,7 +13,7 @@ From the repository root (substitute your absolute checkout path):
 ```sh
 docker run --rm -v /Users/richardrich/Desktop/chainvanta:/workspace \
   -w /workspace/workers/blockchain-indexer -e GOWORK=off \
-  golang:1.27.2-alpine sh -c 'go test ./... && go vet ./... && go build ./cmd/indexer'
+  golang:1.27.3-alpine sh -c 'go test ./... && go vet ./... && go build ./cmd/indexer'
 ```
 
 The toolchain and go-ethereum dependency are pinned; `go.sum` records module checksums. Docker output is a Linux binary; do not run it directly on macOS. With native Go installed, `go run ./cmd/indexer` runs locally.
