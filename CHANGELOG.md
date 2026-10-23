@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 — Unreleased
+
+- Project effective finding status from lifecycle events; expired exceptions revert to open. New `GET /v1/findings`.
+- Reports (`chainvanta-report/1.1.0`) add `effectiveFindingStatusCounts` and `openMediumOrHighFindings`; existing fields unchanged.
+- Export CBOMs as CycloneDX 1.6 (`GET /v1/assessments/:id/cbom`), validated against a strict model of the emitted subset. Sample output also validated against the official 1.6 JSON Schema during development.
+- Activate CLI commands `assess`, `cbom`, `qbom` and `posture`; SDK adds `cbom()` and `findings()`.
+
 ## 0.1.0 — Unreleased
 
 - Establish modular TypeScript application and all 12 domain module boundaries.

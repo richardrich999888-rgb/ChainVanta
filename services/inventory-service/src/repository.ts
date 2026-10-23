@@ -1,7 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { HttpException } from '@nestjs/common';
 import type { Pool, PoolClient } from 'pg';
-import { Assessment, canonicalAssetId } from '../../../packages/domain-models/src/index.js';
+import {
+  Assessment,
+  FindingEventRecord,
+  canonicalAssetId,
+} from '../../../packages/domain-models/src/index.js';
 import { evidenceHash } from '../../../core/evidence-engine/evidence-hashing/index.js';
 
 export interface Repository {
@@ -27,7 +31,12 @@ export interface Repository {
     actor: string,
   ): Promise<void>;
   findingEvents?(tenantId: string): Promise<unknown[]>;
+  /** Latest lifecycle event per (assessment, rule) for the given assessments; no truncation. */
+  latestFindingEvents?(tenantId: string, assessmentIds: string[]): Promise<FindingEventRecord[]>;
 }
+
+const MAX_STATUS_ASSESSMENTS = 100;
+const isoTimestamp = (value: Date | string) => new Date(value).toISOString();
 
 export class PostgresRepository implements Repository {
   constructor(private readonly pool: Pool) {}
@@ -184,6 +193,33 @@ export class PostgresRepository implements Repository {
           )
         ).rows,
     );
+  }
+  async latestFindingEvents(tenantId: string, assessmentIds: string[]) {
+    if (assessmentIds.length === 0) return [];
+    if (assessmentIds.length > MAX_STATUS_ASSESSMENTS)
+      throw new Error(`At most ${MAX_STATUS_ASSESSMENTS} assessments per status projection`);
+    return this.scoped(tenantId, async (client) => {
+      // DISTINCT ON keeps exactly one row per pair, chosen by the ORDER BY tail. The ordering
+      // (created_at DESC, id DESC) matches the projection's tie-break in core/policy-engine.
+      const result = await client.query(
+        `SELECT DISTINCT ON (assessment_id, rule_id) id,assessment_id,rule_id,status,reason,expires_at,actor,created_at
+         FROM finding_events WHERE tenant_id=$1 AND assessment_id=ANY($2::uuid[])
+         ORDER BY assessment_id, rule_id, created_at DESC, id DESC`,
+        [tenantId, assessmentIds],
+      );
+      return result.rows.map((row) =>
+        FindingEventRecord.parse({
+          id: row.id,
+          assessmentId: row.assessment_id,
+          ruleId: row.rule_id,
+          status: row.status,
+          reason: row.reason,
+          expiresAt: row.expires_at === null ? null : isoTimestamp(row.expires_at),
+          actor: row.actor,
+          createdAt: isoTimestamp(row.created_at),
+        }),
+      );
+    });
   }
   async findingEvent(
     tenantId: string,

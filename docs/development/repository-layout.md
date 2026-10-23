@@ -16,8 +16,9 @@ remain open for their implementation files. CI and `make check` run the validato
   the corresponding named engine subdirectories under `core`. Tenant authorization owns quotas.
 - Shared test helpers live in `packages/test-fixtures/src`; the test API entry point lives in
   `tests/integration/server.ts`.
-- Existing CLI handlers live in `cli/chainvanta/commands/{scan,inventory,report}`. The `cbom`,
-  `qbom`, `posture` and `assess` directories are reserved; those CLI commands remain unavailable.
+- CLI handlers live in `cli/chainvanta/commands/{scan,assess,inventory,report,cbom,qbom,posture}`.
+- Finding lifecycle projection lives in `core/policy-engine/exceptions`. CycloneDX export lives in
+  `core/cbom-engine/exporters`, its strict output model in `core/cbom-engine/schema-validation`.
 - TypeScript configurations live in `packages/config`; Vitest, Playwright and structure validation
   live in `scripts/testing`. Package scripts explicitly select those configurations.
 - API generation lives in `scripts/development`; SBOM generation lives in `scripts/release`.

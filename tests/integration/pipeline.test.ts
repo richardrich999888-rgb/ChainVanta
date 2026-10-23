@@ -205,6 +205,68 @@ describe('Authenticated RPC → PostgreSQL → inventory pipeline', () => {
       ).status,
     ).toBe(400);
   });
+  it('projects effective finding status, including exception expiry, per tenant', async () => {
+    const viewer = 'viewer-only-test-key-with-32-characters',
+      admin = 'admin-only-test-key-with-32-characters';
+    const findings = async (key = viewer) =>
+      (await request(`/v1/findings?assessmentId=${assessmentId}`, key)).json();
+    const wallet = (items: { ruleId: string }[]) => items.find((f) => f.ruleId === 'CV-WALLET-001');
+    expect(wallet(await findings())).toMatchObject({
+      status: 'acknowledged',
+      statusBasis: 'event',
+      assessmentId,
+    });
+    const expiry = new Date(Date.now() + 86_400_000).toISOString();
+    expect(
+      (
+        await request(`/v1/assessments/${assessmentId}/findings/CV-WALLET-001`, admin, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            status: 'excepted',
+            reason: 'Temporary exception by test administrator',
+            expiresAt: expiry,
+          }),
+        })
+      ).status,
+    ).toBe(200);
+    expect(wallet(await findings())).toMatchObject({ status: 'excepted', expiresAt: expiry });
+    // The API rejects past expiries, so write an elapsed exception directly under tenant scope.
+    const client = await database.pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query("SELECT set_config('app.tenant_id', $1, true)", [TENANT_A]);
+      await client.query(
+        "INSERT INTO finding_events (tenant_id,id,assessment_id,rule_id,status,reason,expires_at,actor,created_at) VALUES ($1,gen_random_uuid(),$2,'CV-WALLET-001','excepted','Elapsed exception for test',now() - interval '1 minute',$3,now() + interval '1 second')",
+        [TENANT_A, assessmentId, 'test'],
+      );
+      await client.query('COMMIT');
+    } finally {
+      client.release();
+    }
+    expect(wallet(await findings())).toMatchObject({
+      status: 'open',
+      statusBasis: 'expired-exception',
+    });
+    const report = await (await request('/v1/reports', viewer)).json();
+    expect(report.schemaVersion).toBe('chainvanta-report/1.1.0');
+    expect(report.effectiveFindingStatusCounts.open).toBeGreaterThan(0);
+    expect((await request(`/v1/findings?assessmentId=${assessmentId}`, KEY_B)).status).toBe(404);
+    expect(await (await request('/v1/findings', KEY_B)).json()).toEqual([]);
+    expect((await request('/v1/findings?assessmentId=not-a-uuid', viewer)).status).toBe(400);
+  });
+  it('exports a validated CycloneDX CBOM, isolated by tenant', async () => {
+    const response = await request(`/v1/assessments/${assessmentId}/cbom`);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('application/vnd.cyclonedx+json');
+    const bom = await response.json();
+    expect(bom).toMatchObject({
+      bomFormat: 'CycloneDX',
+      specVersion: '1.6',
+      serialNumber: `urn:uuid:${assessmentId}`,
+      compositions: [{ aggregate: 'incomplete' }],
+    });
+    expect((await request(`/v1/assessments/${assessmentId}/cbom`, KEY_B)).status).toBe(404);
+  });
   it('returns evidence-backed graph and reports, isolated by tenant', async () => {
     const graph = await (await request(`/v1/graph?source=eip155:1:${ADDRESS}`)).json();
     expect(graph.length).toBeGreaterThan(0);

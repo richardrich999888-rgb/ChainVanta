@@ -158,6 +158,71 @@
                 },
             },
         },
+      '/v1/assessments/{id}/cbom':
+        {
+          'get':
+            {
+              'description': 'CycloneDX 1.6 CBOM export of one assessment. Deterministic; composition is always incomplete.',
+              'parameters':
+                [
+                  {
+                    'in': 'path',
+                    'name': 'id',
+                    'required': true,
+                    'schema': { 'type': 'string', 'format': 'uuid' },
+                  },
+                ],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/vnd.cyclonedx+json; version=1.6':
+                            { 'schema': { '$ref': '#/components/schemas/CycloneDxCbom' } },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '404': { 'description': 'Assessment not found' },
+                },
+            },
+        },
+      '/v1/findings':
+        {
+          'get':
+            {
+              'description': 'Findings with effective lifecycle status. Expired exceptions revert to open. Without assessmentId, covers the latest 50 assessments.',
+              'parameters':
+                [
+                  {
+                    'in': 'query',
+                    'name': 'assessmentId',
+                    'schema': { 'type': 'string', 'format': 'uuid' },
+                  },
+                ],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            {
+                              'schema':
+                                {
+                                  'type': 'array',
+                                  'items': { '$ref': '#/components/schemas/EffectiveFinding' },
+                                },
+                            },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                },
+            },
+        },
       '/v1/assessments/{id}/findings/{ruleId}':
         {
           'patch':
@@ -831,6 +896,326 @@
                     },
                 },
               'required': ['status', 'reason'],
+              'additionalProperties': false,
+            },
+          'EffectiveFinding':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'ruleId': { 'type': 'string' },
+                  'ruleVersion': { 'type': 'string' },
+                  'severity': { 'type': 'string', 'enum': ['info', 'medium', 'high'] },
+                  'title': { 'type': 'string' },
+                  'rationale': { 'type': 'string' },
+                  'confidence':
+                    {
+                      'type': 'string',
+                      'enum': ['observed', 'authenticated-integration', 'inferred', 'unknown'],
+                    },
+                  'evidenceHash': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                  'assessmentId':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'asset': { 'type': 'string' },
+                  'status':
+                    { 'type': 'string', 'enum': ['open', 'acknowledged', 'resolved', 'excepted'] },
+                  'statusBasis':
+                    { 'type': 'string', 'enum': ['default', 'event', 'expired-exception'] },
+                  'statusEventId':
+                    {
+                      'anyOf':
+                        [
+                          {
+                            'type': 'string',
+                            'format': 'uuid',
+                            'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                          },
+                          { 'type': 'null' },
+                        ],
+                    },
+                  'statusChangedAt':
+                    {
+                      'anyOf':
+                        [
+                          {
+                            'type': 'string',
+                            'format': 'date-time',
+                            'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                          },
+                          { 'type': 'null' },
+                        ],
+                    },
+                  'expiresAt':
+                    {
+                      'anyOf':
+                        [
+                          {
+                            'type': 'string',
+                            'format': 'date-time',
+                            'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                          },
+                          { 'type': 'null' },
+                        ],
+                    },
+                },
+              'required':
+                [
+                  'ruleId',
+                  'severity',
+                  'title',
+                  'rationale',
+                  'confidence',
+                  'evidenceHash',
+                  'assessmentId',
+                  'asset',
+                  'status',
+                  'statusBasis',
+                  'statusEventId',
+                  'statusChangedAt',
+                  'expiresAt',
+                ],
+            },
+          'CycloneDxCbom':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'bomFormat': { 'type': 'string', 'const': 'CycloneDX' },
+                  'specVersion': { 'type': 'string', 'const': '1.6' },
+                  'serialNumber':
+                    {
+                      'type': 'string',
+                      'pattern': '^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+                    },
+                  'version': { 'type': 'integer', 'minimum': 1, 'maximum': 9007199254740991 },
+                  'metadata':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'timestamp':
+                            {
+                              'type': 'string',
+                              'format': 'date-time',
+                              'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                            },
+                          'tools':
+                            {
+                              'type': 'object',
+                              'properties':
+                                {
+                                  'components':
+                                    {
+                                      'type': 'array',
+                                      'items':
+                                        {
+                                          'type': 'object',
+                                          'properties':
+                                            {
+                                              'type': { 'type': 'string', 'const': 'application' },
+                                              'name': { 'type': 'string' },
+                                              'version': { 'type': 'string' },
+                                            },
+                                          'required': ['type', 'name', 'version'],
+                                          'additionalProperties': false,
+                                        },
+                                    },
+                                },
+                              'required': ['components'],
+                              'additionalProperties': false,
+                            },
+                          'properties':
+                            {
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'name': { 'type': 'string', 'minLength': 1 },
+                                      'value': { 'type': 'string' },
+                                    },
+                                  'required': ['name', 'value'],
+                                  'additionalProperties': false,
+                                },
+                            },
+                        },
+                      'required': ['timestamp', 'tools', 'properties'],
+                      'additionalProperties': false,
+                    },
+                  'components':
+                    {
+                      'type': 'array',
+                      'items':
+                        {
+                          'type': 'object',
+                          'properties':
+                            {
+                              'type': { 'type': 'string', 'const': 'cryptographic-asset' },
+                              'bom-ref': { 'type': 'string', 'minLength': 1 },
+                              'name': { 'type': 'string', 'minLength': 1 },
+                              'cryptoProperties':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'assetType': { 'type': 'string', 'const': 'algorithm' },
+                                      'algorithmProperties':
+                                        {
+                                          'type': 'object',
+                                          'properties':
+                                            {
+                                              'primitive':
+                                                {
+                                                  'type': 'string',
+                                                  'enum':
+                                                    [
+                                                      'drbg',
+                                                      'mac',
+                                                      'block-cipher',
+                                                      'stream-cipher',
+                                                      'signature',
+                                                      'hash',
+                                                      'pke',
+                                                      'xof',
+                                                      'kdf',
+                                                      'key-agree',
+                                                      'kem',
+                                                      'ae',
+                                                      'combiner',
+                                                      'other',
+                                                      'unknown',
+                                                    ],
+                                                },
+                                              'curve': { 'type': 'string', 'minLength': 1 },
+                                              'executionEnvironment':
+                                                {
+                                                  'type': 'string',
+                                                  'enum':
+                                                    [
+                                                      'software-plain-ram',
+                                                      'software-encrypted-ram',
+                                                      'software-tee',
+                                                      'hardware',
+                                                      'other',
+                                                      'unknown',
+                                                    ],
+                                                },
+                                              'implementationPlatform':
+                                                {
+                                                  'type': 'string',
+                                                  'enum': ['generic', 'other', 'unknown'],
+                                                },
+                                              'certificationLevel':
+                                                {
+                                                  'minItems': 1,
+                                                  'type': 'array',
+                                                  'items':
+                                                    {
+                                                      'type': 'string',
+                                                      'enum': ['none', 'other', 'unknown'],
+                                                    },
+                                                },
+                                              'cryptoFunctions':
+                                                {
+                                                  'minItems': 1,
+                                                  'type': 'array',
+                                                  'items':
+                                                    {
+                                                      'type': 'string',
+                                                      'enum':
+                                                        [
+                                                          'generate',
+                                                          'keygen',
+                                                          'encrypt',
+                                                          'decrypt',
+                                                          'digest',
+                                                          'tag',
+                                                          'keyderive',
+                                                          'sign',
+                                                          'verify',
+                                                          'encapsulate',
+                                                          'decapsulate',
+                                                          'other',
+                                                          'unknown',
+                                                        ],
+                                                    },
+                                                },
+                                              'classicalSecurityLevel':
+                                                {
+                                                  'type': 'integer',
+                                                  'minimum': 0,
+                                                  'maximum': 9007199254740991,
+                                                },
+                                              'nistQuantumSecurityLevel':
+                                                { 'type': 'integer', 'minimum': 0, 'maximum': 6 },
+                                            },
+                                          'required':
+                                            [
+                                              'primitive',
+                                              'executionEnvironment',
+                                              'implementationPlatform',
+                                              'certificationLevel',
+                                              'cryptoFunctions',
+                                            ],
+                                          'additionalProperties': false,
+                                        },
+                                    },
+                                  'required': ['assetType', 'algorithmProperties'],
+                                  'additionalProperties': false,
+                                },
+                              'properties':
+                                {
+                                  'type': 'array',
+                                  'items':
+                                    {
+                                      'type': 'object',
+                                      'properties':
+                                        {
+                                          'name': { 'type': 'string', 'minLength': 1 },
+                                          'value': { 'type': 'string' },
+                                        },
+                                      'required': ['name', 'value'],
+                                      'additionalProperties': false,
+                                    },
+                                },
+                            },
+                          'required': ['type', 'bom-ref', 'name', 'cryptoProperties', 'properties'],
+                          'additionalProperties': false,
+                        },
+                    },
+                  'compositions':
+                    {
+                      'type': 'array',
+                      'items':
+                        {
+                          'type': 'object',
+                          'properties':
+                            {
+                              'aggregate':
+                                { 'type': 'string', 'enum': ['complete', 'incomplete', 'unknown'] },
+                            },
+                          'required': ['aggregate'],
+                          'additionalProperties': false,
+                        },
+                    },
+                },
+              'required':
+                [
+                  'bomFormat',
+                  'specVersion',
+                  'serialNumber',
+                  'version',
+                  'metadata',
+                  'components',
+                  'compositions',
+                ],
               'additionalProperties': false,
             },
         },

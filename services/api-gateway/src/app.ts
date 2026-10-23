@@ -8,6 +8,7 @@ import {
   ExecutionContext,
   ExceptionFilter,
   Get,
+  Header,
   HttpException,
   Inject,
   Module,
@@ -28,6 +29,7 @@ import {
   FindingUpdate,
   canonicalAssetId,
   Address,
+  type Assessment,
 } from '../../../packages/domain-models/src/index.js';
 import type { Config } from '../../../packages/config/src/index.js';
 import { Authenticator, type Principal } from '../../identity-service/auth.js';
@@ -36,6 +38,11 @@ import {
   type RequestLimiter,
 } from '../../../core/tenant-authorization/src/rate-limit.js';
 import { report, compareSnapshots } from '../../../core/reporting-engine/src/index.js';
+import {
+  effectiveFindings,
+  projectFindingStates,
+} from '../../../core/policy-engine/exceptions/index.js';
+import { CDX_MEDIA_TYPE, toCycloneDx } from '../../../core/cbom-engine/exporters/cyclonedx.js';
 import { RpcFailure } from '../../../connectors/blockchains/ethereum/src/index.js';
 import { AssessmentService } from '../../assessment-service/src/index.js';
 import type { Repository } from '../../inventory-service/src/repository.js';
@@ -114,13 +121,43 @@ class ApiController {
   @Get('assessments') list(@Req() request: TenantRequest) {
     return this.service.repository.list(request.tenantId);
   }
-  @Get('assessments/:id') async get(@Req() request: TenantRequest, @Param('id') id: string) {
-    const result = await this.service.repository.get(request.tenantId, z.uuid().parse(id));
+  private async assessment(tenantId: string, id: string) {
+    const result = await this.service.repository.get(tenantId, z.uuid().parse(id));
     if (!result) throw new HttpException('Assessment not found', 404);
     return result;
   }
+  // One evaluation instant per request so every finding in a response is projected consistently.
+  private async states(tenantId: string, assessments: Assessment[], now: Date) {
+    const events =
+      (await this.service.repository.latestFindingEvents?.(
+        tenantId,
+        assessments.map((a) => a.id),
+      )) ?? [];
+    return projectFindingStates(events, now);
+  }
+  @Get('assessments/:id') get(@Req() request: TenantRequest, @Param('id') id: string) {
+    return this.assessment(request.tenantId, id);
+  }
+  @Get('assessments/:id/cbom') @Header('Content-Type', CDX_MEDIA_TYPE) async cbom(
+    @Req() request: TenantRequest,
+    @Param('id') id: string,
+  ) {
+    return toCycloneDx(await this.assessment(request.tenantId, id));
+  }
   @Get('reports') async reports(@Req() request: TenantRequest) {
-    return report(await this.service.repository.list(request.tenantId));
+    const items = await this.service.repository.list(request.tenantId);
+    const now = new Date();
+    return report(items, { states: await this.states(request.tenantId, items, now), now });
+  }
+  @Get('findings') async findings(
+    @Req() request: TenantRequest,
+    @Query('assessmentId') assessmentId?: string,
+  ) {
+    const items =
+      assessmentId === undefined
+        ? await this.service.repository.list(request.tenantId)
+        : [await this.assessment(request.tenantId, assessmentId)];
+    return effectiveFindings(items, await this.states(request.tenantId, items, new Date()));
   }
   @Get('audit') audit(@Req() request: TenantRequest) {
     if (request.role !== 'admin') throw new HttpException('Admin role required', 403);

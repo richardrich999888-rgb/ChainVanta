@@ -1,9 +1,24 @@
 import type { Assessment } from '../../../packages/domain-models/src/index.js';
-export function report(items: Assessment[]) {
+import { effectiveFindings, type EffectiveState } from '../../policy-engine/exceptions/index.js';
+
+export interface ReportOptions {
+  /** Projected lifecycle states; omitted means no events were consulted (all findings open). */
+  states?: ReadonlyMap<string, EffectiveState>;
+  /** Report generation instant; injected so output is reproducible in tests. */
+  now?: Date;
+}
+
+/**
+ * Summarizes assessments. `findingSeverityCounts` counts original findings regardless of status;
+ * `effectiveFindingStatusCounts` counts the projected lifecycle status of the same findings.
+ * Neither is a risk score.
+ */
+export function report(items: Assessment[], options: ReportOptions = {}) {
   const findings = items.flatMap((item) => item.posture.findings);
+  const effective = effectiveFindings(items, options.states ?? new Map());
   return {
-    schemaVersion: 'chainvanta-report/1.0.0',
-    generatedAt: new Date().toISOString(),
+    schemaVersion: 'chainvanta-report/1.1.0',
+    generatedAt: (options.now ?? new Date()).toISOString(),
     scope: 'Latest 50 assessments, not the complete tenant inventory',
     assessmentCount: items.length,
     assetCount: new Set(
@@ -19,6 +34,13 @@ export function report(items: Assessment[]) {
       r[v.severity] = (r[v.severity] ?? 0) + 1;
       return r;
     }, {}),
+    effectiveFindingStatusCounts: effective.reduce<Record<string, number>>((r, v) => {
+      r[v.status] = (r[v.status] ?? 0) + 1;
+      return r;
+    }, {}),
+    openMediumOrHighFindings: effective.filter(
+      (v) => v.status === 'open' && (v.severity === 'medium' || v.severity === 'high'),
+    ).length,
     quantumSignatureObservations: items.filter(
       (v) => v.qbom.status === 'classical-signature-observed',
     ).length,

@@ -107,14 +107,45 @@ export const Assessment = z.object({
   limitations: z.array(z.string()),
 });
 export type Assessment = z.infer<typeof Assessment>;
+export const FindingStatus = z.enum(['open', 'acknowledged', 'resolved', 'excepted']);
+export type FindingStatus = z.infer<typeof FindingStatus>;
 export const FindingUpdate = z
   .object({
-    status: z.enum(['open', 'acknowledged', 'resolved', 'excepted']),
+    status: FindingStatus,
     reason: z.string().min(10).max(1000),
     expiresAt: z.iso.datetime().optional(),
   })
   .strict()
   .refine((v) => v.status !== 'excepted' || !!v.expiresAt, 'Exceptions require an expiry');
+/** One append-only lifecycle event, normalized from storage (timestamps as ISO-8601 UTC). */
+export const FindingEventRecord = z.object({
+  id: z.uuid(),
+  assessmentId: z.uuid(),
+  ruleId: z.string().min(1).max(80),
+  status: FindingStatus,
+  reason: z.string(),
+  expiresAt: z.iso.datetime().nullable(),
+  actor: z.string(),
+  createdAt: z.iso.datetime(),
+});
+export type FindingEventRecord = z.infer<typeof FindingEventRecord>;
+/**
+ * Why a finding has its effective status:
+ * - default: no lifecycle event exists, so the finding is open.
+ * - event: the latest event's status applies.
+ * - expired-exception: the latest event was an exception whose expiry has passed; it reverts to open.
+ */
+export const StatusBasis = z.enum(['default', 'event', 'expired-exception']);
+export const EffectiveFinding = Finding.extend({
+  assessmentId: z.uuid(),
+  asset: z.string(),
+  status: FindingStatus,
+  statusBasis: StatusBasis,
+  statusEventId: z.uuid().nullable(),
+  statusChangedAt: z.iso.datetime().nullable(),
+  expiresAt: z.iso.datetime().nullable(),
+});
+export type EffectiveFinding = z.infer<typeof EffectiveFinding>;
 export const canonicalAssetId = (chainId: number, address: string) =>
   `eip155:${chainId}:${Address.parse(address)}`;
 export const Tenant = z.object({ id: z.uuid(), name: z.string().min(1).max(100) });

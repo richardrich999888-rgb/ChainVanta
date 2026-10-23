@@ -20,6 +20,8 @@ Read-only EVM RPC → hash-pinned finalized account state / supplied transaction
 - Evidence-backed CBOM, versioned QBOM rules and posture findings. An observed transaction signature does **not** establish the account's complete authorization policy or private-key custody. Unknowns remain unknown.
 - Explicit `ownable-erc20` adapter reads `owner()`, `totalSupply()` and `decimals()`. This is a partial Stablecoin Assurance capability; it does not discover stablecoin identity or prove mint/burn rights, reserves, proxy semantics or regulatory compliance.
 - Relational graph edges with bounded traversal; historical snapshot comparison; admin finding acknowledgement, resolution and timed exceptions through the API.
+- Effective finding status: a pure projection of the append-only lifecycle events (latest event wins; an exception reverts to `open` once its expiry passes). Reports add effective status counts alongside the unchanged original severity counts.
+- CycloneDX 1.6 CBOM export (`cryptographic-asset` components). Deterministic per assessment, validated against a strict model of the emitted subset, always marked `incomplete`. Signer implementation attributes stay `unknown`.
 - Redis-backed request quotas in the running API. Redis failure denies protected API access rather than bypassing quotas.
 - Next.js dark console with inventory, CBOM, QBOM, CPM, interactive relationship inspection, evidence and JSON reports. Counts describe recent observations, not invented risk scores. Demonstration records are visibly marked.
 - Go finalized-block worker with chain checks, bounded RPC, replay-safe API submissions and atomic local checkpoints. Reorganizations stop ingestion for review. This is a **single-worker prototype**, with no shared lease, PostgreSQL cursor or automatic rollback of finalized history.
@@ -76,10 +78,14 @@ JWT signatures, issuer, audience, expiry and required subject/issued-at claims a
 - `GET /v1/assessments`, `/v1/assessments/:id`, `/v1/reports`.
 - `GET /v1/history?chainId=1&address=...` compares the latest two snapshots.
 - `GET /v1/graph?source=eip155:1:0x...` traverses supported evidence edges, maximum three hops.
+- `GET /v1/findings[?assessmentId=]`: findings with effective status (`status`, `statusBasis`: `default` | `event` | `expired-exception`). Without an id, covers the latest 50 assessments.
+- `GET /v1/assessments/:id/cbom`: CycloneDX 1.6 JSON (`application/vnd.cyclonedx+json; version=1.6`).
 - `GET /v1/findings/events`; `PATCH /v1/assessments/:id/findings/:ruleId` (admin) accepts status, reason and an expiry for exceptions.
-- `GET /v1/audit` (admin). Reports are limited to the latest 50 assessments; history to 100; event history to 500. Reports count observations and do not apply exception statuses as a risk score.
+- `GET /v1/audit` (admin). Reports are limited to the latest 50 assessments; history to 100; event history to 500. Reports count observations; `effectiveFindingStatusCounts` and `openMediumOrHighFindings` are status counts, not a risk score.
 
 [OpenAPI](packages/api-contracts/openapi.yaml) · [Generated types](packages/api-contracts/generated.ts) · [TypeScript client](sdks/typescript/src/index.ts)
+
+CLI (`CHAINVANTA_API_KEY` required): `pnpm cli scan|assess|inventory|report|cbom|qbom|posture`. `assess <address> [chainId] [--transaction <hash>] [--adapter ownable-erc20]` exposes the full scan request; `posture [assessment-id]` prints effective findings.
 
 ## Verify
 

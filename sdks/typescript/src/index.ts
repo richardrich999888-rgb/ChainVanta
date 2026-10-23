@@ -1,6 +1,8 @@
 import type { components } from '../../../packages/api-contracts/generated.js';
 type Assessment = components['schemas']['Assessment'];
 type ScanInput = components['schemas']['ScanRequest'];
+type EffectiveFinding = components['schemas']['EffectiveFinding'];
+type CycloneDxCbom = components['schemas']['CycloneDxCbom'];
 export class ChainVantaClient {
   constructor(
     private readonly baseUrl: string,
@@ -32,5 +34,15 @@ export class ChainVantaClient {
   }
   get(id: string) {
     return this.request<Assessment>(`/assessments/${encodeURIComponent(id)}`);
+  }
+  /** CycloneDX 1.6 CBOM export of one assessment. */
+  cbom(id: string) {
+    return this.request<CycloneDxCbom>(`/assessments/${encodeURIComponent(id)}/cbom`);
+  }
+  /** Findings with effective lifecycle status; scoped to one assessment when an id is given. */
+  findings(assessmentId?: string) {
+    const query =
+      assessmentId === undefined ? '' : `?assessmentId=${encodeURIComponent(assessmentId)}`;
+    return this.request<EffectiveFinding[]>(`/findings${query}`);
   }
 }

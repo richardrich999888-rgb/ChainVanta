@@ -6,11 +6,19 @@ import {
   Finding,
   ScanRequest,
   FindingUpdate,
+  EffectiveFinding,
 } from '../../packages/domain-models/src/index.js';
+import { CycloneDxCbom } from '../../core/cbom-engine/schema-validation/cyclonedx.js';
 const schemas = Object.fromEntries(
-  Object.entries({ Assessment, Observation, Finding, ScanRequest, FindingUpdate }).map(
-    ([name, schema]) => [name, z.toJSONSchema(schema, { io: 'input' })],
-  ),
+  Object.entries({
+    Assessment,
+    Observation,
+    Finding,
+    ScanRequest,
+    FindingUpdate,
+    EffectiveFinding,
+    CycloneDxCbom,
+  }).map(([name, schema]) => [name, z.toJSONSchema(schema, { io: 'input' })]),
 );
 const json = (schema: unknown) => ({ 'application/json': { schema } });
 const ref = (name: string) => ({ $ref: `#/components/schemas/${name}` });
@@ -71,6 +79,35 @@ const doc = {
           { in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } },
         ],
         responses: response(ref('Assessment')),
+      },
+    },
+    '/v1/assessments/{id}/cbom': {
+      get: {
+        description:
+          'CycloneDX 1.6 CBOM export of one assessment. Deterministic; composition is always incomplete.',
+        parameters: [
+          { in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': {
+            description: 'Success',
+            content: {
+              'application/vnd.cyclonedx+json; version=1.6': { schema: ref('CycloneDxCbom') },
+            },
+          },
+          '401': { description: 'Authentication required' },
+          '404': { description: 'Assessment not found' },
+        },
+      },
+    },
+    '/v1/findings': {
+      get: {
+        description:
+          'Findings with effective lifecycle status. Expired exceptions revert to open. Without assessmentId, covers the latest 50 assessments.',
+        parameters: [
+          { in: 'query', name: 'assessmentId', schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: response({ type: 'array', items: ref('EffectiveFinding') }),
       },
     },
     '/v1/assessments/{id}/findings/{ruleId}': {
