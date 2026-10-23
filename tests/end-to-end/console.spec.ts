@@ -28,7 +28,12 @@ test('tenant login, collection, evidence export, module status, responsive view 
   await expect(page.getByText(/DEMONSTRATION DATA/)).toBeVisible();
   for (const view of ['CBOM', 'QBOM', 'CPM', 'Trust Graph', 'Reports']) {
     await page.getByRole('button', { name: view, exact: true }).click();
-    await expect(page.getByRole('heading', { name: view, exact: true })).toBeVisible();
+    await expect(
+      page.getByRole('heading', {
+        name: view === 'CPM' ? 'Continuous cryptographic posture' : view,
+        exact: true,
+      }),
+    ).toBeVisible();
   }
   const report = await page.request.get('/api/reports');
   expect(report.ok()).toBe(true);

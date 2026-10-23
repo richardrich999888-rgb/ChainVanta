@@ -10,6 +10,9 @@
     "node": ">=22 <26"
   },
   "scripts": {
+    "start:worker": "node --env-file=.env dist/workers/assessment-worker/main.js",
+    "demo:cpm": "tsx --tsconfig packages/config/tsconfig.json scripts/development/cpm-demo.ts",
+    "worker:cpm": "tsx --tsconfig packages/config/tsconfig.json --env-file=.env workers/assessment-worker/main.ts",
     "dev": "concurrently -k -n api,console 'pnpm dev:api' 'pnpm dev:web'",
     "dev:api": "tsx watch --tsconfig packages/config/tsconfig.json --env-file=.env services/api-gateway/src/main.ts",
     "dev:web": "pnpm --filter @chainvanta/web-console dev",

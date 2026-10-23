@@ -1,3 +1,4 @@
+import { createRpcTransport } from './transport.js';
 import { verifyTransaction } from '../../../../modules/01-wallet-intelligence/src/signature-analysis/verify-transaction.js';
 import { observeToken } from '../../../../modules/09-stablecoin-assurance/src/privileged-roles/index.js';
 import { z } from 'zod';
@@ -26,7 +27,7 @@ const MAX_RESPONSE_BYTES = 1_048_576;
 export class EvmConnector {
   constructor(
     private readonly chain: ChainConfig,
-    private readonly transport: typeof fetch = fetch,
+    private readonly transport: typeof fetch = createRpcTransport([chain]),
   ) {}
 
   private async rpc(method: string, params: unknown[]): Promise<unknown> {
@@ -75,6 +76,29 @@ export class EvmConnector {
     } catch {
       throw new RpcFailure();
     } // Never expose credential-bearing provider URLs or upstream errors.
+  }
+
+  async isCanonical(observation: Observation): Promise<boolean> {
+    try {
+      if (
+        BigInt(HexQuantity.parse(await this.rpc('eth_chainId', []))) !== BigInt(this.chain.chainId)
+      )
+        throw new RpcFailure('Provider chain does not match configured chain');
+      for (const context of [
+        observation,
+        ...(observation.signature ? [observation.signature] : []),
+      ]) {
+        const block = Block.parse(
+          await this.rpc('eth_getBlockByNumber', [context.blockNumber, false]),
+        );
+        if (block.number !== context.blockNumber) throw new RpcFailure();
+        if (block.hash.toLowerCase() !== context.blockHash.toLowerCase()) return false;
+      }
+      return true;
+    } catch (error) {
+      if (error instanceof RpcFailure) throw error;
+      throw new RpcFailure();
+    }
   }
 
   async observe(

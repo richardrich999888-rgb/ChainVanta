@@ -26,7 +26,7 @@ export function assessWallet(tenantId: string, input: Observation): Assessment {
       'Only an explicitly supplied transaction is verified; no exhaustive transaction history, proxy resolution or custody discovery.',
       'CBOM and QBOM are experimental ChainVanta formats, not CycloneDX exports.',
       'Evidence hashing detects content changes; it does not authenticate the provider or prove external timestamping.',
-      'One-shot assessment; continuous monitoring and drift detection are planned.',
+      'This record is one observation; continuous reassessment requires an explicit CPM monitoring schedule.',
     ],
   };
 }

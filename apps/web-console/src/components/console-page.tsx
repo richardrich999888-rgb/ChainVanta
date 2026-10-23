@@ -26,6 +26,7 @@ export default async function ConsolePage({
       return <Login expired />;
     if (![assessments, chains, session].every((response) => response.ok))
       throw new Error('Unavailable');
+    const principal = await session.json();
     return (
       <Console
         key={`${view}:${selectedId ?? ''}`}
@@ -33,7 +34,8 @@ export default async function ConsolePage({
         selectedId={selectedId}
         initial={(await assessments.json()) as Assessment[]}
         chains={await chains.json()}
-        tenantId={(await session.json()).tenantId}
+        tenantId={principal.tenantId}
+        role={principal.role}
       />
     );
   } catch {

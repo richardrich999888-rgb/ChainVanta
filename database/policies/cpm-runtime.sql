@@ -1,0 +1,4 @@
+GRANT SELECT, INSERT ON policy_versions,posture_snapshots,snapshot_invalidations,cryptographic_drift_events,remediation_recommendations,migration_assessments,notification_events TO chainvanta_runtime;
+GRANT SELECT, INSERT, UPDATE ON cryptographic_policies,policy_assignments,monitoring_schedules,assessment_jobs,worker_leases,rpc_budgets TO chainvanta_runtime;
+GRANT DELETE ON assessment_jobs,worker_leases TO chainvanta_runtime;
+GRANT USAGE, SELECT ON SEQUENCE finding_events_event_seq_seq TO chainvanta_runtime;

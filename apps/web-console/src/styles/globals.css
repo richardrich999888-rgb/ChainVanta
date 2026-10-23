@@ -965,3 +965,38 @@ footer {
 .primary:hover {
   background: #2d765d;
 }
+.cpm-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.cpm-summary article {
+  border: 1px solid #293247;
+  border-radius: 10px;
+  padding: 18px;
+}
+.cpm-summary span,
+.cpm-summary strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.cpm-summary strong {
+  margin-top: 10px;
+  font-size: 18px;
+}
+.cpm-form {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0;
+  max-width: 680px;
+}
+.cpm-panel code,
+.cpm-panel dd {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 800px) {
+  .cpm-summary {
+    grid-template-columns: 1fr;
+  }
+}

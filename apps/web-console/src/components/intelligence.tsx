@@ -13,8 +13,6 @@ export function Intelligence({
   onSelect: (item: Assessment) => void;
 }) {
   const [node, setNode] = useState('');
-  const [history, setHistory] = useState<string>('');
-  const [error, setError] = useState('');
   const findings = items.flatMap((item) =>
     item.posture.findings.map((f) => ({ ...f, id: item.id })),
   );
@@ -44,7 +42,6 @@ export function Intelligence({
                 const item = items.find((v) => v.id === event.target.value);
                 if (item) {
                   onSelect(item);
-                  setHistory('');
                   setNode('');
                 }
               }}
@@ -84,50 +81,6 @@ export function Intelligence({
                 </p>
                 <p>
                   Consensus, transport and application cryptography remain outside this observation.
-                </p>
-              </>
-            )}
-            {view === 'CPM' && selected && (
-              <>
-                <h3>Versioned policy findings</h3>
-                {selected.posture.findings.map((f) => (
-                  <article className="finding" key={f.ruleId}>
-                    <span className="status">
-                      {f.severity} · {f.confidence}
-                    </span>
-                    <strong>{f.title}</strong>
-                    <p>{f.rationale}</p>
-                    <small>
-                      {f.ruleId} / {f.ruleVersion}
-                    </small>
-                  </article>
-                ))}
-                <button
-                  className="secondary"
-                  onClick={async () => {
-                    setError('');
-                    try {
-                      const r = await fetch(
-                        `/api/history?chainId=${selected.observation.chainId}&address=${selected.observation.address}`,
-                      );
-                      if (!r.ok) throw new Error();
-                      const value = await r.json();
-                      setHistory(
-                        value.assessments.length < 2
-                          ? 'One snapshot: no previous state to compare.'
-                          : JSON.stringify(value.drift, null, 2),
-                      );
-                    } catch {
-                      setError('History could not be loaded.');
-                    }
-                  }}
-                >
-                  Compare latest snapshots
-                </button>
-                {history && <pre>{history}</pre>}
-                <p>
-                  Drift compares bytecode and token accessor state. Automated alerting is planned.
-                  Finding lifecycle and timed exceptions are available through the admin API.
                 </p>
               </>
             )}
@@ -193,7 +146,6 @@ export function Intelligence({
             )}
           </>
         )}
-        {error && <p role="alert">{error}</p>}
       </div>
     </section>
   );

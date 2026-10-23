@@ -4,6 +4,792 @@
   'security': [{ 'Bearer': [] }],
   'paths':
     {
+      '/v1/cpm/assess':
+        {
+          'post':
+            {
+              'description': 'Tenant authentication required; writes require analyst or administrator.',
+              'parameters': [],
+              'requestBody':
+                {
+                  'required': true,
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/CpmAssessRequest' } },
+                    },
+                },
+              'responses':
+                {
+                  '201':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/PostureSnapshot' } },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/posture/{assetId}':
+        {
+          'get':
+            {
+              'description': 'Tenant authentication required; writes require analyst or administrator.',
+              'parameters':
+                [
+                  {
+                    'in': 'path',
+                    'name': 'assetId',
+                    'required': true,
+                    'schema': { 'type': 'string' },
+                  },
+                ],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/PostureResponse' } },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/history/{assetId}':
+        {
+          'get':
+            {
+              'description': 'Tenant authentication required; writes require analyst or administrator.',
+              'parameters':
+                [
+                  {
+                    'in': 'path',
+                    'name': 'assetId',
+                    'required': true,
+                    'schema': { 'type': 'string' },
+                  },
+                  {
+                    'in': 'query',
+                    'name': 'limit',
+                    'schema': { 'type': 'integer', 'minimum': 1, 'maximum': 100, 'default': 25 },
+                  },
+                  {
+                    'in': 'query',
+                    'name': 'offset',
+                    'schema': { 'type': 'integer', 'minimum': 0, 'maximum': 100000, 'default': 0 },
+                  },
+                ],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            {
+                              'schema':
+                                {
+                                  'type': 'array',
+                                  'items': { '$ref': '#/components/schemas/HistoricalPosture' },
+                                },
+                            },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/policies':
+        {
+          'get':
+            {
+              'description': 'Tenant authentication required; writes require analyst or administrator.',
+              'parameters':
+                [
+                  {
+                    'in': 'query',
+                    'name': 'limit',
+                    'schema': { 'type': 'integer', 'minimum': 1, 'maximum': 100, 'default': 25 },
+                  },
+                  {
+                    'in': 'query',
+                    'name': 'offset',
+                    'schema': { 'type': 'integer', 'minimum': 0, 'maximum': 100000, 'default': 0 },
+                  },
+                ],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            {
+                              'schema':
+                                {
+                                  'type': 'array',
+                                  'items': { '$ref': '#/components/schemas/PolicyVersionRecord' },
+                                },
+                            },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+          'post':
+            {
+              'description': 'Tenant administrator required.',
+              'parameters': [],
+              'requestBody':
+                {
+                  'required': true,
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/CpmPolicy' } },
+                    },
+                },
+              'responses':
+                {
+                  '201':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/CpmPolicy' } },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/policies/{id}':
+        {
+          'patch':
+            {
+              'description': 'Tenant administrator required.',
+              'parameters':
+                [{ 'in': 'path', 'name': 'id', 'required': true, 'schema': { 'type': 'string' } }],
+              'requestBody':
+                {
+                  'required': true,
+                  'content':
+                    {
+                      'application/json':
+                        {
+                          'schema':
+                            {
+                              'type': 'object',
+                              'properties': { 'active': { 'type': 'boolean' } },
+                              'required': ['active'],
+                              'additionalProperties': false,
+                            },
+                        },
+                    },
+                },
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            {
+                              'schema':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    { 'id': { 'type': 'string' }, 'active': { 'type': 'boolean' } },
+                                  'required': ['id', 'active'],
+                                },
+                            },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/assignments':
+        {
+          'post':
+            {
+              'description': 'Tenant administrator required.',
+              'parameters': [],
+              'requestBody':
+                {
+                  'required': true,
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/PolicyAssignment' } },
+                    },
+                },
+              'responses':
+                {
+                  '201':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/PolicyAssignment' } },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/monitoring':
+        {
+          'get':
+            {
+              'description': 'Tenant authentication required; writes require analyst or administrator.',
+              'parameters':
+                [
+                  {
+                    'in': 'query',
+                    'name': 'limit',
+                    'schema': { 'type': 'integer', 'minimum': 1, 'maximum': 100, 'default': 25 },
+                  },
+                  {
+                    'in': 'query',
+                    'name': 'offset',
+                    'schema': { 'type': 'integer', 'minimum': 0, 'maximum': 100000, 'default': 0 },
+                  },
+                ],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            {
+                              'schema':
+                                {
+                                  'type': 'array',
+                                  'items': { '$ref': '#/components/schemas/MonitoringSchedule' },
+                                },
+                            },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+          'post':
+            {
+              'description': 'Tenant authentication required; writes require analyst or administrator.',
+              'parameters': [],
+              'requestBody':
+                {
+                  'required': true,
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/MonitoringRequest' } },
+                    },
+                },
+              'responses':
+                {
+                  '201':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/MonitoringSchedule' } },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/monitoring/{id}':
+        {
+          'patch':
+            {
+              'description': 'Tenant administrator required.',
+              'parameters':
+                [{ 'in': 'path', 'name': 'id', 'required': true, 'schema': { 'type': 'string' } }],
+              'requestBody':
+                {
+                  'required': true,
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/MonitoringUpdate' } },
+                    },
+                },
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/MonitoringSchedule' } },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+          'delete':
+            {
+              'description': 'Tenant administrator required.',
+              'parameters':
+                [{ 'in': 'path', 'name': 'id', 'required': true, 'schema': { 'type': 'string' } }],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/MonitoringSchedule' } },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/jobs/{id}':
+        {
+          'get':
+            {
+              'description': 'Tenant authentication required; writes require analyst or administrator.',
+              'parameters':
+                [{ 'in': 'path', 'name': 'id', 'required': true, 'schema': { 'type': 'string' } }],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/AssessmentJob' } },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/jobs/{id}/cancel':
+        {
+          'post':
+            {
+              'description': 'Tenant administrator required.',
+              'parameters':
+                [{ 'in': 'path', 'name': 'id', 'required': true, 'schema': { 'type': 'string' } }],
+              'responses':
+                {
+                  '201':
+                    {
+                      'description': 'Success',
+                      'content': { 'application/json': { 'schema': { 'type': 'object' } } },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/drift':
+        {
+          'get':
+            {
+              'description': 'Tenant authentication required; writes require analyst or administrator.',
+              'parameters':
+                [
+                  {
+                    'in': 'query',
+                    'name': 'limit',
+                    'schema': { 'type': 'integer', 'minimum': 1, 'maximum': 100, 'default': 25 },
+                  },
+                  {
+                    'in': 'query',
+                    'name': 'offset',
+                    'schema': { 'type': 'integer', 'minimum': 0, 'maximum': 100000, 'default': 0 },
+                  },
+                ],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            {
+                              'schema':
+                                {
+                                  'type': 'array',
+                                  'items': { '$ref': '#/components/schemas/DriftEvent' },
+                                },
+                            },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/remediation':
+        {
+          'get':
+            {
+              'description': 'Tenant authentication required; writes require analyst or administrator.',
+              'parameters':
+                [
+                  {
+                    'in': 'query',
+                    'name': 'limit',
+                    'schema': { 'type': 'integer', 'minimum': 1, 'maximum': 100, 'default': 25 },
+                  },
+                  {
+                    'in': 'query',
+                    'name': 'offset',
+                    'schema': { 'type': 'integer', 'minimum': 0, 'maximum': 100000, 'default': 0 },
+                  },
+                ],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            {
+                              'schema':
+                                {
+                                  'type': 'array',
+                                  'items': { '$ref': '#/components/schemas/Remediation' },
+                                },
+                            },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/notifications':
+        {
+          'get':
+            {
+              'description': 'Tenant authentication required; writes require analyst or administrator.',
+              'parameters':
+                [
+                  {
+                    'in': 'query',
+                    'name': 'limit',
+                    'schema': { 'type': 'integer', 'minimum': 1, 'maximum': 100, 'default': 25 },
+                  },
+                  {
+                    'in': 'query',
+                    'name': 'offset',
+                    'schema': { 'type': 'integer', 'minimum': 0, 'maximum': 100000, 'default': 0 },
+                  },
+                ],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { 'type': 'array', 'items': { 'type': 'object' } } },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/findings/{snapshotId}/{ruleId}':
+        {
+          'patch':
+            {
+              'description': 'Tenant administrator required.',
+              'parameters':
+                [
+                  {
+                    'in': 'path',
+                    'name': 'snapshotId',
+                    'required': true,
+                    'schema': { 'type': 'string' },
+                  },
+                  {
+                    'in': 'path',
+                    'name': 'ruleId',
+                    'required': true,
+                    'schema': { 'type': 'string' },
+                  },
+                ],
+              'requestBody':
+                {
+                  'required': true,
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/FindingTransition' } },
+                    },
+                },
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content': { 'application/json': { 'schema': { 'type': 'object' } } },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/migrations/assess':
+        {
+          'post':
+            {
+              'description': 'Tenant authentication required; writes require analyst or administrator.',
+              'parameters': [],
+              'requestBody':
+                {
+                  'required': true,
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/MigrationRequest' } },
+                    },
+                },
+              'responses':
+                {
+                  '201':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/MigrationResult' } },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/migrations/{id}':
+        {
+          'get':
+            {
+              'description': 'Tenant authentication required; writes require analyst or administrator.',
+              'parameters':
+                [{ 'in': 'path', 'name': 'id', 'required': true, 'schema': { 'type': 'string' } }],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/MigrationResult' } },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
+      '/v1/cpm/migrations/{id}/verify':
+        {
+          'post':
+            {
+              'description': 'Tenant authentication required; writes require analyst or administrator.',
+              'parameters':
+                [{ 'in': 'path', 'name': 'id', 'required': true, 'schema': { 'type': 'string' } }],
+              'requestBody':
+                {
+                  'required': true,
+                  'content':
+                    {
+                      'application/json':
+                        {
+                          'schema':
+                            {
+                              'type': 'object',
+                              'properties':
+                                { 'assessmentId': { 'type': 'string', 'format': 'uuid' } },
+                              'required': ['assessmentId'],
+                              'additionalProperties': false,
+                            },
+                        },
+                    },
+                },
+              'responses':
+                {
+                  '201':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/MigrationResult' } },
+                        },
+                    },
+                  '400': { 'description': 'Invalid input' },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                  '404': { 'description': 'Tenant resource not found' },
+                  '409': { 'description': 'State or immutable version conflict' },
+                  '429': { 'description': 'Quota exceeded' },
+                  '502': { 'description': 'Collection failed' },
+                  '503': { 'description': 'Dependency unavailable' },
+                },
+            },
+        },
       '/v1/session':
         {
           'get':
@@ -832,6 +1618,1711 @@
                 },
               'required': ['status', 'reason'],
               'additionalProperties': false,
+            },
+          'CpmPolicy':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'id': { 'type': 'string', 'pattern': '^[a-zA-Z0-9_-]{1,60}$' },
+                  'version':
+                    { 'type': 'string', 'maxLength': 30, 'pattern': "^\\d+\\.\\d+\\.\\d+$" },
+                  'enabled': { 'type': 'boolean' },
+                  'domain': { 'type': 'string', 'const': 'evm-observed' },
+                  'assetKinds':
+                    {
+                      'minItems': 1,
+                      'maxItems': 2,
+                      'type': 'array',
+                      'items':
+                        { 'type': 'string', 'enum': ['no-code-account', 'code-bearing-account'] },
+                    },
+                  'rules':
+                    {
+                      'minItems': 1,
+                      'maxItems': 20,
+                      'type': 'array',
+                      'items':
+                        {
+                          'type': 'object',
+                          'properties':
+                            {
+                              'id': { 'type': 'string', 'pattern': '^CV-[A-Z0-9-]{1,60}$' },
+                              'kind':
+                                {
+                                  'type': 'string',
+                                  'enum':
+                                    [
+                                      'quantum-signature',
+                                      'unknown-algorithm',
+                                      'signature-format',
+                                      'migration-required',
+                                      'inventory-completeness',
+                                      'missing-evidence',
+                                      'authority-concentration',
+                                      'key-lifecycle',
+                                      'policy-exception',
+                                      'migration-verification',
+                                    ],
+                                },
+                              'enabled': { 'type': 'boolean' },
+                              'severity': { 'type': 'string', 'enum': ['info', 'medium', 'high'] },
+                              'title': { 'type': 'string', 'minLength': 1, 'maxLength': 160 },
+                              'evidenceRequirements':
+                                {
+                                  'minItems': 1,
+                                  'maxItems': 5,
+                                  'type': 'array',
+                                  'items':
+                                    {
+                                      'type': 'string',
+                                      'enum':
+                                        [
+                                          'account-state',
+                                          'transaction-signature',
+                                          'owner-accessor',
+                                          'custody',
+                                          'migration-verification',
+                                        ],
+                                    },
+                                },
+                              'remediation':
+                                { 'type': 'string', 'minLength': 10, 'maxLength': 1000 },
+                              'standards':
+                                {
+                                  'maxItems': 5,
+                                  'type': 'array',
+                                  'items': { 'type': 'string', 'maxLength': 300, 'format': 'uri' },
+                                },
+                            },
+                          'required':
+                            [
+                              'id',
+                              'kind',
+                              'enabled',
+                              'severity',
+                              'title',
+                              'evidenceRequirements',
+                              'remediation',
+                              'standards',
+                            ],
+                          'additionalProperties': false,
+                        },
+                    },
+                },
+              'required': ['id', 'version', 'enabled', 'domain', 'assetKinds', 'rules'],
+              'additionalProperties': false,
+            },
+          'PolicyAssignment':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'assetId':
+                    {
+                      'type': 'string',
+                      'maxLength': 100,
+                      'pattern': '^eip155:[1-9][0-9]*:0x[0-9a-f]{40}$',
+                    },
+                  'policy':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'id': { 'type': 'string', 'pattern': '^[a-zA-Z0-9_-]{1,60}$' },
+                          'version':
+                            {
+                              'type': 'string',
+                              'maxLength': 30,
+                              'pattern': "^\\d+\\.\\d+\\.\\d+$",
+                            },
+                        },
+                      'required': ['id', 'version'],
+                      'additionalProperties': false,
+                    },
+                  'operationalImportance':
+                    {
+                      'default': 'normal',
+                      'type': 'string',
+                      'enum': ['normal', 'high', 'critical'],
+                    },
+                },
+              'required': ['assetId', 'policy'],
+              'additionalProperties': false,
+            },
+          'CpmAssessRequest':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'assessmentId':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'policy':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'id': { 'type': 'string', 'pattern': '^[a-zA-Z0-9_-]{1,60}$' },
+                          'version':
+                            {
+                              'type': 'string',
+                              'maxLength': 30,
+                              'pattern': "^\\d+\\.\\d+\\.\\d+$",
+                            },
+                        },
+                      'required': ['id', 'version'],
+                      'additionalProperties': false,
+                    },
+                },
+              'required': ['assessmentId'],
+              'additionalProperties': false,
+            },
+          'MonitoringRequest':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'input':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'address': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                          'chainId':
+                            {
+                              'type': 'integer',
+                              'exclusiveMinimum': 0,
+                              'maximum': 9007199254740991,
+                            },
+                          'transactionHash': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                          'adapter': { 'type': 'string', 'const': 'ownable-erc20' },
+                        },
+                      'required': ['address', 'chainId'],
+                      'additionalProperties': false,
+                    },
+                  'policy':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'id': { 'type': 'string', 'pattern': '^[a-zA-Z0-9_-]{1,60}$' },
+                          'version':
+                            {
+                              'type': 'string',
+                              'maxLength': 30,
+                              'pattern': "^\\d+\\.\\d+\\.\\d+$",
+                            },
+                        },
+                      'required': ['id', 'version'],
+                      'additionalProperties': false,
+                    },
+                  'intervalSeconds': { 'type': 'integer', 'minimum': 60, 'maximum': 2592000 },
+                },
+              'required': ['input', 'intervalSeconds'],
+              'additionalProperties': false,
+            },
+          'MonitoringUpdate':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'enabled': { 'type': 'boolean' },
+                  'intervalSeconds': { 'type': 'integer', 'minimum': 60, 'maximum': 2592000 },
+                },
+              'additionalProperties': false,
+            },
+          'FindingTransition':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'status':
+                    {
+                      'type': 'string',
+                      'enum':
+                        [
+                          'open',
+                          'acknowledged',
+                          'in_remediation',
+                          'pending_verification',
+                          'administratively_closed',
+                          'excepted',
+                        ],
+                    },
+                  'reason': { 'type': 'string', 'minLength': 10, 'maxLength': 1000 },
+                  'expiresAt':
+                    {
+                      'type': 'string',
+                      'format': 'date-time',
+                      'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    },
+                },
+              'required': ['status', 'reason'],
+              'additionalProperties': false,
+            },
+          'MigrationRequest':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'assessmentId':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'goal':
+                    {
+                      'type': 'string',
+                      'enum': ['authorization-change', 'cryptographic-migration'],
+                    },
+                  'scope': { 'type': 'string', 'minLength': 10, 'maxLength': 500 },
+                  'criteria':
+                    {
+                      'minItems': 1,
+                      'maxItems': 8,
+                      'type': 'array',
+                      'items':
+                        {
+                          'oneOf':
+                            [
+                              {
+                                'type': 'object',
+                                'properties':
+                                  {
+                                    'kind': { 'type': 'string', 'const': 'owner_equals' },
+                                    'expected':
+                                      { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                                  },
+                                'required': ['kind', 'expected'],
+                                'additionalProperties': false,
+                              },
+                              {
+                                'type': 'object',
+                                'properties':
+                                  {
+                                    'kind': { 'type': 'string', 'const': 'bytecode_hash_equals' },
+                                    'expected':
+                                      { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                                  },
+                                'required': ['kind', 'expected'],
+                                'additionalProperties': false,
+                              },
+                              {
+                                'type': 'object',
+                                'properties':
+                                  {
+                                    'kind': { 'type': 'string', 'const': 'signature_algorithm' },
+                                    'expected':
+                                      { 'type': 'string', 'minLength': 1, 'maxLength': 80 },
+                                  },
+                                'required': ['kind', 'expected'],
+                                'additionalProperties': false,
+                              },
+                            ],
+                        },
+                    },
+                },
+              'required': ['assessmentId', 'goal', 'scope', 'criteria'],
+              'additionalProperties': false,
+            },
+          'MigrationResult':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'validity': { 'type': 'string', 'enum': ['provider-finalized', 'invalidated'] },
+                  'effectiveStatus': { 'type': 'string', 'enum': ['PENDING_VERIFICATION'] },
+                  'id':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'assetId':
+                    {
+                      'type': 'string',
+                      'maxLength': 100,
+                      'pattern': '^eip155:[1-9][0-9]*:0x[0-9a-f]{40}$',
+                    },
+                  'assessmentId':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'baselineAssessmentId':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'status':
+                    {
+                      'type': 'string',
+                      'enum':
+                        [
+                          'READY_FOR_PLANNING',
+                          'NEEDS_ADDITIONAL_EVIDENCE',
+                          'TECHNICALLY_BLOCKED',
+                          'MIGRATION_IN_PROGRESS',
+                          'PENDING_VERIFICATION',
+                          'VERIFIED_FOR_DEFINED_SCOPE',
+                        ],
+                    },
+                  'scope': { 'type': 'string' },
+                  'checks':
+                    {
+                      'type': 'array',
+                      'items':
+                        {
+                          'type': 'object',
+                          'properties':
+                            {
+                              'criterion':
+                                {
+                                  'oneOf':
+                                    [
+                                      {
+                                        'type': 'object',
+                                        'properties':
+                                          {
+                                            'kind': { 'type': 'string', 'const': 'owner_equals' },
+                                            'expected':
+                                              {
+                                                'type': 'string',
+                                                'pattern': '^0x[0-9a-fA-F]{40}$',
+                                              },
+                                          },
+                                        'required': ['kind', 'expected'],
+                                        'additionalProperties': false,
+                                      },
+                                      {
+                                        'type': 'object',
+                                        'properties':
+                                          {
+                                            'kind':
+                                              { 'type': 'string', 'const': 'bytecode_hash_equals' },
+                                            'expected':
+                                              {
+                                                'type': 'string',
+                                                'pattern': '^sha256:[a-f0-9]{64}$',
+                                              },
+                                          },
+                                        'required': ['kind', 'expected'],
+                                        'additionalProperties': false,
+                                      },
+                                      {
+                                        'type': 'object',
+                                        'properties':
+                                          {
+                                            'kind':
+                                              { 'type': 'string', 'const': 'signature_algorithm' },
+                                            'expected':
+                                              { 'type': 'string', 'minLength': 1, 'maxLength': 80 },
+                                          },
+                                        'required': ['kind', 'expected'],
+                                        'additionalProperties': false,
+                                      },
+                                    ],
+                                },
+                              'result':
+                                {
+                                  'type': 'string',
+                                  'enum': ['satisfied', 'not_satisfied', 'unknown'],
+                                },
+                              'reason': { 'type': 'string' },
+                            },
+                          'required': ['criterion', 'result', 'reason'],
+                        },
+                    },
+                  'evidenceReferences':
+                    {
+                      'type': 'array',
+                      'items': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                    },
+                  'missingEvidence': { 'type': 'array', 'items': { 'type': 'string' } },
+                  'limitations': { 'type': 'array', 'items': { 'type': 'string' } },
+                },
+              'required':
+                [
+                  'id',
+                  'assetId',
+                  'assessmentId',
+                  'baselineAssessmentId',
+                  'status',
+                  'scope',
+                  'checks',
+                  'evidenceReferences',
+                  'missingEvidence',
+                  'limitations',
+                ],
+            },
+          'PostureSnapshot':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'id': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                  'assetId':
+                    {
+                      'type': 'string',
+                      'maxLength': 100,
+                      'pattern': '^eip155:[1-9][0-9]*:0x[0-9a-f]{40}$',
+                    },
+                  'chainId':
+                    { 'type': 'integer', 'exclusiveMinimum': 0, 'maximum': 9007199254740991 },
+                  'assessmentId':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'policyId': { 'type': 'string' },
+                  'policyVersion': { 'type': 'string' },
+                  'policyHash': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                  'evaluatorVersion': { 'type': 'string', 'const': 'web3-cpm/1.0.0' },
+                  'assessedAt':
+                    {
+                      'type': 'string',
+                      'format': 'date-time',
+                      'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    },
+                  'observedAlgorithms': { 'type': 'array', 'items': { 'type': 'string' } },
+                  'quantumExposure':
+                    {
+                      'type': 'string',
+                      'enum': ['exposed', 'potential', 'not_observed', 'unknown'],
+                    },
+                  'publicKeyExposure':
+                    {
+                      'type': 'string',
+                      'enum': ['recoverable-from-verified-signature', 'not_observed'],
+                    },
+                  'migrationReadiness':
+                    {
+                      'type': 'string',
+                      'enum': ['ready', 'partially_ready', 'blocked', 'unknown'],
+                    },
+                  'confidence':
+                    {
+                      'type': 'string',
+                      'enum': ['observed', 'authenticated-integration', 'inferred', 'unknown'],
+                    },
+                  'findings':
+                    {
+                      'type': 'array',
+                      'items':
+                        {
+                          'type': 'object',
+                          'properties':
+                            {
+                              'ruleId': { 'type': 'string' },
+                              'ruleVersion': { 'type': 'string' },
+                              'severity': { 'type': 'string', 'enum': ['info', 'medium', 'high'] },
+                              'title': { 'type': 'string' },
+                              'rationale': { 'type': 'string' },
+                              'confidence':
+                                {
+                                  'type': 'string',
+                                  'enum':
+                                    [
+                                      'observed',
+                                      'authenticated-integration',
+                                      'inferred',
+                                      'unknown',
+                                    ],
+                                },
+                              'evidenceHash':
+                                { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                            },
+                          'required':
+                            [
+                              'ruleId',
+                              'severity',
+                              'title',
+                              'rationale',
+                              'confidence',
+                              'evidenceHash',
+                            ],
+                        },
+                    },
+                  'evaluations':
+                    {
+                      'type': 'array',
+                      'items':
+                        {
+                          'type': 'object',
+                          'properties':
+                            {
+                              'ruleId': { 'type': 'string' },
+                              'ruleHash': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                              'result':
+                                {
+                                  'type': 'string',
+                                  'enum': ['violation', 'satisfied', 'unknown', 'not_applicable'],
+                                },
+                              'confidence':
+                                {
+                                  'type': 'string',
+                                  'enum':
+                                    [
+                                      'observed',
+                                      'authenticated-integration',
+                                      'inferred',
+                                      'unknown',
+                                    ],
+                                },
+                              'rationale': { 'type': 'string' },
+                              'evidenceReferences':
+                                {
+                                  'minItems': 1,
+                                  'type': 'array',
+                                  'items': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                                },
+                            },
+                          'required':
+                            [
+                              'ruleId',
+                              'ruleHash',
+                              'result',
+                              'confidence',
+                              'rationale',
+                              'evidenceReferences',
+                            ],
+                        },
+                    },
+                  'evidenceReferences':
+                    {
+                      'minItems': 1,
+                      'type': 'array',
+                      'items': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                    },
+                  'coverage':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'account': { 'type': 'boolean', 'const': true },
+                          'signature': { 'type': 'boolean' },
+                          'owner': { 'type': 'boolean' },
+                          'authorization': { 'type': 'boolean', 'const': false },
+                          'custody': { 'type': 'boolean', 'const': false },
+                        },
+                      'required': ['account', 'signature', 'owner', 'authorization', 'custody'],
+                    },
+                  'owner': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                  'signatureType': { 'type': 'string' },
+                  'dependencies': { 'type': 'array', 'items': { 'type': 'string' } },
+                  'demonstration': { 'type': 'boolean' },
+                  'limitations': { 'type': 'array', 'items': { 'type': 'string' } },
+                },
+              'required':
+                [
+                  'id',
+                  'assetId',
+                  'chainId',
+                  'assessmentId',
+                  'policyId',
+                  'policyVersion',
+                  'policyHash',
+                  'evaluatorVersion',
+                  'assessedAt',
+                  'observedAlgorithms',
+                  'quantumExposure',
+                  'publicKeyExposure',
+                  'migrationReadiness',
+                  'confidence',
+                  'findings',
+                  'evaluations',
+                  'evidenceReferences',
+                  'coverage',
+                  'dependencies',
+                  'demonstration',
+                  'limitations',
+                ],
+            },
+          'PostureResponse':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'snapshot':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'id': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                          'assetId':
+                            {
+                              'type': 'string',
+                              'maxLength': 100,
+                              'pattern': '^eip155:[1-9][0-9]*:0x[0-9a-f]{40}$',
+                            },
+                          'chainId':
+                            {
+                              'type': 'integer',
+                              'exclusiveMinimum': 0,
+                              'maximum': 9007199254740991,
+                            },
+                          'assessmentId':
+                            {
+                              'type': 'string',
+                              'format': 'uuid',
+                              'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                            },
+                          'policyId': { 'type': 'string' },
+                          'policyVersion': { 'type': 'string' },
+                          'policyHash': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                          'evaluatorVersion': { 'type': 'string', 'const': 'web3-cpm/1.0.0' },
+                          'assessedAt':
+                            {
+                              'type': 'string',
+                              'format': 'date-time',
+                              'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                            },
+                          'observedAlgorithms': { 'type': 'array', 'items': { 'type': 'string' } },
+                          'quantumExposure':
+                            {
+                              'type': 'string',
+                              'enum': ['exposed', 'potential', 'not_observed', 'unknown'],
+                            },
+                          'publicKeyExposure':
+                            {
+                              'type': 'string',
+                              'enum': ['recoverable-from-verified-signature', 'not_observed'],
+                            },
+                          'migrationReadiness':
+                            {
+                              'type': 'string',
+                              'enum': ['ready', 'partially_ready', 'blocked', 'unknown'],
+                            },
+                          'confidence':
+                            {
+                              'type': 'string',
+                              'enum':
+                                ['observed', 'authenticated-integration', 'inferred', 'unknown'],
+                            },
+                          'findings':
+                            {
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'ruleId': { 'type': 'string' },
+                                      'ruleVersion': { 'type': 'string' },
+                                      'severity':
+                                        { 'type': 'string', 'enum': ['info', 'medium', 'high'] },
+                                      'title': { 'type': 'string' },
+                                      'rationale': { 'type': 'string' },
+                                      'confidence':
+                                        {
+                                          'type': 'string',
+                                          'enum':
+                                            [
+                                              'observed',
+                                              'authenticated-integration',
+                                              'inferred',
+                                              'unknown',
+                                            ],
+                                        },
+                                      'evidenceHash':
+                                        { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                                    },
+                                  'required':
+                                    [
+                                      'ruleId',
+                                      'severity',
+                                      'title',
+                                      'rationale',
+                                      'confidence',
+                                      'evidenceHash',
+                                    ],
+                                },
+                            },
+                          'evaluations':
+                            {
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'ruleId': { 'type': 'string' },
+                                      'ruleHash':
+                                        { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                                      'result':
+                                        {
+                                          'type': 'string',
+                                          'enum':
+                                            ['violation', 'satisfied', 'unknown', 'not_applicable'],
+                                        },
+                                      'confidence':
+                                        {
+                                          'type': 'string',
+                                          'enum':
+                                            [
+                                              'observed',
+                                              'authenticated-integration',
+                                              'inferred',
+                                              'unknown',
+                                            ],
+                                        },
+                                      'rationale': { 'type': 'string' },
+                                      'evidenceReferences':
+                                        {
+                                          'minItems': 1,
+                                          'type': 'array',
+                                          'items':
+                                            {
+                                              'type': 'string',
+                                              'pattern': '^sha256:[a-f0-9]{64}$',
+                                            },
+                                        },
+                                    },
+                                  'required':
+                                    [
+                                      'ruleId',
+                                      'ruleHash',
+                                      'result',
+                                      'confidence',
+                                      'rationale',
+                                      'evidenceReferences',
+                                    ],
+                                },
+                            },
+                          'evidenceReferences':
+                            {
+                              'minItems': 1,
+                              'type': 'array',
+                              'items': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                            },
+                          'coverage':
+                            {
+                              'type': 'object',
+                              'properties':
+                                {
+                                  'account': { 'type': 'boolean', 'const': true },
+                                  'signature': { 'type': 'boolean' },
+                                  'owner': { 'type': 'boolean' },
+                                  'authorization': { 'type': 'boolean', 'const': false },
+                                  'custody': { 'type': 'boolean', 'const': false },
+                                },
+                              'required':
+                                ['account', 'signature', 'owner', 'authorization', 'custody'],
+                            },
+                          'owner': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                          'signatureType': { 'type': 'string' },
+                          'dependencies': { 'type': 'array', 'items': { 'type': 'string' } },
+                          'demonstration': { 'type': 'boolean' },
+                          'limitations': { 'type': 'array', 'items': { 'type': 'string' } },
+                          'validity':
+                            { 'type': 'string', 'enum': ['provider-finalized', 'invalidated'] },
+                          'invalidationReason': { 'type': ['string', 'null'] },
+                        },
+                      'required':
+                        [
+                          'id',
+                          'assetId',
+                          'chainId',
+                          'assessmentId',
+                          'policyId',
+                          'policyVersion',
+                          'policyHash',
+                          'evaluatorVersion',
+                          'assessedAt',
+                          'observedAlgorithms',
+                          'quantumExposure',
+                          'publicKeyExposure',
+                          'migrationReadiness',
+                          'confidence',
+                          'findings',
+                          'evaluations',
+                          'evidenceReferences',
+                          'coverage',
+                          'dependencies',
+                          'demonstration',
+                          'limitations',
+                          'validity',
+                          'invalidationReason',
+                        ],
+                    },
+                  'lifecycle':
+                    {
+                      'type': 'array',
+                      'items':
+                        {
+                          'type': 'object',
+                          'properties':
+                            {
+                              'status': { 'type': 'string' },
+                              'effectiveStatus': { 'type': 'string' },
+                              'policy_id': { 'type': 'string' },
+                              'rule_id': { 'type': 'string' },
+                              'assessment_id':
+                                {
+                                  'type': 'string',
+                                  'format': 'uuid',
+                                  'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                                },
+                              'snapshot_id':
+                                { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                              'verification_snapshot_id':
+                                {
+                                  'anyOf':
+                                    [
+                                      { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                                      { 'type': 'null' },
+                                    ],
+                                },
+                            },
+                          'required':
+                            [
+                              'status',
+                              'effectiveStatus',
+                              'policy_id',
+                              'rule_id',
+                              'assessment_id',
+                              'snapshot_id',
+                              'verification_snapshot_id',
+                            ],
+                        },
+                    },
+                  'currentFindings':
+                    {
+                      'type': 'array',
+                      'items':
+                        {
+                          'type': 'object',
+                          'properties':
+                            {
+                              'ruleId': { 'type': 'string' },
+                              'ruleVersion': { 'type': 'string' },
+                              'severity': { 'type': 'string', 'enum': ['info', 'medium', 'high'] },
+                              'title': { 'type': 'string' },
+                              'rationale': { 'type': 'string' },
+                              'confidence':
+                                {
+                                  'type': 'string',
+                                  'enum':
+                                    [
+                                      'observed',
+                                      'authenticated-integration',
+                                      'inferred',
+                                      'unknown',
+                                    ],
+                                },
+                              'evidenceHash':
+                                { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                              'policyId': { 'type': 'string' },
+                              'lastObservedAssessmentId':
+                                {
+                                  'type': 'string',
+                                  'format': 'uuid',
+                                  'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                                },
+                              'lastObservedSnapshotId':
+                                { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                              'evidenceValidity':
+                                { 'type': 'string', 'enum': ['provider-finalized', 'invalidated'] },
+                              'effectiveStatus': { 'type': 'string' },
+                            },
+                          'required':
+                            [
+                              'ruleId',
+                              'severity',
+                              'title',
+                              'rationale',
+                              'confidence',
+                              'evidenceHash',
+                              'policyId',
+                              'lastObservedAssessmentId',
+                              'lastObservedSnapshotId',
+                              'evidenceValidity',
+                              'effectiveStatus',
+                            ],
+                        },
+                    },
+                  'currentStatus':
+                    { 'type': 'string', 'enum': ['observed', 'collection_failed', 'stale'] },
+                  'currentQuantumExposure':
+                    {
+                      'type': 'string',
+                      'enum': ['exposed', 'potential', 'not_observed', 'unknown'],
+                    },
+                  'monitoring':
+                    {
+                      'type': 'array',
+                      'items':
+                        {
+                          'type': 'object',
+                          'properties':
+                            {
+                              'last_success_at':
+                                {
+                                  'anyOf':
+                                    [
+                                      {
+                                        'type': 'string',
+                                        'format': 'date-time',
+                                        'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                                      },
+                                      { 'type': 'null' },
+                                    ],
+                                },
+                              'last_failure_at':
+                                {
+                                  'anyOf':
+                                    [
+                                      {
+                                        'type': 'string',
+                                        'format': 'date-time',
+                                        'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                                      },
+                                      { 'type': 'null' },
+                                    ],
+                                },
+                              'last_failure': { 'type': ['string', 'null'] },
+                              'next_run_at':
+                                {
+                                  'type': 'string',
+                                  'format': 'date-time',
+                                  'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                                },
+                              'enabled': { 'type': 'boolean' },
+                            },
+                          'required':
+                            [
+                              'last_success_at',
+                              'last_failure_at',
+                              'last_failure',
+                              'next_run_at',
+                              'enabled',
+                            ],
+                        },
+                    },
+                },
+              'required':
+                [
+                  'snapshot',
+                  'lifecycle',
+                  'currentFindings',
+                  'currentStatus',
+                  'currentQuantumExposure',
+                  'monitoring',
+                ],
+            },
+          'HistoricalPosture':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'id': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                  'assetId':
+                    {
+                      'type': 'string',
+                      'maxLength': 100,
+                      'pattern': '^eip155:[1-9][0-9]*:0x[0-9a-f]{40}$',
+                    },
+                  'chainId':
+                    { 'type': 'integer', 'exclusiveMinimum': 0, 'maximum': 9007199254740991 },
+                  'assessmentId':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'policyId': { 'type': 'string' },
+                  'policyVersion': { 'type': 'string' },
+                  'policyHash': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                  'evaluatorVersion': { 'type': 'string', 'const': 'web3-cpm/1.0.0' },
+                  'assessedAt':
+                    {
+                      'type': 'string',
+                      'format': 'date-time',
+                      'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    },
+                  'observedAlgorithms': { 'type': 'array', 'items': { 'type': 'string' } },
+                  'quantumExposure':
+                    {
+                      'type': 'string',
+                      'enum': ['exposed', 'potential', 'not_observed', 'unknown'],
+                    },
+                  'publicKeyExposure':
+                    {
+                      'type': 'string',
+                      'enum': ['recoverable-from-verified-signature', 'not_observed'],
+                    },
+                  'migrationReadiness':
+                    {
+                      'type': 'string',
+                      'enum': ['ready', 'partially_ready', 'blocked', 'unknown'],
+                    },
+                  'confidence':
+                    {
+                      'type': 'string',
+                      'enum': ['observed', 'authenticated-integration', 'inferred', 'unknown'],
+                    },
+                  'findings':
+                    {
+                      'type': 'array',
+                      'items':
+                        {
+                          'type': 'object',
+                          'properties':
+                            {
+                              'ruleId': { 'type': 'string' },
+                              'ruleVersion': { 'type': 'string' },
+                              'severity': { 'type': 'string', 'enum': ['info', 'medium', 'high'] },
+                              'title': { 'type': 'string' },
+                              'rationale': { 'type': 'string' },
+                              'confidence':
+                                {
+                                  'type': 'string',
+                                  'enum':
+                                    [
+                                      'observed',
+                                      'authenticated-integration',
+                                      'inferred',
+                                      'unknown',
+                                    ],
+                                },
+                              'evidenceHash':
+                                { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                            },
+                          'required':
+                            [
+                              'ruleId',
+                              'severity',
+                              'title',
+                              'rationale',
+                              'confidence',
+                              'evidenceHash',
+                            ],
+                        },
+                    },
+                  'evaluations':
+                    {
+                      'type': 'array',
+                      'items':
+                        {
+                          'type': 'object',
+                          'properties':
+                            {
+                              'ruleId': { 'type': 'string' },
+                              'ruleHash': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                              'result':
+                                {
+                                  'type': 'string',
+                                  'enum': ['violation', 'satisfied', 'unknown', 'not_applicable'],
+                                },
+                              'confidence':
+                                {
+                                  'type': 'string',
+                                  'enum':
+                                    [
+                                      'observed',
+                                      'authenticated-integration',
+                                      'inferred',
+                                      'unknown',
+                                    ],
+                                },
+                              'rationale': { 'type': 'string' },
+                              'evidenceReferences':
+                                {
+                                  'minItems': 1,
+                                  'type': 'array',
+                                  'items': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                                },
+                            },
+                          'required':
+                            [
+                              'ruleId',
+                              'ruleHash',
+                              'result',
+                              'confidence',
+                              'rationale',
+                              'evidenceReferences',
+                            ],
+                        },
+                    },
+                  'evidenceReferences':
+                    {
+                      'minItems': 1,
+                      'type': 'array',
+                      'items': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                    },
+                  'coverage':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'account': { 'type': 'boolean', 'const': true },
+                          'signature': { 'type': 'boolean' },
+                          'owner': { 'type': 'boolean' },
+                          'authorization': { 'type': 'boolean', 'const': false },
+                          'custody': { 'type': 'boolean', 'const': false },
+                        },
+                      'required': ['account', 'signature', 'owner', 'authorization', 'custody'],
+                    },
+                  'owner': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                  'signatureType': { 'type': 'string' },
+                  'dependencies': { 'type': 'array', 'items': { 'type': 'string' } },
+                  'demonstration': { 'type': 'boolean' },
+                  'limitations': { 'type': 'array', 'items': { 'type': 'string' } },
+                  'validity': { 'type': 'string', 'enum': ['provider-finalized', 'invalidated'] },
+                  'invalidationReason': { 'type': ['string', 'null'] },
+                },
+              'required':
+                [
+                  'id',
+                  'assetId',
+                  'chainId',
+                  'assessmentId',
+                  'policyId',
+                  'policyVersion',
+                  'policyHash',
+                  'evaluatorVersion',
+                  'assessedAt',
+                  'observedAlgorithms',
+                  'quantumExposure',
+                  'publicKeyExposure',
+                  'migrationReadiness',
+                  'confidence',
+                  'findings',
+                  'evaluations',
+                  'evidenceReferences',
+                  'coverage',
+                  'dependencies',
+                  'demonstration',
+                  'limitations',
+                  'validity',
+                  'invalidationReason',
+                ],
+            },
+          'MonitoringSchedule':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'id':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'tenant_id':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'asset_id':
+                    {
+                      'type': 'string',
+                      'maxLength': 100,
+                      'pattern': '^eip155:[1-9][0-9]*:0x[0-9a-f]{40}$',
+                    },
+                  'input':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'address': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                          'chainId':
+                            {
+                              'type': 'integer',
+                              'exclusiveMinimum': 0,
+                              'maximum': 9007199254740991,
+                            },
+                          'transactionHash': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                          'adapter': { 'type': 'string', 'const': 'ownable-erc20' },
+                        },
+                      'required': ['address', 'chainId'],
+                      'additionalProperties': false,
+                    },
+                  'policy_id': { 'type': 'string' },
+                  'policy_version': { 'type': 'string' },
+                  'interval_seconds': { 'type': 'number' },
+                  'enabled': { 'type': 'boolean' },
+                  'next_run_at':
+                    {
+                      'type': 'string',
+                      'format': 'date-time',
+                      'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    },
+                  'last_success_at':
+                    {
+                      'anyOf':
+                        [
+                          {
+                            'type': 'string',
+                            'format': 'date-time',
+                            'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                          },
+                          { 'type': 'null' },
+                        ],
+                    },
+                  'last_failure_at':
+                    {
+                      'anyOf':
+                        [
+                          {
+                            'type': 'string',
+                            'format': 'date-time',
+                            'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                          },
+                          { 'type': 'null' },
+                        ],
+                    },
+                  'last_failure': { 'type': ['string', 'null'] },
+                  'actor': { 'type': 'string' },
+                  'created_at':
+                    {
+                      'type': 'string',
+                      'format': 'date-time',
+                      'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    },
+                  'worker_state': { 'type': ['string', 'null'] },
+                  'latest_job_id':
+                    {
+                      'anyOf':
+                        [
+                          {
+                            'type': 'string',
+                            'format': 'uuid',
+                            'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                          },
+                          { 'type': 'null' },
+                        ],
+                    },
+                  'error_code': { 'type': ['string', 'null'] },
+                  'heartbeat_at':
+                    {
+                      'anyOf':
+                        [
+                          {
+                            'type': 'string',
+                            'format': 'date-time',
+                            'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                          },
+                          { 'type': 'null' },
+                        ],
+                    },
+                },
+              'required':
+                [
+                  'id',
+                  'tenant_id',
+                  'asset_id',
+                  'input',
+                  'policy_id',
+                  'policy_version',
+                  'interval_seconds',
+                  'enabled',
+                  'next_run_at',
+                  'last_success_at',
+                  'last_failure_at',
+                  'last_failure',
+                  'actor',
+                  'created_at',
+                ],
+            },
+          'AssessmentJob':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'id':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'tenant_id':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'schedule_id':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'idempotency_key': { 'type': 'string' },
+                  'input':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'address': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                          'chainId':
+                            {
+                              'type': 'integer',
+                              'exclusiveMinimum': 0,
+                              'maximum': 9007199254740991,
+                            },
+                          'transactionHash': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                          'adapter': { 'type': 'string', 'const': 'ownable-erc20' },
+                        },
+                      'required': ['address', 'chainId'],
+                      'additionalProperties': false,
+                    },
+                  'policy_id': { 'type': 'string' },
+                  'policy_version': { 'type': 'string' },
+                  'status':
+                    {
+                      'type': 'string',
+                      'enum': ['queued', 'running', 'retry', 'succeeded', 'failed', 'cancelled'],
+                    },
+                  'attempts': { 'type': 'number' },
+                  'available_at':
+                    {
+                      'type': 'string',
+                      'format': 'date-time',
+                      'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    },
+                  'lease_until':
+                    {
+                      'anyOf':
+                        [
+                          {
+                            'type': 'string',
+                            'format': 'date-time',
+                            'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                          },
+                          { 'type': 'null' },
+                        ],
+                    },
+                  'worker_id': { 'type': ['string', 'null'] },
+                  'started_at':
+                    {
+                      'anyOf':
+                        [
+                          {
+                            'type': 'string',
+                            'format': 'date-time',
+                            'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                          },
+                          { 'type': 'null' },
+                        ],
+                    },
+                  'finished_at':
+                    {
+                      'anyOf':
+                        [
+                          {
+                            'type': 'string',
+                            'format': 'date-time',
+                            'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                          },
+                          { 'type': 'null' },
+                        ],
+                    },
+                  'assessment_id':
+                    {
+                      'anyOf':
+                        [
+                          {
+                            'type': 'string',
+                            'format': 'uuid',
+                            'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                          },
+                          { 'type': 'null' },
+                        ],
+                    },
+                  'error_code': { 'type': ['string', 'null'] },
+                  'created_at':
+                    {
+                      'type': 'string',
+                      'format': 'date-time',
+                      'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    },
+                },
+              'required':
+                [
+                  'id',
+                  'tenant_id',
+                  'schedule_id',
+                  'idempotency_key',
+                  'input',
+                  'policy_id',
+                  'policy_version',
+                  'status',
+                  'attempts',
+                  'available_at',
+                  'lease_until',
+                  'worker_id',
+                  'started_at',
+                  'finished_at',
+                  'assessment_id',
+                  'error_code',
+                  'created_at',
+                ],
+            },
+          'PolicyVersionRecord':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'active': { 'type': 'boolean' },
+                  'document':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'id': { 'type': 'string', 'pattern': '^[a-zA-Z0-9_-]{1,60}$' },
+                          'version':
+                            {
+                              'type': 'string',
+                              'maxLength': 30,
+                              'pattern': "^\\d+\\.\\d+\\.\\d+$",
+                            },
+                          'enabled': { 'type': 'boolean' },
+                          'domain': { 'type': 'string', 'const': 'evm-observed' },
+                          'assetKinds':
+                            {
+                              'minItems': 1,
+                              'maxItems': 2,
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'string',
+                                  'enum': ['no-code-account', 'code-bearing-account'],
+                                },
+                            },
+                          'rules':
+                            {
+                              'minItems': 1,
+                              'maxItems': 20,
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'id': { 'type': 'string', 'pattern': '^CV-[A-Z0-9-]{1,60}$' },
+                                      'kind':
+                                        {
+                                          'type': 'string',
+                                          'enum':
+                                            [
+                                              'quantum-signature',
+                                              'unknown-algorithm',
+                                              'signature-format',
+                                              'migration-required',
+                                              'inventory-completeness',
+                                              'missing-evidence',
+                                              'authority-concentration',
+                                              'key-lifecycle',
+                                              'policy-exception',
+                                              'migration-verification',
+                                            ],
+                                        },
+                                      'enabled': { 'type': 'boolean' },
+                                      'severity':
+                                        { 'type': 'string', 'enum': ['info', 'medium', 'high'] },
+                                      'title':
+                                        { 'type': 'string', 'minLength': 1, 'maxLength': 160 },
+                                      'evidenceRequirements':
+                                        {
+                                          'minItems': 1,
+                                          'maxItems': 5,
+                                          'type': 'array',
+                                          'items':
+                                            {
+                                              'type': 'string',
+                                              'enum':
+                                                [
+                                                  'account-state',
+                                                  'transaction-signature',
+                                                  'owner-accessor',
+                                                  'custody',
+                                                  'migration-verification',
+                                                ],
+                                            },
+                                        },
+                                      'remediation':
+                                        { 'type': 'string', 'minLength': 10, 'maxLength': 1000 },
+                                      'standards':
+                                        {
+                                          'maxItems': 5,
+                                          'type': 'array',
+                                          'items':
+                                            { 'type': 'string', 'maxLength': 300, 'format': 'uri' },
+                                        },
+                                    },
+                                  'required':
+                                    [
+                                      'id',
+                                      'kind',
+                                      'enabled',
+                                      'severity',
+                                      'title',
+                                      'evidenceRequirements',
+                                      'remediation',
+                                      'standards',
+                                    ],
+                                  'additionalProperties': false,
+                                },
+                            },
+                        },
+                      'required': ['id', 'version', 'enabled', 'domain', 'assetKinds', 'rules'],
+                      'additionalProperties': false,
+                    },
+                  'content_hash': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                  'actor': { 'type': 'string' },
+                  'created_at':
+                    {
+                      'type': 'string',
+                      'format': 'date-time',
+                      'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    },
+                },
+              'required': ['active', 'document', 'content_hash', 'actor', 'created_at'],
+            },
+          'DriftEvent':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'id': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                  'assetId':
+                    {
+                      'type': 'string',
+                      'maxLength': 100,
+                      'pattern': '^eip155:[1-9][0-9]*:0x[0-9a-f]{40}$',
+                    },
+                  'previousSnapshotId': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                  'currentSnapshotId': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                  'previousAssessmentId':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'currentAssessmentId':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'detectedAt':
+                    {
+                      'type': 'string',
+                      'format': 'date-time',
+                      'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    },
+                  'type':
+                    {
+                      'type': 'string',
+                      'enum':
+                        [
+                          'ALGORITHM_OBSERVED',
+                          'ALGORITHM_NO_LONGER_OBSERVED',
+                          'QUANTUM_EXPOSURE_CHANGED',
+                          'SIGNATURE_POSTURE_CHANGED',
+                          'CONTRACT_AUTHORITY_CHANGED',
+                          'DEPENDENCY_CHANGED',
+                          'POLICY_VIOLATION',
+                          'POLICY_REMEDIATED',
+                          'EVIDENCE_COVERAGE_CHANGED',
+                          'MIGRATION_STATUS_CHANGED',
+                          'POLICY_VERSION_CHANGED',
+                        ],
+                    },
+                  'confidence':
+                    { 'type': 'string', 'enum': ['observed', 'incomplete', 'policy_change'] },
+                  'before': {},
+                  'after': {},
+                  'evidenceReferences':
+                    {
+                      'type': 'array',
+                      'items': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                    },
+                },
+              'required':
+                [
+                  'id',
+                  'assetId',
+                  'previousSnapshotId',
+                  'currentSnapshotId',
+                  'previousAssessmentId',
+                  'currentAssessmentId',
+                  'detectedAt',
+                  'type',
+                  'confidence',
+                  'before',
+                  'after',
+                  'evidenceReferences',
+                ],
+            },
+          'Remediation':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'assetId':
+                    {
+                      'type': 'string',
+                      'maxLength': 100,
+                      'pattern': '^eip155:[1-9][0-9]*:0x[0-9a-f]{40}$',
+                    },
+                  'snapshotId': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                  'ruleId': { 'type': 'string' },
+                  'priority':
+                    {
+                      'type': 'string',
+                      'enum': ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'NEEDS_EVIDENCE'],
+                    },
+                  'dependency': { 'type': 'string' },
+                  'rationale': { 'type': 'string' },
+                  'evidenceReferences':
+                    {
+                      'type': 'array',
+                      'items': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                    },
+                  'constraints': { 'type': 'array', 'items': { 'type': 'string' } },
+                  'nextAction': { 'type': 'string' },
+                  'verificationRequirements': { 'type': 'array', 'items': { 'type': 'string' } },
+                },
+              'required':
+                [
+                  'assetId',
+                  'snapshotId',
+                  'ruleId',
+                  'priority',
+                  'dependency',
+                  'rationale',
+                  'evidenceReferences',
+                  'constraints',
+                  'nextAction',
+                  'verificationRequirements',
+                ],
             },
         },
     },

@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Intelligence } from './intelligence';
+import { CpmConsole } from './cpm-console';
 import { ModuleCatalog, type Assessment } from '../../../../packages/domain-models/src/index';
 import { useConsoleNavigation } from '../hooks/use-console-navigation';
 import { viewRoutes, type View } from '../lib/navigation';
@@ -12,12 +13,14 @@ export function Console({
   tenantId,
   view,
   selectedId,
+  role,
 }: {
   initial: Assessment[];
   chains: { chainId: number; name: string }[];
   tenantId: string;
   view: View;
   selectedId?: string;
+  role: string;
 }) {
   const navigate = useConsoleNavigation();
   const [items, setItems] = useState(initial);
@@ -118,8 +121,11 @@ export function Console({
               DEMONSTRATION DATA — deterministic local blockchain fixtures, not live-chain evidence.
             </div>
           )}
-          {['CBOM', 'QBOM', 'CPM', 'Trust Graph', 'Reports'].includes(view) && (
+          {['CBOM', 'QBOM', 'Trust Graph', 'Reports'].includes(view) && (
             <Intelligence view={view} items={items} selected={selected} onSelect={setSelected} />
+          )}
+          {view === 'CPM' && (
+            <CpmConsole items={items} selected={selected} onSelect={setSelected} role={role} />
           )}
           {view === 'Overview' && (
             <>
@@ -426,24 +432,13 @@ export function Console({
             </section>
           )}
           {view === 'Migrations' && (
-            <section className="panel">
-              <div className="panel-title">
-                <div>
-                  <h2>Migration planning is planned</h2>
-                  <p>Cross-chain migration adapters and execution are not implemented.</p>
-                </div>
-              </div>
-              <div className="evidence-body">
-                <p>
-                  Review collected cryptographic dependencies and quantum exposure in QBOM before
-                  defining a migration plan. Saved observations do not establish migration
-                  compatibility.
-                </p>
-                <button className="secondary" onClick={() => navigate('QBOM', selected?.id)}>
-                  Review QBOM
-                </button>
-              </div>
-            </section>
+            <CpmConsole
+              items={items}
+              selected={selected}
+              onSelect={setSelected}
+              role={role}
+              mode="migration"
+            />
           )}
           {view === 'Settings' && (
             <>

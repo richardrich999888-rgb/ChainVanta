@@ -32,10 +32,7 @@ export interface Repository {
 export class PostgresRepository implements Repository {
   constructor(private readonly pool: Pool) {}
 
-  private async scoped<T>(
-    tenantId: string,
-    action: (client: PoolClient) => Promise<T>,
-  ): Promise<T> {
+  async scoped<T>(tenantId: string, action: (client: PoolClient) => Promise<T>): Promise<T> {
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
@@ -51,7 +48,7 @@ export class PostgresRepository implements Repository {
     }
   }
 
-  private async insert(client: PoolClient, assessment: Assessment, actor: string) {
+  async insert(client: PoolClient, assessment: Assessment, actor: string) {
     Assessment.parse(assessment);
     if (evidenceHash(assessment.observation) !== assessment.evidenceHash)
       throw new Error('Evidence integrity failure');
@@ -192,6 +189,34 @@ export class PostgresRepository implements Repository {
     input: { status: string; reason: string; expiresAt?: string },
     actor: string,
   ) {
+    if (input.status === 'resolved')
+      throw new HttpException(
+        'Technical resolution requires a subsequent CPM verification; use administrative closure for administrative decisions',
+        409,
+      );
+    const snapshot = await this.scoped(
+      tenantId,
+      async (client) =>
+        (
+          await client.query(
+            "SELECT id FROM posture_snapshots WHERE tenant_id=$1 AND assessment_id=$2 AND document->'evaluations' @> $3::jsonb ORDER BY created_at DESC LIMIT 1",
+            [tenantId, id, JSON.stringify([{ ruleId }])],
+          )
+        ).rows[0],
+    );
+    if (snapshot) {
+      const { CpmRepository } = await import('./cpm-repository.js');
+      const { FindingTransition } = await import('../../../packages/domain-models/src/cpm.js');
+      await new CpmRepository(this).transition(
+        tenantId,
+        snapshot.id,
+        ruleId,
+        FindingTransition.parse(input),
+        actor,
+        'finding.status',
+      );
+      return;
+    }
     await this.scoped(tenantId, async (client) => {
       const result = await client.query(
         'SELECT document FROM assessments WHERE tenant_id=$1 AND id=$2',
@@ -264,8 +289,13 @@ export class PostgresRepository implements Repository {
   }
 
   async ping(): Promise<void> {
+    const role = (
+      await this.pool.query('SELECT rolsuper,rolbypassrls FROM pg_roles WHERE rolname=current_user')
+    ).rows[0];
+    if (!role || role.rolsuper || role.rolbypassrls)
+      throw new Error('Runtime database role must enforce tenant RLS');
     await this.pool
-      .query("SELECT version FROM schema_migrations WHERE version = '002_inventory'")
+      .query("SELECT version FROM schema_migrations WHERE version = '010_cpm'")
       .then((result) => {
         if (!result.rowCount) throw new Error('Migration required');
       });

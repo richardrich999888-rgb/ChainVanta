@@ -1,11 +1,13 @@
 # Evidence flow
 
-1. Validate credential, server-owned membership and role; apply Redis quota.
-2. Validate the request and optional idempotency key. Replays return the previously committed assessment.
-3. Verify configured chain, collect a finalized block and read state by canonical block hash.
-4. If requested, verify a supported transaction hash/signature/sender and receipt/block context; or read the explicit token ABI adapter.
-5. Derive CBOM, supported QBOM and versioned posture findings; retain unknowns and limitations.
-6. Atomically append evidence, assessment, canonical asset registration, graph, audit and idempotency metadata under tenant RLS.
-7. Verify hashes and runtime schemas on retrieval; present saved records in Next.js and export JSON reports.
+1. Authenticate a server-owned tenant principal, check role and apply the shared Redis request quota.
+2. Validate strict request schemas and size limits. Register assets through the existing idempotent assessment API before scheduling them.
+3. Pin RPC sockets to validated DNS answers for approved URLs. Check chain/finalized context, perform hash-pinned read-only requests and optionally verify a supplied transaction or token accessor.
+4. Preserve the existing CBOM, QBOM, evidence, assessment, graph and asset models. CPM creates a deterministic snapshot referencing the original assessment and immutable policy version/hash.
+5. Compare compatible snapshots; missing data is incomplete coverage. Persist drift, evidence references, recommendations and findings without overwriting originals. Policy retirement or omission cannot technically resolve findings.
+6. For scheduled work, claim a durable PostgreSQL lease under a tenant lock, enforce concurrency and RPC budgets, and commit evidence/CPM/job success in one transaction. Timeout, cancellation or lease expiry fences the old worker. Bounded retry and collection-failure events never represent a passing assessment.
+7. Recheck prior finalized state at the configured provider before collection. Append invalidations, preserve history, reopen invalidated verification and schedule recollection when canonical hashes change.
+8. Verify hashes on retrieval and expose authenticated, paginated API/SDK views. The console distinguishes recorded classification from current stale/failure status.
+9. Migration assessment compares an explicit definition to a later finalized assessment of the same asset. Only supported tested properties receive VERIFIED_FOR_DEFINED_SCOPE; absent signature data cannot verify PQC migration.
 
-No signing or financial write occurs. Provider reports are not independently verified consensus proofs. Drift comparison is on demand; continuous alerts are planned. Go retries partial blocks using the same assessment keys, advancing its local checkpoint only after all submissions succeed.
+No wallet secrets, transaction signing or financial writes are supported. Provider evidence is not independent consensus verification. Durable notification events are available to operators; delivery to external messaging systems remains unimplemented. The separate Go indexer keeps its existing single-writer checkpoint behavior.
