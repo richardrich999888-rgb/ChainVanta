@@ -33,6 +33,12 @@ export class ChainVantaClient {
   get(id: string) {
     return this.request<Assessment>(`/assessments/${encodeURIComponent(id)}`);
   }
+  /** CycloneDX 1.6 CBOM export of one assessment. */
+  cbom(id: string) {
+    return this.request<components['schemas']['CycloneDxCbom']>(
+      `/assessments/${encodeURIComponent(id)}/cbom`,
+    );
+  }
   cpmAssess(input: components['schemas']['CpmAssessRequest']) {
     return this.request<components['schemas']['PostureSnapshot']>('/cpm/assess', {
       method: 'POST',

@@ -80,11 +80,14 @@ JWT signatures, issuer, audience, expiry and required subject/issued-at claims a
 - `GET /v1/assessments`, `/v1/assessments/:id`, `/v1/reports`.
 - `GET /v1/history?chainId=1&address=...` compares the latest two snapshots.
 - `GET /v1/graph?source=eip155:1:0x...` traverses supported evidence edges, maximum three hops.
+- `GET /v1/assessments/:id/cbom`: CycloneDX 1.6 CBOM (`application/vnd.cyclonedx+json; version=1.6`). Deterministic per assessment, validated against a strict model of the emitted subset, always marked `incomplete`; signer implementation attributes stay `unknown`.
 - `GET /v1/findings/events`; `PATCH /v1/assessments/:id/findings/:ruleId` (admin) accepts status, reason and an expiry for exceptions.
 - `/v1/cpm/*`: versioned policy registry, assignments, posture/history, schedules/jobs, drift, remediation, notification events, finding transitions and migration assessment/verification. Lists use `limit` (1–100) and `offset`; management is administrator-only. See generated OpenAPI for precise request schemas.
 - `GET /v1/audit` (admin). Reports are limited to the latest 50 assessments; history to 100; event history to 500. Reports count observations and do not apply exception statuses as a risk score.
 
 [OpenAPI](packages/api-contracts/openapi.yaml) · [Generated types](packages/api-contracts/generated.ts) · [TypeScript client](sdks/typescript/src/index.ts)
+
+CLI (`CHAINVANTA_API_KEY` required): `pnpm cli scan|assess|inventory|report|cbom|qbom|posture`. `assess <address> [chainId] [--transaction <hash>] [--adapter ownable-erc20]` exposes the full scan request; `posture <eip155:chain:address | address [chainId]>` prints current CPM posture.
 
 ## Verify
 
@@ -116,4 +119,4 @@ Remaining deployment work includes managed secrets and rotation, tenant provisio
 
 [CPM implementation and assurance report](docs/development/cpm-implementation-report.md) · [Foundation implementation and validation report](docs/development/implementation-report.md) · [Security architecture](docs/architecture/security-architecture.md) · [Release strategy](security/supply-chain/README.md)
 
-The CPM work is isolated on `feature/web3-cpm-engine`, based on the verified platform foundation; it has not been pushed or merged. See [CONTRIBUTING](CONTRIBUTING.md) for the branch workflow. Repository publication does not indicate production deployment or certification. See [LICENSE](LICENSE).
+The CPM work lives on `feature/web3-cpm-engine`, based on the verified platform foundation; it is pushed but not merged into `main`. See [CONTRIBUTING](CONTRIBUTING.md) for the branch workflow. Repository publication does not indicate production deployment or certification. See [LICENSE](LICENSE).

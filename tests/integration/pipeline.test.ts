@@ -205,6 +205,19 @@ describe('Authenticated RPC → PostgreSQL → inventory pipeline', () => {
       ).status,
     ).toBe(400);
   });
+  it('exports a validated CycloneDX CBOM, isolated by tenant', async () => {
+    const response = await request(`/v1/assessments/${assessmentId}/cbom`);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('application/vnd.cyclonedx+json');
+    expect(await response.json()).toMatchObject({
+      bomFormat: 'CycloneDX',
+      specVersion: '1.6',
+      serialNumber: `urn:uuid:${assessmentId}`,
+      compositions: [{ aggregate: 'incomplete' }],
+    });
+    expect((await request(`/v1/assessments/${assessmentId}/cbom`, KEY_B)).status).toBe(404);
+    expect((await request('/v1/assessments/not-a-uuid/cbom')).status).toBe(400);
+  });
   it('returns evidence-backed graph and reports, isolated by tenant', async () => {
     const graph = await (await request(`/v1/graph?source=eip155:1:${ADDRESS}`)).json();
     expect(graph.length).toBeGreaterThan(0);
