@@ -6,6 +6,7 @@ import {
   Controller,
   ExceptionFilter,
   Get,
+  Header,
   HttpException,
   Inject,
   Module,
@@ -37,6 +38,7 @@ import {
   type RequestLimiter,
 } from '../../../core/tenant-authorization/src/rate-limit.js';
 import { report, compareSnapshots } from '../../../core/reporting-engine/src/index.js';
+import { CDX_MEDIA_TYPE, toCycloneDx } from '../../../core/cbom-engine/exporters/cyclonedx.js';
 import { RpcFailure } from '../../../connectors/blockchains/ethereum/src/index.js';
 import { AssessmentService } from '../../assessment-service/src/index.js';
 import { PostgresRepository, type Repository } from '../../inventory-service/src/repository.js';
@@ -89,10 +91,19 @@ class ApiController {
   @Get('assessments') list(@Req() request: TenantRequest) {
     return this.service.repository.list(request.tenantId);
   }
-  @Get('assessments/:id') async get(@Req() request: TenantRequest, @Param('id') id: string) {
-    const result = await this.service.repository.get(request.tenantId, z.uuid().parse(id));
+  private async assessment(tenantId: string, id: string) {
+    const result = await this.service.repository.get(tenantId, z.uuid().parse(id));
     if (!result) throw new HttpException('Assessment not found', 404);
     return result;
+  }
+  @Get('assessments/:id') get(@Req() request: TenantRequest, @Param('id') id: string) {
+    return this.assessment(request.tenantId, id);
+  }
+  @Get('assessments/:id/cbom') @Header('Content-Type', CDX_MEDIA_TYPE) async cbom(
+    @Req() request: TenantRequest,
+    @Param('id') id: string,
+  ) {
+    return toCycloneDx(await this.assessment(request.tenantId, id));
   }
   @Get('reports') async reports(@Req() request: TenantRequest) {
     return report(await this.service.repository.list(request.tenantId));

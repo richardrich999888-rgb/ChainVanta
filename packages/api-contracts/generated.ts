@@ -2117,6 +2117,58 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/v1/assessments/{id}/cbom': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description CycloneDX 1.6 CBOM export of one assessment. Deterministic; composition is always incomplete. */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/vnd.cyclonedx+json; version=1.6': components['schemas']['CycloneDxCbom'];
+          };
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Assessment not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/v1/assessments/{id}/findings/{ruleId}': {
     parameters: {
       query?: never;
@@ -2613,6 +2665,96 @@ export interface components {
       reason: string;
       /** Format: date-time */
       expiresAt?: string;
+    };
+    CycloneDxCbom: {
+      /** @constant */
+      bomFormat: 'CycloneDX';
+      /** @constant */
+      specVersion: '1.6';
+      serialNumber: string;
+      version: number;
+      metadata: {
+        /** Format: date-time */
+        timestamp: string;
+        tools: {
+          components: {
+            /** @constant */
+            type: 'application';
+            name: string;
+            version: string;
+          }[];
+        };
+        properties: {
+          name: string;
+          value: string;
+        }[];
+      };
+      components: {
+        /** @constant */
+        type: 'cryptographic-asset';
+        'bom-ref': string;
+        name: string;
+        cryptoProperties: {
+          /** @constant */
+          assetType: 'algorithm';
+          algorithmProperties: {
+            /** @enum {string} */
+            primitive:
+              | 'drbg'
+              | 'mac'
+              | 'block-cipher'
+              | 'stream-cipher'
+              | 'signature'
+              | 'hash'
+              | 'pke'
+              | 'xof'
+              | 'kdf'
+              | 'key-agree'
+              | 'kem'
+              | 'ae'
+              | 'combiner'
+              | 'other'
+              | 'unknown';
+            curve?: string;
+            /** @enum {string} */
+            executionEnvironment:
+              | 'software-plain-ram'
+              | 'software-encrypted-ram'
+              | 'software-tee'
+              | 'hardware'
+              | 'other'
+              | 'unknown';
+            /** @enum {string} */
+            implementationPlatform: 'generic' | 'other' | 'unknown';
+            certificationLevel: ('none' | 'other' | 'unknown')[];
+            cryptoFunctions: (
+              | 'generate'
+              | 'keygen'
+              | 'encrypt'
+              | 'decrypt'
+              | 'digest'
+              | 'tag'
+              | 'keyderive'
+              | 'sign'
+              | 'verify'
+              | 'encapsulate'
+              | 'decapsulate'
+              | 'other'
+              | 'unknown'
+            )[];
+            classicalSecurityLevel?: number;
+            nistQuantumSecurityLevel?: number;
+          };
+        };
+        properties: {
+          name: string;
+          value: string;
+        }[];
+      }[];
+      compositions: {
+        /** @enum {string} */
+        aggregate: 'complete' | 'incomplete' | 'unknown';
+      }[];
     };
     CpmPolicy: {
       id: string;
