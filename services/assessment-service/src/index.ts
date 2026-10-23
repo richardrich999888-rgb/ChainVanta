@@ -27,6 +27,11 @@ export class AssessmentService {
     }
     const chain = this.chains.find((value) => value.chainId === input.chainId);
     if (!chain) throw new HttpException('Chain is not configured', 400);
+    if (input.discoverTransaction && !chain.archive)
+      throw new HttpException(
+        'Transaction discovery requires a chain configured with archive state',
+        400,
+      );
     if (this.active.has(tenantId) || this.active.size >= 8)
       throw new HttpException('Assessment capacity reached; retry shortly', 429);
     this.active.add(tenantId);

@@ -1296,6 +1296,482 @@
                                   'limitation',
                                 ],
                             },
+                          'structure':
+                            {
+                              'type': 'object',
+                              'properties':
+                                {
+                                  'parserVersion':
+                                    { 'type': 'string', 'const': 'evm-account-structure/1.0.0' },
+                                  'delegation':
+                                    {
+                                      'anyOf':
+                                        [
+                                          {
+                                            'type': 'object',
+                                            'properties':
+                                              {
+                                                'standard':
+                                                  { 'type': 'string', 'const': 'eip-7702' },
+                                                'delegate':
+                                                  {
+                                                    'type': 'string',
+                                                    'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                  },
+                                              },
+                                            'required': ['standard', 'delegate'],
+                                            'additionalProperties': false,
+                                          },
+                                          { 'type': 'null' },
+                                        ],
+                                    },
+                                  'minimalProxy':
+                                    {
+                                      'anyOf':
+                                        [
+                                          {
+                                            'type': 'object',
+                                            'properties':
+                                              {
+                                                'standard':
+                                                  { 'type': 'string', 'const': 'eip-1167' },
+                                                'implementation':
+                                                  {
+                                                    'type': 'string',
+                                                    'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                  },
+                                                'implementationCodeHash':
+                                                  {
+                                                    'anyOf':
+                                                      [
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                        },
+                                                        { 'type': 'null' },
+                                                      ],
+                                                  },
+                                              },
+                                            'required':
+                                              [
+                                                'standard',
+                                                'implementation',
+                                                'implementationCodeHash',
+                                              ],
+                                            'additionalProperties': false,
+                                          },
+                                          { 'type': 'null' },
+                                        ],
+                                    },
+                                  'eip1967':
+                                    {
+                                      'anyOf':
+                                        [
+                                          {
+                                            'type': 'object',
+                                            'properties':
+                                              {
+                                                'implementation':
+                                                  {
+                                                    'anyOf':
+                                                      [
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                        },
+                                                        { 'type': 'null' },
+                                                      ],
+                                                  },
+                                                'implementationCodeHash':
+                                                  {
+                                                    'anyOf':
+                                                      [
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                        },
+                                                        { 'type': 'null' },
+                                                      ],
+                                                  },
+                                                'admin':
+                                                  {
+                                                    'anyOf':
+                                                      [
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                        },
+                                                        { 'type': 'null' },
+                                                      ],
+                                                  },
+                                                'beacon':
+                                                  {
+                                                    'anyOf':
+                                                      [
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                        },
+                                                        { 'type': 'null' },
+                                                      ],
+                                                  },
+                                                'beaconImplementation':
+                                                  {
+                                                    'anyOf':
+                                                      [
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                        },
+                                                        { 'type': 'null' },
+                                                      ],
+                                                  },
+                                                'malformedSlots':
+                                                  {
+                                                    'type': 'array',
+                                                    'items':
+                                                      {
+                                                        'type': 'string',
+                                                        'enum':
+                                                          ['implementation', 'admin', 'beacon'],
+                                                      },
+                                                  },
+                                              },
+                                            'required':
+                                              [
+                                                'implementation',
+                                                'implementationCodeHash',
+                                                'admin',
+                                                'beacon',
+                                                'beaconImplementation',
+                                                'malformedSlots',
+                                              ],
+                                            'additionalProperties': false,
+                                          },
+                                          { 'type': 'null' },
+                                        ],
+                                    },
+                                  'safe':
+                                    {
+                                      'anyOf':
+                                        [
+                                          {
+                                            'type': 'object',
+                                            'properties':
+                                              {
+                                                'owners':
+                                                  {
+                                                    'minItems': 1,
+                                                    'maxItems': 50,
+                                                    'type': 'array',
+                                                    'items':
+                                                      {
+                                                        'type': 'string',
+                                                        'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                      },
+                                                  },
+                                                'threshold':
+                                                  {
+                                                    'type': 'integer',
+                                                    'minimum': 1,
+                                                    'maximum': 9007199254740991,
+                                                  },
+                                                'version':
+                                                  {
+                                                    'anyOf':
+                                                      [
+                                                        { 'type': 'string', 'maxLength': 32 },
+                                                        { 'type': 'null' },
+                                                      ],
+                                                  },
+                                                'singleton':
+                                                  {
+                                                    'anyOf':
+                                                      [
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                        },
+                                                        { 'type': 'null' },
+                                                      ],
+                                                  },
+                                                'modules':
+                                                  {
+                                                    'type': 'array',
+                                                    'items':
+                                                      {
+                                                        'type': 'string',
+                                                        'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                      },
+                                                  },
+                                                'modulesComplete': { 'type': 'boolean' },
+                                                'ownerCode':
+                                                  {
+                                                    'type': 'array',
+                                                    'items':
+                                                      {
+                                                        'type': 'object',
+                                                        'properties':
+                                                          {
+                                                            'owner':
+                                                              {
+                                                                'type': 'string',
+                                                                'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                              },
+                                                            'kind':
+                                                              {
+                                                                'type': 'string',
+                                                                'enum':
+                                                                  [
+                                                                    'no-code',
+                                                                    'eip-7702-delegated',
+                                                                    'contract',
+                                                                    'not-checked',
+                                                                  ],
+                                                              },
+                                                          },
+                                                        'required': ['owner', 'kind'],
+                                                        'additionalProperties': false,
+                                                      },
+                                                  },
+                                              },
+                                            'required':
+                                              [
+                                                'owners',
+                                                'threshold',
+                                                'version',
+                                                'singleton',
+                                                'modules',
+                                                'modulesComplete',
+                                                'ownerCode',
+                                              ],
+                                            'additionalProperties': false,
+                                          },
+                                          { 'type': 'null' },
+                                        ],
+                                    },
+                                  'erc4337':
+                                    {
+                                      'anyOf':
+                                        [
+                                          {
+                                            'type': 'object',
+                                            'properties':
+                                              {
+                                                'entryPoint':
+                                                  {
+                                                    'type': 'string',
+                                                    'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                  },
+                                                'entryPointHasCode': { 'type': 'boolean' },
+                                              },
+                                            'required': ['entryPoint', 'entryPointHasCode'],
+                                            'additionalProperties': false,
+                                          },
+                                          { 'type': 'null' },
+                                        ],
+                                    },
+                                  'reads':
+                                    {
+                                      'maxItems': 40,
+                                      'type': 'array',
+                                      'items':
+                                        {
+                                          'type': 'object',
+                                          'properties':
+                                            {
+                                              'method':
+                                                {
+                                                  'type': 'string',
+                                                  'enum':
+                                                    ['eth_getStorageAt', 'eth_call', 'eth_getCode'],
+                                                },
+                                              'target':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                },
+                                              'input':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x(?:[0-9a-fA-F]{2})*$',
+                                                },
+                                              'outcome':
+                                                {
+                                                  'type': 'string',
+                                                  'enum': ['returned', 'reverted'],
+                                                },
+                                              'result':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x(?:[0-9a-fA-F]{2})*$',
+                                                },
+                                              'resultHash':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                },
+                                              'resultSize':
+                                                {
+                                                  'type': 'integer',
+                                                  'minimum': 0,
+                                                  'maximum': 9007199254740991,
+                                                },
+                                              'codeHash':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                },
+                                              'codeSize':
+                                                {
+                                                  'type': 'integer',
+                                                  'minimum': 0,
+                                                  'maximum': 9007199254740991,
+                                                },
+                                            },
+                                          'required': ['method', 'target', 'input', 'outcome'],
+                                          'additionalProperties': false,
+                                        },
+                                    },
+                                  'limitations': { 'type': 'array', 'items': { 'type': 'string' } },
+                                },
+                              'required':
+                                [
+                                  'parserVersion',
+                                  'delegation',
+                                  'minimalProxy',
+                                  'eip1967',
+                                  'safe',
+                                  'erc4337',
+                                  'reads',
+                                  'limitations',
+                                ],
+                              'additionalProperties': false,
+                            },
+                          'discovery':
+                            {
+                              'type': 'object',
+                              'properties':
+                                {
+                                  'method': { 'type': 'string', 'const': 'nonce-bisection/1.0.0' },
+                                  'accountNonce': { 'type': 'string', 'pattern': "^\\d+$" },
+                                  'outcome':
+                                    {
+                                      'type': 'string',
+                                      'enum':
+                                        [
+                                          'found',
+                                          'no-sent-transactions',
+                                          'unsupported-transaction-type',
+                                          'authorization-signature',
+                                          'no-matching-transaction',
+                                          'not-applicable',
+                                        ],
+                                    },
+                                  'blockNumber':
+                                    {
+                                      'anyOf':
+                                        [
+                                          {
+                                            'type': 'string',
+                                            'pattern': '^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$',
+                                          },
+                                          { 'type': 'null' },
+                                        ],
+                                    },
+                                  'transactionHash':
+                                    {
+                                      'anyOf':
+                                        [
+                                          { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                                          { 'type': 'null' },
+                                        ],
+                                    },
+                                  'transactionType':
+                                    {
+                                      'anyOf':
+                                        [
+                                          {
+                                            'type': 'string',
+                                            'pattern': '^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$',
+                                          },
+                                          { 'type': 'null' },
+                                        ],
+                                    },
+                                  'authorization':
+                                    {
+                                      'anyOf':
+                                        [
+                                          {
+                                            'type': 'object',
+                                            'properties':
+                                              {
+                                                'transactionHash':
+                                                  {
+                                                    'type': 'string',
+                                                    'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                  },
+                                                'nonce': { 'type': 'string', 'pattern': "^\\d+$" },
+                                                'chainId':
+                                                  { 'type': 'string', 'pattern': "^\\d+$" },
+                                                'delegate':
+                                                  {
+                                                    'type': 'string',
+                                                    'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                  },
+                                                'authority':
+                                                  {
+                                                    'type': 'string',
+                                                    'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                  },
+                                              },
+                                            'required':
+                                              [
+                                                'transactionHash',
+                                                'nonce',
+                                                'chainId',
+                                                'delegate',
+                                                'authority',
+                                              ],
+                                            'additionalProperties': false,
+                                          },
+                                          { 'type': 'null' },
+                                        ],
+                                    },
+                                  'probes':
+                                    {
+                                      'maxItems': 64,
+                                      'type': 'array',
+                                      'items':
+                                        {
+                                          'type': 'object',
+                                          'properties':
+                                            {
+                                              'blockNumber':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$',
+                                                },
+                                              'nonce': { 'type': 'string', 'pattern': "^\\d+$" },
+                                            },
+                                          'required': ['blockNumber', 'nonce'],
+                                          'additionalProperties': false,
+                                        },
+                                    },
+                                },
+                              'required':
+                                [
+                                  'method',
+                                  'accountNonce',
+                                  'outcome',
+                                  'blockNumber',
+                                  'transactionHash',
+                                  'transactionType',
+                                  'authorization',
+                                  'probes',
+                                ],
+                              'additionalProperties': false,
+                            },
                           'parserVersion': { 'type': 'string', 'const': 'evm-snapshot/1.0.0' },
                           'demonstration': { 'type': 'boolean' },
                         },
@@ -1576,6 +2052,437 @@
                       'required':
                         ['adapter', 'owner', 'totalSupply', 'decimals', 'calls', 'limitation'],
                     },
+                  'structure':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'parserVersion':
+                            { 'type': 'string', 'const': 'evm-account-structure/1.0.0' },
+                          'delegation':
+                            {
+                              'anyOf':
+                                [
+                                  {
+                                    'type': 'object',
+                                    'properties':
+                                      {
+                                        'standard': { 'type': 'string', 'const': 'eip-7702' },
+                                        'delegate':
+                                          { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                                      },
+                                    'required': ['standard', 'delegate'],
+                                    'additionalProperties': false,
+                                  },
+                                  { 'type': 'null' },
+                                ],
+                            },
+                          'minimalProxy':
+                            {
+                              'anyOf':
+                                [
+                                  {
+                                    'type': 'object',
+                                    'properties':
+                                      {
+                                        'standard': { 'type': 'string', 'const': 'eip-1167' },
+                                        'implementation':
+                                          { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                                        'implementationCodeHash':
+                                          {
+                                            'anyOf':
+                                              [
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                },
+                                                { 'type': 'null' },
+                                              ],
+                                          },
+                                      },
+                                    'required':
+                                      ['standard', 'implementation', 'implementationCodeHash'],
+                                    'additionalProperties': false,
+                                  },
+                                  { 'type': 'null' },
+                                ],
+                            },
+                          'eip1967':
+                            {
+                              'anyOf':
+                                [
+                                  {
+                                    'type': 'object',
+                                    'properties':
+                                      {
+                                        'implementation':
+                                          {
+                                            'anyOf':
+                                              [
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                },
+                                                { 'type': 'null' },
+                                              ],
+                                          },
+                                        'implementationCodeHash':
+                                          {
+                                            'anyOf':
+                                              [
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                },
+                                                { 'type': 'null' },
+                                              ],
+                                          },
+                                        'admin':
+                                          {
+                                            'anyOf':
+                                              [
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                },
+                                                { 'type': 'null' },
+                                              ],
+                                          },
+                                        'beacon':
+                                          {
+                                            'anyOf':
+                                              [
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                },
+                                                { 'type': 'null' },
+                                              ],
+                                          },
+                                        'beaconImplementation':
+                                          {
+                                            'anyOf':
+                                              [
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                },
+                                                { 'type': 'null' },
+                                              ],
+                                          },
+                                        'malformedSlots':
+                                          {
+                                            'type': 'array',
+                                            'items':
+                                              {
+                                                'type': 'string',
+                                                'enum': ['implementation', 'admin', 'beacon'],
+                                              },
+                                          },
+                                      },
+                                    'required':
+                                      [
+                                        'implementation',
+                                        'implementationCodeHash',
+                                        'admin',
+                                        'beacon',
+                                        'beaconImplementation',
+                                        'malformedSlots',
+                                      ],
+                                    'additionalProperties': false,
+                                  },
+                                  { 'type': 'null' },
+                                ],
+                            },
+                          'safe':
+                            {
+                              'anyOf':
+                                [
+                                  {
+                                    'type': 'object',
+                                    'properties':
+                                      {
+                                        'owners':
+                                          {
+                                            'minItems': 1,
+                                            'maxItems': 50,
+                                            'type': 'array',
+                                            'items':
+                                              {
+                                                'type': 'string',
+                                                'pattern': '^0x[0-9a-fA-F]{40}$',
+                                              },
+                                          },
+                                        'threshold':
+                                          {
+                                            'type': 'integer',
+                                            'minimum': 1,
+                                            'maximum': 9007199254740991,
+                                          },
+                                        'version':
+                                          {
+                                            'anyOf':
+                                              [
+                                                { 'type': 'string', 'maxLength': 32 },
+                                                { 'type': 'null' },
+                                              ],
+                                          },
+                                        'singleton':
+                                          {
+                                            'anyOf':
+                                              [
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                },
+                                                { 'type': 'null' },
+                                              ],
+                                          },
+                                        'modules':
+                                          {
+                                            'type': 'array',
+                                            'items':
+                                              {
+                                                'type': 'string',
+                                                'pattern': '^0x[0-9a-fA-F]{40}$',
+                                              },
+                                          },
+                                        'modulesComplete': { 'type': 'boolean' },
+                                        'ownerCode':
+                                          {
+                                            'type': 'array',
+                                            'items':
+                                              {
+                                                'type': 'object',
+                                                'properties':
+                                                  {
+                                                    'owner':
+                                                      {
+                                                        'type': 'string',
+                                                        'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                      },
+                                                    'kind':
+                                                      {
+                                                        'type': 'string',
+                                                        'enum':
+                                                          [
+                                                            'no-code',
+                                                            'eip-7702-delegated',
+                                                            'contract',
+                                                            'not-checked',
+                                                          ],
+                                                      },
+                                                  },
+                                                'required': ['owner', 'kind'],
+                                                'additionalProperties': false,
+                                              },
+                                          },
+                                      },
+                                    'required':
+                                      [
+                                        'owners',
+                                        'threshold',
+                                        'version',
+                                        'singleton',
+                                        'modules',
+                                        'modulesComplete',
+                                        'ownerCode',
+                                      ],
+                                    'additionalProperties': false,
+                                  },
+                                  { 'type': 'null' },
+                                ],
+                            },
+                          'erc4337':
+                            {
+                              'anyOf':
+                                [
+                                  {
+                                    'type': 'object',
+                                    'properties':
+                                      {
+                                        'entryPoint':
+                                          { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                                        'entryPointHasCode': { 'type': 'boolean' },
+                                      },
+                                    'required': ['entryPoint', 'entryPointHasCode'],
+                                    'additionalProperties': false,
+                                  },
+                                  { 'type': 'null' },
+                                ],
+                            },
+                          'reads':
+                            {
+                              'maxItems': 40,
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'method':
+                                        {
+                                          'type': 'string',
+                                          'enum': ['eth_getStorageAt', 'eth_call', 'eth_getCode'],
+                                        },
+                                      'target':
+                                        { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                                      'input':
+                                        { 'type': 'string', 'pattern': '^0x(?:[0-9a-fA-F]{2})*$' },
+                                      'outcome':
+                                        { 'type': 'string', 'enum': ['returned', 'reverted'] },
+                                      'result':
+                                        { 'type': 'string', 'pattern': '^0x(?:[0-9a-fA-F]{2})*$' },
+                                      'resultHash':
+                                        { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                                      'resultSize':
+                                        {
+                                          'type': 'integer',
+                                          'minimum': 0,
+                                          'maximum': 9007199254740991,
+                                        },
+                                      'codeHash':
+                                        { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                                      'codeSize':
+                                        {
+                                          'type': 'integer',
+                                          'minimum': 0,
+                                          'maximum': 9007199254740991,
+                                        },
+                                    },
+                                  'required': ['method', 'target', 'input', 'outcome'],
+                                  'additionalProperties': false,
+                                },
+                            },
+                          'limitations': { 'type': 'array', 'items': { 'type': 'string' } },
+                        },
+                      'required':
+                        [
+                          'parserVersion',
+                          'delegation',
+                          'minimalProxy',
+                          'eip1967',
+                          'safe',
+                          'erc4337',
+                          'reads',
+                          'limitations',
+                        ],
+                      'additionalProperties': false,
+                    },
+                  'discovery':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'method': { 'type': 'string', 'const': 'nonce-bisection/1.0.0' },
+                          'accountNonce': { 'type': 'string', 'pattern': "^\\d+$" },
+                          'outcome':
+                            {
+                              'type': 'string',
+                              'enum':
+                                [
+                                  'found',
+                                  'no-sent-transactions',
+                                  'unsupported-transaction-type',
+                                  'authorization-signature',
+                                  'no-matching-transaction',
+                                  'not-applicable',
+                                ],
+                            },
+                          'blockNumber':
+                            {
+                              'anyOf':
+                                [
+                                  {
+                                    'type': 'string',
+                                    'pattern': '^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$',
+                                  },
+                                  { 'type': 'null' },
+                                ],
+                            },
+                          'transactionHash':
+                            {
+                              'anyOf':
+                                [
+                                  { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                                  { 'type': 'null' },
+                                ],
+                            },
+                          'transactionType':
+                            {
+                              'anyOf':
+                                [
+                                  {
+                                    'type': 'string',
+                                    'pattern': '^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$',
+                                  },
+                                  { 'type': 'null' },
+                                ],
+                            },
+                          'authorization':
+                            {
+                              'anyOf':
+                                [
+                                  {
+                                    'type': 'object',
+                                    'properties':
+                                      {
+                                        'transactionHash':
+                                          { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                                        'nonce': { 'type': 'string', 'pattern': "^\\d+$" },
+                                        'chainId': { 'type': 'string', 'pattern': "^\\d+$" },
+                                        'delegate':
+                                          { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                                        'authority':
+                                          { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{40}$' },
+                                      },
+                                    'required':
+                                      [
+                                        'transactionHash',
+                                        'nonce',
+                                        'chainId',
+                                        'delegate',
+                                        'authority',
+                                      ],
+                                    'additionalProperties': false,
+                                  },
+                                  { 'type': 'null' },
+                                ],
+                            },
+                          'probes':
+                            {
+                              'maxItems': 64,
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'blockNumber':
+                                        {
+                                          'type': 'string',
+                                          'pattern': '^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$',
+                                        },
+                                      'nonce': { 'type': 'string', 'pattern': "^\\d+$" },
+                                    },
+                                  'required': ['blockNumber', 'nonce'],
+                                  'additionalProperties': false,
+                                },
+                            },
+                        },
+                      'required':
+                        [
+                          'method',
+                          'accountNonce',
+                          'outcome',
+                          'blockNumber',
+                          'transactionHash',
+                          'transactionType',
+                          'authorization',
+                          'probes',
+                        ],
+                      'additionalProperties': false,
+                    },
                   'parserVersion': { 'type': 'string', 'const': 'evm-snapshot/1.0.0' },
                   'demonstration': { 'type': 'boolean' },
                 },
@@ -1625,6 +2532,7 @@
                   'chainId':
                     { 'type': 'integer', 'exclusiveMinimum': 0, 'maximum': 9007199254740991 },
                   'transactionHash': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                  'discoverTransaction': { 'type': 'boolean', 'const': true },
                   'adapter': { 'type': 'string', 'const': 'ownable-erc20' },
                 },
               'required': ['address', 'chainId'],
@@ -2071,6 +2979,7 @@
                               'maximum': 9007199254740991,
                             },
                           'transactionHash': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                          'discoverTransaction': { 'type': 'boolean', 'const': true },
                           'adapter': { 'type': 'string', 'const': 'ownable-erc20' },
                         },
                       'required': ['address', 'chainId'],
@@ -3122,6 +4031,7 @@
                               'maximum': 9007199254740991,
                             },
                           'transactionHash': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                          'discoverTransaction': { 'type': 'boolean', 'const': true },
                           'adapter': { 'type': 'string', 'const': 'ownable-erc20' },
                         },
                       'required': ['address', 'chainId'],
@@ -3252,6 +4162,7 @@
                               'maximum': 9007199254740991,
                             },
                           'transactionHash': { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                          'discoverTransaction': { 'type': 'boolean', 'const': true },
                           'adapter': { 'type': 'string', 'const': 'ownable-erc20' },
                         },
                       'required': ['address', 'chainId'],

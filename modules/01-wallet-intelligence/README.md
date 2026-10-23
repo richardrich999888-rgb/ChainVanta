@@ -25,6 +25,25 @@ Rules:
 
 Consumers: CBOM adds secp256k1 components (observed for 7702, inferred for Safe owners without code); QBOM marks 7702 accounts `classical-signature-observed`; posture adds `CV-WALLET-003`, `CV-PROXY-001/002`, `CV-SAFE-001/002`, `CV-AA-001`; the trust graph adds edges whose relation names state how each was observed; CPM tracks these edges as dependencies, so implementation, owner and module changes raise `DEPENDENCY_CHANGED` drift. CPM's policy rules still classify quantum exposure only from verified transactions (see limitations).
 
+## Transaction discovery
+
+`src/discovery/transaction-discovery.ts` finds the account's latest signature without a user-supplied hash, using only standard JSON-RPC (no explorer, no API keys). Opt in per request with `"discoverTransaction": true` (CLI: `assess <address> --discover`). The chain must be configured with `"archive": true`, because historical nonces need archive state; otherwise the API returns 400.
+
+Method (nonce bisection): an account nonce never decreases, so binary search over `[0, snapshot]` for the first block whose post-state nonce reaches the snapshot nonce N. That block B holds the account's last nonce use. Cost: at most ⌈log₂(snapshot + 1)⌉ historical nonce reads (≤ 25 on mainnet) plus one full-block read. Every probe is recorded for replay.
+
+Evidence chosen from block B, strongest first:
+
+| Outcome                        | Meaning                                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `found`                        | Latest sent transaction (type 0/1/2); verified by the existing signature path                                |
+| `authorization-signature`      | EIP-7702 authorization signed by the account; signer recovered from the signature (chain ID 0 or this chain) |
+| `unsupported-transaction-type` | Latest sent transaction is type 3/4 and carries no own authorization; recorded, not verified                 |
+| `no-sent-transactions`         | Nonce 0; finding `CV-WALLET-004` (off-chain signatures remain unobservable)                                  |
+| `no-matching-transaction`      | Delegated accounts only: nonce used without a signed transaction or authorization (CREATE by delegated code) |
+| `not-applicable`               | Contract account; no search                                                                                  |
+
+Fail closed: probes must be monotone (each agrees with every earlier probe and the snapshot), block transactions must all parse, at most 1024 authorization recoveries per block, and for non-delegated accounts a nonce change with no matching transaction or authorization fails the scan rather than being reported. Full-block responses above the 1 MB RPC limit also fail the scan. For delegated accounts, an inconsistent provider cannot be distinguished from CREATE nonce use; that outcome stays `unknown` and claims no signature.
+
 ## Limitations
 
 No exhaustive wallet discovery, custody inference, complete transaction history or independent consensus validation. A verified historical transaction does not prove the account's current authorization mechanism. CPM policy rules do not yet consume structure evidence for quantum classification: that needs a new evidence requirement in the policy schema. Unknowns remain unknown.

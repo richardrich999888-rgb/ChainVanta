@@ -8,6 +8,52 @@ import {
   structureFacts,
 } from '../../cryptographic-inventory/algorithm-classification/account-structure.js';
 
+/** Findings from transaction discovery. A found transaction is reported via the signature rules. */
+function discoveryFindings(observation: Observation, hash: string): Finding[] {
+  const outcome = observation.discovery?.outcome;
+  if (outcome === 'no-sent-transactions')
+    return [
+      {
+        ruleId: 'CV-WALLET-004',
+        ruleVersion: '1.0.0',
+        severity: 'info',
+        confidence: 'observed',
+        title: 'No transactions sent at the observed block',
+        rationale:
+          'The account nonce is 0, so no on-chain transaction or EIP-7702 authorization from this account exposes its public key. Off-chain signatures (permits, EIP-712 messages) are not observable and may still expose it.',
+        evidenceHash: hash,
+      },
+    ];
+  if (outcome === 'authorization-signature')
+    return [
+      {
+        ruleId: 'CV-QUANTUM-002',
+        ruleVersion: '1.0.0',
+        severity: 'medium',
+        confidence: 'observed',
+        title: 'Classical EIP-7702 authorization signature verified',
+        rationale: `The account signed an EIP-7702 authorization (transaction ${observation.discovery!.authorization!.transactionHash}); its secp256k1 signer was recovered and matches. This signature dependency requires quantum migration planning; it does not establish current compromise or the account's complete authorization policy.`,
+        evidenceHash: hash,
+      },
+    ];
+  if (outcome === 'unsupported-transaction-type' || outcome === 'no-matching-transaction')
+    return [
+      {
+        ruleId: 'CV-WALLET-005',
+        ruleVersion: '1.0.0',
+        severity: 'info',
+        confidence: 'unknown',
+        title: 'Latest transaction could not be verified',
+        rationale:
+          outcome === 'unsupported-transaction-type'
+            ? `The latest sent transaction ${observation.discovery!.transactionHash} has type ${observation.discovery!.transactionType}, which the verifier does not reconstruct. Its signature was not verified.`
+            : `The delegated account's nonce changed in block ${observation.discovery!.blockNumber} without a transaction or authorization it signed, consistent with contract creation by its delegated code. No signature was verified.`,
+        evidenceHash: hash,
+      },
+    ];
+  return [];
+}
+
 /** Findings derived from account structure evidence. Each states what the evidence does not prove. */
 function structureFindings(observation: Observation, hash: string): Finding[] {
   const facts = structureFacts(observation);
@@ -126,6 +172,6 @@ export function evaluatePosture(observation: Observation, hash: string): Assessm
       rationale:
         'The selected ownable ERC20 adapter read owner(), totalSupply() and decimals(). Accessor responses do not prove mint/burn permissions, proxy implementation, reserve backing or stablecoin identity.',
     });
-  findings.push(...structureFindings(observation, hash));
+  findings.push(...structureFindings(observation, hash), ...discoveryFindings(observation, hash));
   return { status: 'needs-review', rulepack: 'wallet-baseline/0.1', findings };
 }

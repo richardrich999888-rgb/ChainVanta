@@ -6,6 +6,11 @@ import {
   type ProbeResult,
   type StructureReader,
 } from '../../../../modules/01-wallet-intelligence/src/discovery/account-structure.js';
+import {
+  discoverLatestTransaction,
+  type DiscoveryReader,
+} from '../../../../modules/01-wallet-intelligence/src/discovery/transaction-discovery.js';
+import { parseDelegation } from '../../../../modules/01-wallet-intelligence/src/discovery/account-structure.js';
 import type { Hex } from 'viem';
 import { z } from 'zod';
 import {
@@ -21,6 +26,7 @@ export type ChainConfig = {
   name: string;
   rpcUrl: string;
   demonstration?: boolean;
+  archive?: boolean;
 };
 export class RpcFailure extends Error {
   constructor(message = 'Blockchain provider could not complete a consistent finalized snapshot') {
@@ -133,6 +139,25 @@ export class EvmConnector {
     } // Never expose credential-bearing provider URLs or upstream errors.
   }
 
+  /** Transaction discovery port: historical nonce reads and full-transaction block reads. */
+  private discoveryReader(address: string): DiscoveryReader {
+    const hex = (value: bigint) => `0x${value.toString(16)}`;
+    const FullBlock = z.object({ number: HexQuantity, transactions: z.array(z.unknown()) });
+    return {
+      nonceAt: async (blockNumber) =>
+        BigInt(
+          HexQuantity.parse(await this.rpc('eth_getTransactionCount', [address, hex(blockNumber)])),
+        ),
+      blockTransactions: async (blockNumber) => {
+        const block = FullBlock.parse(
+          await this.rpc('eth_getBlockByNumber', [hex(blockNumber), true]),
+        );
+        if (BigInt(block.number) !== blockNumber) throw new RpcFailure();
+        return block.transactions;
+      },
+    };
+  }
+
   /** Structure discovery port; every read is pinned to the snapshot's canonical block hash. */
   private structureReader(blockHash: string): StructureReader {
     const pinned = { blockHash, requireCanonical: true };
@@ -169,7 +194,11 @@ export class EvmConnector {
 
   async observe(
     inputAddress: string,
-    options: { transactionHash?: string; adapter?: 'ownable-erc20' } = {},
+    options: {
+      transactionHash?: string;
+      discoverTransaction?: true;
+      adapter?: 'ownable-erc20';
+    } = {},
   ): Promise<Observation> {
     const address = Address.parse(inputAddress);
     try {
@@ -188,9 +217,27 @@ export class EvmConnector {
       const balance = HexQuantity.parse(rawBalance);
       const nonce = HexQuantity.parse(rawNonce);
       const code = HexData.parse(rawCode);
+      let discovery;
+      let transactionHash = options.transactionHash;
+      if (options.discoverTransaction) {
+        if (!this.chain.archive)
+          throw new RpcFailure(
+            'Transaction discovery requires a chain configured with archive state',
+          );
+        discovery = await discoverLatestTransaction(this.discoveryReader(address), {
+          address,
+          accountNonce: BigInt(nonce),
+          snapshotBlock: BigInt(block.number),
+          chainId: this.chain.chainId,
+          // Only EOAs, including EIP-7702 delegated ones, can sign and send transactions.
+          canSendTransactions: code === '0x' || parseDelegation(code) !== null,
+          isDelegated: parseDelegation(code) !== null,
+        });
+        if (discovery.outcome === 'found') transactionHash = discovery.transactionHash!;
+      }
       let signature;
-      if (options.transactionHash) {
-        const hash = Hash.parse(options.transactionHash);
+      if (transactionHash) {
+        const hash = Hash.parse(transactionHash);
         signature = await verifyTransaction(
           await this.rpc('eth_getTransactionByHash', [hash]),
           await this.rpc('eth_getTransactionReceipt', [hash]),
@@ -243,6 +290,7 @@ export class EvmConnector {
         ...(signature ? { signature } : {}),
         ...(token ? { token } : {}),
         ...(structure ? { structure } : {}),
+        ...(discovery ? { discovery } : {}),
         ...(this.chain.demonstration ? { demonstration: true } : {}),
       });
     } catch (error) {

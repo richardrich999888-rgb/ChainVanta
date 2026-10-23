@@ -102,6 +102,18 @@ export function buildCbom(observation: Observation): Assessment['cbom'] {
           ]
         : []),
       ...structureComponents(facts, hash),
+      ...(observation.discovery?.authorization
+        ? [
+            {
+              algorithm: SECP256K1,
+              purpose: 'account authorization (EIP-7702 authorization signature)',
+              domain: 'account-authorization' as const,
+              confidence: 'observed' as const,
+              basis: `Recovered the signer of the EIP-7702 authorization in transaction ${observation.discovery.authorization.transactionHash}; it matches the observed account.`,
+              evidenceRefs: [hash],
+            },
+          ]
+        : []),
       {
         algorithm: 'unknown',
         purpose: 'account authorization',
