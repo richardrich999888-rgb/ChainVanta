@@ -944,6 +944,165 @@
                 },
             },
         },
+      '/v1/bitcoin/networks':
+        {
+          'get':
+            {
+              'description': 'Configured Bitcoin networks. Empty when Bitcoin collection is not configured.',
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            {
+                              'schema':
+                                {
+                                  'type': 'array',
+                                  'items':
+                                    {
+                                      'type': 'object',
+                                      'properties':
+                                        {
+                                          'network': { 'type': 'string' },
+                                          'name': { 'type': 'string' },
+                                        },
+                                      'required': ['network', 'name'],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                },
+            },
+        },
+      '/v1/bitcoin/assessments':
+        {
+          'get':
+            {
+              'description': 'Latest 50 Bitcoin assessments for the tenant.',
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            {
+                              'schema':
+                                {
+                                  'type': 'array',
+                                  'items': { '$ref': '#/components/schemas/BitcoinAssessment' },
+                                },
+                            },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                },
+            },
+          'post':
+            {
+              'description': 'Assess a Bitcoin address or public key from the configured node UTXO set (scantxoutset; can take minutes on mainnet). One scan per node at a time (429 while busy).',
+              'parameters':
+                [
+                  {
+                    'in': 'header',
+                    'name': 'Idempotency-Key',
+                    'schema': { 'type': 'string', 'pattern': '^[a-zA-Z0-9_-]{8,128}$' },
+                  },
+                ],
+              'requestBody':
+                {
+                  'required': true,
+                  'content':
+                    {
+                      'application/json':
+                        { 'schema': { '$ref': '#/components/schemas/BitcoinScanRequest' } },
+                    },
+                },
+              'responses':
+                {
+                  '201':
+                    {
+                      'description': 'Created or idempotent replay',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/BitcoinAssessment' } },
+                        },
+                    },
+                  '400': { 'description': 'Invalid address or unconfigured network' },
+                  '409': { 'description': 'Idempotency key reused with different input' },
+                  '429': { 'description': 'A scan is already running on this node' },
+                  '502': { 'description': 'Node could not complete a consistent snapshot' },
+                },
+            },
+        },
+      '/v1/bitcoin/assessments/{id}':
+        {
+          'get':
+            {
+              'parameters':
+                [
+                  {
+                    'in': 'path',
+                    'name': 'id',
+                    'required': true,
+                    'schema': { 'type': 'string', 'format': 'uuid' },
+                  },
+                ],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/json':
+                            { 'schema': { '$ref': '#/components/schemas/BitcoinAssessment' } },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '403': { 'description': 'Role denied' },
+                },
+            },
+        },
+      '/v1/bitcoin/assessments/{id}/cbom':
+        {
+          'get':
+            {
+              'description': 'CycloneDX 1.6 CBOM export of one Bitcoin assessment.',
+              'parameters':
+                [
+                  {
+                    'in': 'path',
+                    'name': 'id',
+                    'required': true,
+                    'schema': { 'type': 'string', 'format': 'uuid' },
+                  },
+                ],
+              'responses':
+                {
+                  '200':
+                    {
+                      'description': 'Success',
+                      'content':
+                        {
+                          'application/vnd.cyclonedx+json; version=1.6':
+                            { 'schema': { '$ref': '#/components/schemas/CycloneDxCbom' } },
+                        },
+                    },
+                  '401': { 'description': 'Authentication required' },
+                  '404': { 'description': 'Assessment not found' },
+                },
+            },
+        },
       '/v1/assessments/{id}/cbom':
         {
           'get':
@@ -2794,6 +2953,506 @@
                   'compositions',
                 ],
               'additionalProperties': false,
+            },
+          'BitcoinScanRequest':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'network':
+                    { 'type': 'string', 'enum': ['mainnet', 'testnet3', 'signet', 'regtest'] },
+                  'address': { 'type': 'string', 'pattern': '^[A-Za-z0-9]{14,90}$' },
+                  'publicKey':
+                    {
+                      'type': 'string',
+                      'pattern': '^(?:0[23][0-9a-fA-F]{64}|04[0-9a-fA-F]{128})$',
+                    },
+                  'spendTransaction':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'txid': { 'type': 'string', 'pattern': '^[0-9a-f]{64}$' },
+                          'blockHash': { 'type': 'string', 'pattern': '^[0-9a-f]{64}$' },
+                        },
+                      'required': ['txid', 'blockHash'],
+                      'additionalProperties': false,
+                    },
+                },
+              'required': ['network'],
+              'additionalProperties': false,
+            },
+          'BitcoinAssessment':
+            {
+              '$schema': 'https://json-schema.org/draft/2020-12/schema',
+              'type': 'object',
+              'properties':
+                {
+                  'schemaVersion': { 'type': 'string', 'const': '0.1' },
+                  'kind': { 'type': 'string', 'const': 'bitcoin' },
+                  'id':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'tenantId':
+                    {
+                      'type': 'string',
+                      'format': 'uuid',
+                      'pattern': '^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$',
+                    },
+                  'createdAt':
+                    {
+                      'type': 'string',
+                      'format': 'date-time',
+                      'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    },
+                  'observation':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'network':
+                            {
+                              'type': 'string',
+                              'enum': ['mainnet', 'testnet3', 'signet', 'regtest'],
+                            },
+                          'chainId': { 'type': 'string', 'pattern': '^bip122:[0-9a-f]{32}$' },
+                          'target':
+                            {
+                              'type': 'object',
+                              'properties':
+                                {
+                                  'kind': { 'type': 'string', 'enum': ['address', 'public-key'] },
+                                  'value': { 'type': 'string' },
+                                  'scriptTypes':
+                                    {
+                                      'minItems': 1,
+                                      'type': 'array',
+                                      'items':
+                                        {
+                                          'type': 'string',
+                                          'enum':
+                                            [
+                                              'p2pk',
+                                              'p2pkh',
+                                              'p2sh',
+                                              'p2wpkh',
+                                              'p2wsh',
+                                              'p2tr',
+                                              'bare-multisig',
+                                              'unknown',
+                                            ],
+                                        },
+                                    },
+                                  'descriptor': { 'type': 'string', 'maxLength': 200 },
+                                },
+                              'required': ['kind', 'value', 'scriptTypes', 'descriptor'],
+                              'additionalProperties': false,
+                            },
+                          'tipHeight':
+                            { 'type': 'integer', 'minimum': 0, 'maximum': 9007199254740991 },
+                          'tipHash': { 'type': 'string', 'pattern': '^[0-9a-f]{64}$' },
+                          'utxoCount':
+                            { 'type': 'integer', 'minimum': 0, 'maximum': 9007199254740991 },
+                          'totalSats': { 'type': 'string', 'pattern': "^\\d+$" },
+                          'groups':
+                            {
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'scriptType':
+                                        {
+                                          'type': 'string',
+                                          'enum':
+                                            [
+                                              'p2pk',
+                                              'p2pkh',
+                                              'p2sh',
+                                              'p2wpkh',
+                                              'p2wsh',
+                                              'p2tr',
+                                              'bare-multisig',
+                                              'unknown',
+                                            ],
+                                        },
+                                      'keyExposure':
+                                        {
+                                          'type': 'string',
+                                          'enum':
+                                            ['public-key-in-script', 'hash-locked', 'unknown'],
+                                        },
+                                      'count':
+                                        {
+                                          'type': 'integer',
+                                          'exclusiveMinimum': 0,
+                                          'maximum': 9007199254740991,
+                                        },
+                                      'sats': { 'type': 'string', 'pattern': "^\\d+$" },
+                                      'minConfirmations':
+                                        {
+                                          'type': 'integer',
+                                          'exclusiveMinimum': 0,
+                                          'maximum': 9007199254740991,
+                                        },
+                                    },
+                                  'required':
+                                    [
+                                      'scriptType',
+                                      'keyExposure',
+                                      'count',
+                                      'sats',
+                                      'minConfirmations',
+                                    ],
+                                  'additionalProperties': false,
+                                },
+                            },
+                          'sampleOutpoints':
+                            {
+                              'maxItems': 100,
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'txid': { 'type': 'string', 'pattern': '^[0-9a-f]{64}$' },
+                                      'vout':
+                                        {
+                                          'type': 'integer',
+                                          'minimum': 0,
+                                          'maximum': 9007199254740991,
+                                        },
+                                      'sats': { 'type': 'string', 'pattern': "^\\d+$" },
+                                      'height':
+                                        {
+                                          'type': 'integer',
+                                          'minimum': 0,
+                                          'maximum': 9007199254740991,
+                                        },
+                                      'scriptType':
+                                        {
+                                          'type': 'string',
+                                          'enum':
+                                            [
+                                              'p2pk',
+                                              'p2pkh',
+                                              'p2sh',
+                                              'p2wpkh',
+                                              'p2wsh',
+                                              'p2tr',
+                                              'bare-multisig',
+                                              'unknown',
+                                            ],
+                                        },
+                                    },
+                                  'required': ['txid', 'vout', 'sats', 'height', 'scriptType'],
+                                  'additionalProperties': false,
+                                },
+                            },
+                          'revealedSpend':
+                            {
+                              'anyOf':
+                                [
+                                  {
+                                    'type': 'object',
+                                    'properties':
+                                      {
+                                        'txid': { 'type': 'string', 'pattern': '^[0-9a-f]{64}$' },
+                                        'blockHash':
+                                          { 'type': 'string', 'pattern': '^[0-9a-f]{64}$' },
+                                        'confirmations':
+                                          {
+                                            'type': 'integer',
+                                            'minimum': 1,
+                                            'maximum': 9007199254740991,
+                                          },
+                                        'inputIndex':
+                                          {
+                                            'type': 'integer',
+                                            'minimum': 0,
+                                            'maximum': 9007199254740991,
+                                          },
+                                        'source':
+                                          {
+                                            'type': 'string',
+                                            'enum':
+                                              [
+                                                'p2pkh-scriptsig',
+                                                'p2wpkh-witness',
+                                                'p2sh-p2wpkh-witness',
+                                                'p2sh-redeem-script',
+                                                'p2wsh-witness-script',
+                                              ],
+                                          },
+                                        'publicKeys':
+                                          {
+                                            'minItems': 1,
+                                            'maxItems': 20,
+                                            'type': 'array',
+                                            'items':
+                                              {
+                                                'type': 'string',
+                                                'pattern': '^(?:0[23][0-9a-fA-F]{64}|04[0-9a-fA-F]{128})$',
+                                              },
+                                          },
+                                        'threshold':
+                                          {
+                                            'anyOf':
+                                              [
+                                                {
+                                                  'type': 'integer',
+                                                  'minimum': 1,
+                                                  'maximum': 9007199254740991,
+                                                },
+                                                { 'type': 'null' },
+                                              ],
+                                          },
+                                      },
+                                    'required':
+                                      [
+                                        'txid',
+                                        'blockHash',
+                                        'confirmations',
+                                        'inputIndex',
+                                        'source',
+                                        'publicKeys',
+                                        'threshold',
+                                      ],
+                                    'additionalProperties': false,
+                                  },
+                                  { 'type': 'null' },
+                                ],
+                            },
+                          'source': { 'type': 'string' },
+                          'observedAt':
+                            {
+                              'type': 'string',
+                              'format': 'date-time',
+                              'pattern': "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                            },
+                          'parserVersion': { 'type': 'string', 'const': 'bitcoin-snapshot/1.0.0' },
+                          'demonstration': { 'type': 'boolean' },
+                        },
+                      'required':
+                        [
+                          'network',
+                          'chainId',
+                          'target',
+                          'tipHeight',
+                          'tipHash',
+                          'utxoCount',
+                          'totalSats',
+                          'groups',
+                          'sampleOutpoints',
+                          'revealedSpend',
+                          'source',
+                          'observedAt',
+                          'parserVersion',
+                        ],
+                      'additionalProperties': false,
+                    },
+                  'evidenceHash': { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                  'assetKind':
+                    { 'type': 'string', 'enum': ['bitcoin-address', 'bitcoin-public-key'] },
+                  'cbom':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'format': { 'type': 'string', 'const': 'chainvanta-cbom/0.1' },
+                          'components':
+                            {
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'algorithm': { 'type': 'string' },
+                                      'purpose': { 'type': 'string' },
+                                      'confidence':
+                                        {
+                                          'type': 'string',
+                                          'enum':
+                                            [
+                                              'observed',
+                                              'authenticated-integration',
+                                              'inferred',
+                                              'unknown',
+                                            ],
+                                        },
+                                      'basis': { 'type': 'string' },
+                                      'domain':
+                                        {
+                                          'type': 'string',
+                                          'enum':
+                                            [
+                                              'transaction-signature',
+                                              'account-authorization',
+                                              'application',
+                                              'transport',
+                                              'consensus',
+                                            ],
+                                        },
+                                      'evidenceRefs':
+                                        {
+                                          'type': 'array',
+                                          'items':
+                                            {
+                                              'type': 'string',
+                                              'pattern': '^sha256:[a-f0-9]{64}$',
+                                            },
+                                        },
+                                    },
+                                  'required': ['algorithm', 'purpose', 'confidence', 'basis'],
+                                },
+                            },
+                        },
+                      'required': ['format', 'components'],
+                    },
+                  'qbom':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'format': { 'type': 'string', 'const': 'chainvanta-qbom/0.1' },
+                          'ruleVersion':
+                            { 'type': 'string', 'const': 'bitcoin-quantum-exposure/1.0.0' },
+                          'status':
+                            {
+                              'type': 'string',
+                              'enum':
+                                [
+                                  'public-key-exposed',
+                                  'hash-protected',
+                                  'no-unspent-outputs',
+                                  'unknown',
+                                ],
+                            },
+                          'exposedSats': { 'type': 'string', 'pattern': "^\\d+$" },
+                          'hashProtectedSats': { 'type': 'string', 'pattern': "^\\d+$" },
+                          'reason': { 'type': 'string' },
+                          'migration': { 'type': 'string', 'const': 'requires-further-discovery' },
+                        },
+                      'required':
+                        [
+                          'format',
+                          'ruleVersion',
+                          'status',
+                          'exposedSats',
+                          'hashProtectedSats',
+                          'reason',
+                          'migration',
+                        ],
+                      'additionalProperties': false,
+                    },
+                  'posture':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'status': { 'type': 'string', 'const': 'needs-review' },
+                          'rulepack': { 'type': 'string', 'const': 'bitcoin-baseline/0.1' },
+                          'findings':
+                            {
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'ruleId': { 'type': 'string' },
+                                      'ruleVersion': { 'type': 'string' },
+                                      'severity':
+                                        { 'type': 'string', 'enum': ['info', 'medium', 'high'] },
+                                      'title': { 'type': 'string' },
+                                      'rationale': { 'type': 'string' },
+                                      'confidence':
+                                        {
+                                          'type': 'string',
+                                          'enum':
+                                            [
+                                              'observed',
+                                              'authenticated-integration',
+                                              'inferred',
+                                              'unknown',
+                                            ],
+                                        },
+                                      'evidenceHash':
+                                        { 'type': 'string', 'pattern': '^sha256:[a-f0-9]{64}$' },
+                                    },
+                                  'required':
+                                    [
+                                      'ruleId',
+                                      'severity',
+                                      'title',
+                                      'rationale',
+                                      'confidence',
+                                      'evidenceHash',
+                                    ],
+                                },
+                            },
+                        },
+                      'required': ['status', 'rulepack', 'findings'],
+                    },
+                  'trustGraph':
+                    {
+                      'type': 'object',
+                      'properties':
+                        {
+                          'nodes':
+                            {
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    { 'id': { 'type': 'string' }, 'kind': { 'type': 'string' } },
+                                  'required': ['id', 'kind'],
+                                },
+                            },
+                          'edges':
+                            {
+                              'type': 'array',
+                              'items':
+                                {
+                                  'type': 'object',
+                                  'properties':
+                                    {
+                                      'from': { 'type': 'string' },
+                                      'to': { 'type': 'string' },
+                                      'relation': { 'type': 'string' },
+                                    },
+                                  'required': ['from', 'to', 'relation'],
+                                },
+                            },
+                        },
+                      'required': ['nodes', 'edges'],
+                    },
+                  'limitations': { 'type': 'array', 'items': { 'type': 'string' } },
+                },
+              'required':
+                [
+                  'schemaVersion',
+                  'kind',
+                  'id',
+                  'tenantId',
+                  'createdAt',
+                  'observation',
+                  'evidenceHash',
+                  'assetKind',
+                  'cbom',
+                  'qbom',
+                  'posture',
+                  'trustGraph',
+                  'limitations',
+                ],
             },
           'CpmPolicy':
             {
