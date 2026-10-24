@@ -7,6 +7,7 @@ import {
   selector,
 } from '../../packages/test-fixtures/src/account-structure.js';
 import { encodeFunctionResult, parseAbi, toFunctionSelector } from 'viem';
+import { enumerableRoles, erc20 } from '../../packages/test-fixtures/src/token-authority.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { INestApplication } from '@nestjs/common';
 import { createApp } from '../../services/api-gateway/src/app.js';
@@ -438,6 +439,31 @@ describe('Authenticated RPC → PostgreSQL → inventory pipeline', () => {
         safe: null,
         erc4337: null,
       });
+    } finally {
+      activeTransport = fixtureTransport;
+    }
+  });
+  it('persists token authority evidence and reports single-key minters', async () => {
+    const minter = addr('11');
+    activeTransport = fakeChainTransport({
+      code: { [ADDRESS]: '0x6000' },
+      calls: { [ADDRESS]: { ...erc20(), ...enumerableRoles({ minter: [minter] }) } },
+    });
+    try {
+      const response = await request('/v1/assessments', KEY_A, {
+        method: 'POST',
+        body: JSON.stringify({ address: ADDRESS, chainId: 1, adapter: 'token-authority' }),
+      });
+      expect(response.status).toBe(201);
+      const created = await response.json();
+      const stored = await (await request(`/v1/assessments/${created.id}`, KEY_A)).json();
+      expect(stored.evidenceHash).toBe(created.evidenceHash);
+      expect(stored.observation.tokenAuthority.authorities).toEqual([
+        { address: minter, kind: 'no-code' },
+      ]);
+      expect(stored.posture.findings.map((f: { ruleId: string }) => f.ruleId)).toContain(
+        'CV-TOKEN-003',
+      );
     } finally {
       activeTransport = fixtureTransport;
     }

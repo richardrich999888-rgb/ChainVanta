@@ -239,6 +239,7 @@ export function Console({
                     <select id="adapter" name="adapter">
                       <option value="">Account snapshot only</option>
                       <option value="ownable-erc20">Ownable ERC20 accessors</option>
+                      <option value="token-authority">Token authority discovery</option>
                     </select>
                     <p>
                       Use the token adapter only for a known compatible contract. Unsupported

@@ -1,4 +1,9 @@
-import type { Assessment, Observation } from '../../../packages/domain-models/src/index.js';
+import {
+  TokenRole,
+  type Assessment,
+  type Observation,
+  type TokenAuthority,
+} from '../../../packages/domain-models/src/index.js';
 import { structureFacts } from '../../cryptographic-inventory/algorithm-classification/account-structure.js';
 
 type Graph = Assessment['trustGraph'];
@@ -56,6 +61,40 @@ function structureGraph(observation: Observation, account: string): Graph {
   };
 }
 
+/** Token authority relations: one per role, so a holder change on any role is CPM drift. */
+export const TOKEN_AUTHORITY_RELATIONS = [
+  ...TokenRole.options.map((role) => `token-${role}-accessor-reports` as const),
+  'zeppelinos-admin-slot-reports',
+  'proxy-admin-owner-accessor-reports',
+] as const;
+
+function tokenRelation(role: TokenAuthority['roles'][number]): string | null {
+  if (role.source === 'eip1967-admin-slot') return null; // Already a structure edge.
+  if (role.source === 'zeppelinos-admin-slot') return 'zeppelinos-admin-slot-reports';
+  if (role.source === 'proxy-admin-owner') return 'proxy-admin-owner-accessor-reports';
+  return `token-${role.role}-accessor-reports`;
+}
+
+function tokenAuthorityGraph(observation: Observation, account: string): Graph {
+  const authority = observation.tokenAuthority;
+  if (!authority) return { nodes: [], edges: [] };
+  const id = (address: string) => `eip155:${observation.chainId}:${address}`;
+  const nodes = new Map<string, string>();
+  const edges = new Map<string, Graph['edges'][number]>();
+  for (const role of authority.roles) {
+    const relation = tokenRelation(role);
+    if (!relation) continue;
+    for (const holder of role.holders) {
+      if (!nodes.has(id(holder))) nodes.set(id(holder), 'token-authority');
+      edges.set(`${relation}\n${id(holder)}`, { from: account, to: id(holder), relation });
+    }
+  }
+  return {
+    nodes: [...nodes].map(([nodeId, kind]) => ({ id: nodeId, kind })),
+    edges: [...edges.values()],
+  };
+}
+
 export function buildTrustGraph(observation: Observation, hash: string): Assessment['trustGraph'] {
   const account = `eip155:${observation.chainId}:${observation.address}`;
   const block = `eip155:${observation.chainId}:${observation.blockHash}`;
@@ -105,9 +144,15 @@ export function buildTrustGraph(observation: Observation, hash: string): Assessm
     ],
   };
   // Deduplicate: the same address can appear as owner and module, or already as reported-owner.
+  const token = tokenAuthorityGraph(observation, account);
   const seen = new Set(base.nodes.map((n) => n.id));
+  const extra = [...structure.nodes, ...token.nodes].filter((n) => {
+    if (seen.has(n.id)) return false;
+    seen.add(n.id);
+    return true;
+  });
   return {
-    nodes: [...base.nodes, ...structure.nodes.filter((n) => !seen.has(n.id))],
-    edges: [...base.edges, ...structure.edges],
+    nodes: [...base.nodes, ...extra],
+    edges: [...base.edges, ...structure.edges, ...token.edges],
   };
 }

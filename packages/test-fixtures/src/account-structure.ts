@@ -32,7 +32,7 @@ export const minimalProxy = (implementation: Hex) =>
 export interface FakeChain {
   code?: Record<string, Hex>;
   storage?: Record<string, Record<string, Hex>>;
-  /** Return data by target and 4-byte selector. Missing entries revert. */
+  /** Return data by target and full calldata or 4-byte selector (full calldata wins). Missing entries revert. */
   calls?: Record<string, Record<string, Hex>>;
 }
 
@@ -43,7 +43,9 @@ function lookup(chain: FakeChain) {
     code: (target: string) => chain.code?.[key(target)] ?? ('0x' as Hex),
     storage: (target: string, slot: string) =>
       chain.storage?.[key(target)]?.[key(slot)] ?? toHex(0n, { size: 32 }),
-    call: (target: string, data: string) => chain.calls?.[key(target)]?.[key(data.slice(0, 10))],
+    call: (target: string, data: string) =>
+      chain.calls?.[key(target)]?.[key(data)] ??
+      chain.calls?.[key(target)]?.[key(data.slice(0, 10))],
   };
 }
 
