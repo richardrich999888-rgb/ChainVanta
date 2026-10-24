@@ -3390,7 +3390,8 @@ export interface components {
             | 'account-authorization'
             | 'application'
             | 'transport'
-            | 'consensus';
+            | 'consensus'
+            | 'token-administration';
           evidenceRefs?: string[];
         }[];
       };
