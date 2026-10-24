@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Bitcoin collector
+
+- Read-only Bitcoin Core collector (`scantxoutset`) for addresses and public keys on mainnet, testnet3, signet and regtest; network identity proven by the genesis hash; every returned script re-derived against the target.
+- Exposure model: keys in output scripts (P2PK, bare multisig, P2TR) versus hash-locked outputs, with key reuse proven from an optional supplied spend. Findings `CV-BTC-001`..`005`; Bitcoin QBOM statuses; CycloneDX export with a reviewed BIP-340 Schnorr entry.
+- API `/v1/bitcoin/{networks,assessments}`, SDK methods, `BITCOIN_NODES` configuration with credentials from named environment variables. Assets generalize to CAIP-10 (`bip122:` namespace, migration `011_bitcoin`); EVM endpoints exclude Bitcoin documents.
+- The pinned RPC transport is now policy-driven (method allowlist, per-method timeout, configured credentials).
+
 ## Unreleased (on `feature/web3-cpm-engine`)
 
 - Export CBOMs as CycloneDX 1.6 (`GET /v1/assessments/:id/cbom`), validated against a strict model of the emitted subset. Sample output was also validated against the official 1.6 JSON Schema during development.

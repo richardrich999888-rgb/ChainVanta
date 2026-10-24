@@ -39,6 +39,18 @@ export function publicRpcAddress(address: string): boolean {
     ? !denied.check(address, 'ipv4')
     : family === 6 && globalV6.check(address, 'ipv6') && !denied.check(address, 'ipv6');
 }
+/** A configured RPC destination. `authorization` is attached by the transport, never by callers. */
+export interface RpcEndpoint {
+  rpcUrl: string;
+  demonstration?: boolean;
+  authorization?: string;
+}
+/** Read-only method allowlist and per-method timeout for one protocol family. */
+export interface RpcPolicy {
+  methods: ReadonlySet<string>;
+  timeoutMs: (method: string) => number;
+}
+const DEFAULT_TIMEOUT_MS = 10_000;
 const methods = new Set([
   'eth_chainId',
   'eth_getBlockByNumber',
@@ -52,14 +64,27 @@ const methods = new Set([
 ]);
 const genericError = () => new Error('Approved RPC transport failed');
 type Resolver = (hostname: string) => Promise<{ address: string; family: number }[]>;
-/** Restricts destinations to configured URLs and pins each socket to a checked DNS answer.
- * No redirects, proxy environment, pooled socket reuse, or write-capable JSON-RPC methods.
- */
+const defaultResolver: Resolver = (hostname) => lookup(hostname, { all: true, verbatim: true });
+export const EVM_RPC_POLICY: RpcPolicy = { methods, timeoutMs: () => DEFAULT_TIMEOUT_MS };
+
+/** EVM transport: the pinned transport with the read-only Ethereum method allowlist. */
 export function createRpcTransport(
   chains: ChainConfig[],
-  resolve: Resolver = (hostname) => lookup(hostname, { all: true, verbatim: true }),
+  resolve: Resolver = defaultResolver,
 ): typeof fetch {
-  const approved = new Map(chains.map((chain) => [new URL(chain.rpcUrl).href, chain]));
+  return createPinnedRpcTransport(chains, EVM_RPC_POLICY, resolve);
+}
+
+/** Restricts destinations to configured URLs and pins each socket to a checked DNS answer.
+ * No redirects, proxy environment, pooled socket reuse, or methods outside the policy allowlist.
+ * Credentials come only from the endpoint configuration; caller headers are never forwarded.
+ */
+export function createPinnedRpcTransport(
+  endpoints: RpcEndpoint[],
+  policy: RpcPolicy,
+  resolve: Resolver = defaultResolver,
+): typeof fetch {
+  const approved = new Map(endpoints.map((endpoint) => [new URL(endpoint.rpcUrl).href, endpoint]));
   return async (input, init) => {
     try {
       const url = new URL(
@@ -89,7 +114,7 @@ export function createRpcTransport(
       if (
         Array.isArray(body) ||
         body.jsonrpc !== '2.0' ||
-        !methods.has(body.method) ||
+        !policy.methods.has(body.method) ||
         !Array.isArray(body.params)
       )
         throw genericError();
@@ -97,7 +122,7 @@ export function createRpcTransport(
         publicRpcAddress(address) || (local && ['127.0.0.1', '::1'].includes(address));
       if (isIP(host) && !permitted(host)) throw genericError();
       const signal = AbortSignal.any([
-        AbortSignal.timeout(10000),
+        AbortSignal.timeout(policy.timeoutMs(body.method)),
         ...(init.signal ? [init.signal] : []),
       ]);
       signal.throwIfAborted();
@@ -113,6 +138,7 @@ export function createRpcTransport(
               'content-type': 'application/json',
               'content-length': Buffer.byteLength(init.body as string),
               'accept-encoding': 'identity',
+              ...(chain.authorization ? { authorization: chain.authorization } : {}),
             },
             lookup: (_hostname, options, callback) => {
               void resolve(host)

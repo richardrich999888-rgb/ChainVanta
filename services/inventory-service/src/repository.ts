@@ -3,6 +3,29 @@ import { HttpException } from '@nestjs/common';
 import type { Pool, PoolClient } from 'pg';
 import { Assessment, canonicalAssetId } from '../../../packages/domain-models/src/index.js';
 import { evidenceHash } from '../../../core/evidence-engine/evidence-hashing/index.js';
+import { BitcoinAssessment, bitcoinAssetId } from '../../../packages/domain-models/src/bitcoin.js';
+
+type StoredRow = {
+  document: { evidenceHash: string; observation: unknown };
+  record_hash: string;
+  observation: unknown;
+};
+/** Any assessment document plus the asset it describes, ready for persistence. */
+type StoredRecord = {
+  tenantId: string;
+  id: string;
+  evidenceHash: string;
+  observation: unknown;
+  document: unknown;
+  trustGraph: { edges: { from: string; to: string; relation: string }[] };
+  asset: {
+    id: string;
+    namespace: 'eip155' | 'bip122';
+    chainId: number | null;
+    address: string;
+    firstSeen: string;
+  };
+};
 
 export interface Repository {
   save(assessment: Assessment): Promise<void>;
@@ -48,63 +71,103 @@ export class PostgresRepository implements Repository {
     }
   }
 
-  async insert(client: PoolClient, assessment: Assessment, actor: string) {
-    Assessment.parse(assessment);
-    if (evidenceHash(assessment.observation) !== assessment.evidenceHash)
+  /**
+   * Shared persistence for any assessment document: evidence, document, asset, graph and audit,
+   * in the caller's tenant-scoped transaction. Integrity is checked before anything is written.
+   */
+  private async insertRecord(client: PoolClient, record: StoredRecord, actor: string) {
+    if (evidenceHash(record.observation) !== record.evidenceHash)
       throw new Error('Evidence integrity failure');
     await client.query(
       'INSERT INTO evidence (tenant_id, hash, observation) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING',
-      [assessment.tenantId, assessment.evidenceHash, JSON.stringify(assessment.observation)],
+      [record.tenantId, record.evidenceHash, JSON.stringify(record.observation)],
     );
     await client.query(
       'INSERT INTO assessments (tenant_id,id,evidence_hash,record_hash,document) VALUES ($1,$2,$3,$4,$5)',
       [
-        assessment.tenantId,
-        assessment.id,
-        assessment.evidenceHash,
-        evidenceHash(assessment),
-        JSON.stringify(assessment),
+        record.tenantId,
+        record.id,
+        record.evidenceHash,
+        evidenceHash(record.document),
+        JSON.stringify(record.document),
       ],
     );
-    const o = assessment.observation;
     await client.query(
-      'INSERT INTO assets (tenant_id,asset_id,chain_id,address,first_seen) VALUES ($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING',
+      'INSERT INTO assets (tenant_id,asset_id,namespace,chain_id,address,first_seen) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT DO NOTHING',
       [
-        assessment.tenantId,
-        canonicalAssetId(o.chainId, o.address),
-        o.chainId,
-        o.address,
-        o.observedAt,
+        record.tenantId,
+        record.asset.id,
+        record.asset.namespace,
+        record.asset.chainId,
+        record.asset.address,
+        record.asset.firstSeen,
       ],
     );
-    for (const edge of assessment.trustGraph.edges)
+    for (const edge of record.trustGraph.edges)
       await client.query(
         'INSERT INTO graph_edges (tenant_id,assessment_id,source,target,relation,evidence_hash) VALUES ($1,$2,$3,$4,$5,$6)',
-        [
-          assessment.tenantId,
-          assessment.id,
-          edge.from,
-          edge.to,
-          edge.relation,
-          assessment.evidenceHash,
-        ],
+        [record.tenantId, record.id, edge.from, edge.to, edge.relation, record.evidenceHash],
       );
     await client.query(
       'INSERT INTO audit_events (tenant_id,id,actor,action,resource,details) VALUES ($1,$2,$3,$4,$5,$6)',
       [
-        assessment.tenantId,
+        record.tenantId,
         randomUUID(),
         actor,
         'assessment.created',
-        assessment.id,
-        JSON.stringify({ evidenceHash: assessment.evidenceHash }),
+        record.id,
+        JSON.stringify({ evidenceHash: record.evidenceHash }),
       ],
+    );
+  }
+  async insert(client: PoolClient, assessment: Assessment, actor: string) {
+    Assessment.parse(assessment);
+    const o = assessment.observation;
+    await this.insertRecord(
+      client,
+      {
+        ...assessment,
+        document: assessment,
+        asset: {
+          id: canonicalAssetId(o.chainId, o.address),
+          namespace: 'eip155',
+          chainId: o.chainId,
+          address: o.address,
+          firstSeen: o.observedAt,
+        },
+      },
+      actor,
+    );
+  }
+  private async insertBitcoin(client: PoolClient, assessment: BitcoinAssessment, actor: string) {
+    BitcoinAssessment.parse(assessment);
+    const o = assessment.observation;
+    await this.insertRecord(
+      client,
+      {
+        ...assessment,
+        document: assessment,
+        asset: {
+          id: bitcoinAssetId(o.network, o.target.value),
+          namespace: 'bip122',
+          chainId: null,
+          address: o.target.value,
+          firstSeen: o.observedAt,
+        },
+      },
+      actor,
     );
   }
   async save(assessment: Assessment): Promise<void> {
     await this.scoped(assessment.tenantId, (client) => this.insert(client, assessment, 'internal'));
   }
-  private async lookup(client: PoolClient, tenantId: string, key: string, requestHash: string) {
+  private async lookup<T>(
+    client: PoolClient,
+    tenantId: string,
+    key: string,
+    requestHash: string,
+    parse: (value: unknown) => T,
+  ): Promise<T | null> {
     const result = await client.query(
       'SELECT r.request_hash,a.document,a.record_hash,e.observation FROM scan_requests r JOIN assessments a ON a.tenant_id=r.tenant_id AND a.id=r.assessment_id JOIN evidence e ON e.tenant_id=a.tenant_id AND e.hash=a.evidence_hash WHERE r.tenant_id=$1 AND r.key=$2',
       [tenantId, key],
@@ -113,10 +176,12 @@ export class PostgresRepository implements Repository {
     if (!row) return null;
     if (row.request_hash !== requestHash)
       throw new HttpException('Idempotency key already used with different input', 409);
-    return this.verified(row);
+    return this.verifiedAs(row, parse);
   }
   replay(tenantId: string, key: string, requestHash: string) {
-    return this.scoped(tenantId, (client) => this.lookup(client, tenantId, key, requestHash));
+    return this.scoped(tenantId, (client) =>
+      this.lookup(client, tenantId, key, requestHash, (v) => Assessment.parse(v)),
+    );
   }
   saveOnce(assessment: Assessment, key: string, requestHash: string, actor: string) {
     return this.scoped(assessment.tenantId, async (client) => {
@@ -124,7 +189,9 @@ export class PostgresRepository implements Repository {
       await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [
         `${assessment.tenantId}:${key}`,
       ]);
-      const prior = await this.lookup(client, assessment.tenantId, key, requestHash);
+      const prior = await this.lookup(client, assessment.tenantId, key, requestHash, (v) =>
+        Assessment.parse(v),
+      );
       if (prior) return prior;
       await this.insert(client, assessment, actor);
       await client.query(
@@ -137,7 +204,7 @@ export class PostgresRepository implements Repository {
   history(tenantId: string, assetId: string) {
     return this.scoped(tenantId, async (client) => {
       const result = await client.query(
-        "SELECT a.document,a.record_hash,e.observation FROM assessments a JOIN evidence e ON e.tenant_id=a.tenant_id AND e.hash=a.evidence_hash WHERE a.tenant_id=$1 AND 'eip155:' || (a.document->'observation'->>'chainId') || ':' || (a.document->'observation'->>'address')=$2 ORDER BY a.created_at DESC,a.id LIMIT 100",
+        "SELECT a.document,a.record_hash,e.observation FROM assessments a JOIN evidence e ON e.tenant_id=a.tenant_id AND e.hash=a.evidence_hash WHERE a.tenant_id=$1 AND a.document->>'kind' IS NULL AND 'eip155:' || (a.document->'observation'->>'chainId') || ':' || (a.document->'observation'->>'address')=$2 ORDER BY a.created_at DESC,a.id LIMIT 100",
         [tenantId, assetId],
       );
       return result.rows.map((row) => this.verified(row));
@@ -253,11 +320,11 @@ export class PostgresRepository implements Repository {
     });
   }
 
-  private verified(row: {
-    document: Assessment;
-    record_hash: string;
-    observation: unknown;
-  }): Assessment {
+  private verified(row: StoredRow): Assessment {
+    return this.verifiedAs(row, (v) => Assessment.parse(v));
+  }
+  /** Recomputes every stored hash before parsing; any mismatch is an integrity failure. */
+  private verifiedAs<T>(row: StoredRow, parse: (value: unknown) => T): T {
     const value = row.document;
     if (
       evidenceHash(value) !== row.record_hash ||
@@ -265,13 +332,13 @@ export class PostgresRepository implements Repository {
       evidenceHash(value.observation) !== value.evidenceHash
     )
       throw new Error('Stored evidence integrity failure');
-    return Assessment.parse(value);
+    return parse(value);
   }
 
   async list(tenantId: string): Promise<Assessment[]> {
     return this.scoped(tenantId, async (client) => {
       const result = await client.query(
-        'SELECT a.document, a.record_hash, e.observation FROM assessments a JOIN evidence e ON e.tenant_id = a.tenant_id AND e.hash = a.evidence_hash WHERE a.tenant_id = $1 ORDER BY a.created_at DESC, a.id LIMIT 50',
+        "SELECT a.document, a.record_hash, e.observation FROM assessments a JOIN evidence e ON e.tenant_id = a.tenant_id AND e.hash = a.evidence_hash WHERE a.tenant_id = $1 AND a.document->>'kind' IS NULL ORDER BY a.created_at DESC, a.id LIMIT 50",
         [tenantId],
       );
       return result.rows.map((row) => this.verified(row));
@@ -281,10 +348,54 @@ export class PostgresRepository implements Repository {
   async get(tenantId: string, id: string): Promise<Assessment | null> {
     return this.scoped(tenantId, async (client) => {
       const result = await client.query(
-        'SELECT a.document, a.record_hash, e.observation FROM assessments a JOIN evidence e ON e.tenant_id = a.tenant_id AND e.hash = a.evidence_hash WHERE a.tenant_id = $1 AND a.id = $2',
+        "SELECT a.document, a.record_hash, e.observation FROM assessments a JOIN evidence e ON e.tenant_id = a.tenant_id AND e.hash = a.evidence_hash WHERE a.tenant_id = $1 AND a.id = $2 AND a.document->>'kind' IS NULL",
         [tenantId, id],
       );
       return result.rows[0] ? this.verified(result.rows[0]) : null;
+    });
+  }
+
+  replayBitcoin(tenantId: string, key: string, requestHash: string) {
+    return this.scoped(tenantId, (client) =>
+      this.lookup(client, tenantId, key, requestHash, (v) => BitcoinAssessment.parse(v)),
+    );
+  }
+  saveBitcoinOnce(assessment: BitcoinAssessment, key: string, requestHash: string, actor: string) {
+    return this.scoped(assessment.tenantId, async (client) => {
+      await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [
+        `${assessment.tenantId}:${key}`,
+      ]);
+      const prior = await this.lookup(client, assessment.tenantId, key, requestHash, (v) =>
+        BitcoinAssessment.parse(v),
+      );
+      if (prior) return prior;
+      await this.insertBitcoin(client, assessment, actor);
+      await client.query(
+        'INSERT INTO scan_requests (tenant_id,key,request_hash,assessment_id) VALUES ($1,$2,$3,$4)',
+        [assessment.tenantId, key, requestHash, assessment.id],
+      );
+      return assessment;
+    });
+  }
+  listBitcoin(tenantId: string): Promise<BitcoinAssessment[]> {
+    return this.scoped(tenantId, async (client) =>
+      (
+        await client.query(
+          "SELECT a.document, a.record_hash, e.observation FROM assessments a JOIN evidence e ON e.tenant_id = a.tenant_id AND e.hash = a.evidence_hash WHERE a.tenant_id = $1 AND a.document->>'kind' = 'bitcoin' ORDER BY a.created_at DESC, a.id LIMIT 50",
+          [tenantId],
+        )
+      ).rows.map((row) => this.verifiedAs(row, (v) => BitcoinAssessment.parse(v))),
+    );
+  }
+  getBitcoin(tenantId: string, id: string): Promise<BitcoinAssessment | null> {
+    return this.scoped(tenantId, async (client) => {
+      const row = (
+        await client.query(
+          "SELECT a.document, a.record_hash, e.observation FROM assessments a JOIN evidence e ON e.tenant_id = a.tenant_id AND e.hash = a.evidence_hash WHERE a.tenant_id = $1 AND a.id = $2 AND a.document->>'kind' = 'bitcoin'",
+          [tenantId, id],
+        )
+      ).rows[0];
+      return row ? this.verifiedAs(row, (v) => BitcoinAssessment.parse(v)) : null;
     });
   }
 
@@ -295,7 +406,7 @@ export class PostgresRepository implements Repository {
     if (!role || role.rolsuper || role.rolbypassrls)
       throw new Error('Runtime database role must enforce tenant RLS');
     await this.pool
-      .query("SELECT version FROM schema_migrations WHERE version = '010_cpm'")
+      .query("SELECT version FROM schema_migrations WHERE version = '011_bitcoin'")
       .then((result) => {
         if (!result.rowCount) throw new Error('Migration required');
       });

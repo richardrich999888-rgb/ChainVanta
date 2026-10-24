@@ -2117,6 +2117,266 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/v1/bitcoin/networks': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Configured Bitcoin networks. Empty when Bitcoin collection is not configured. */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              network: string;
+              name: string;
+            }[];
+          };
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/bitcoin/assessments': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Latest 50 Bitcoin assessments for the tenant. */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['BitcoinAssessment'][];
+          };
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    /** @description Assess a Bitcoin address or public key from the configured node UTXO set (scantxoutset; can take minutes on mainnet). One scan per node at a time (429 while busy). */
+    post: {
+      parameters: {
+        query?: never;
+        header?: {
+          'Idempotency-Key'?: string;
+        };
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['BitcoinScanRequest'];
+        };
+      };
+      responses: {
+        /** @description Created or idempotent replay */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['BitcoinAssessment'];
+          };
+        };
+        /** @description Invalid address or unconfigured network */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Idempotency key reused with different input */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description A scan is already running on this node */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Node could not complete a consistent snapshot */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/bitcoin/assessments/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['BitcoinAssessment'];
+          };
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Role denied */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/bitcoin/assessments/{id}/cbom': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description CycloneDX 1.6 CBOM export of one Bitcoin assessment. */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Success */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/vnd.cyclonedx+json; version=1.6': components['schemas']['CycloneDxCbom'];
+          };
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Assessment not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/v1/assessments/{id}/cbom': {
     parameters: {
       query?: never;
@@ -3032,6 +3292,150 @@ export interface components {
         /** @enum {string} */
         aggregate: 'complete' | 'incomplete' | 'unknown';
       }[];
+    };
+    BitcoinScanRequest: {
+      /** @enum {string} */
+      network: 'mainnet' | 'testnet3' | 'signet' | 'regtest';
+      address?: string;
+      publicKey?: string;
+      spendTransaction?: {
+        txid: string;
+        blockHash: string;
+      };
+    };
+    BitcoinAssessment: {
+      /** @constant */
+      schemaVersion: '0.1';
+      /** @constant */
+      kind: 'bitcoin';
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      tenantId: string;
+      /** Format: date-time */
+      createdAt: string;
+      observation: {
+        /** @enum {string} */
+        network: 'mainnet' | 'testnet3' | 'signet' | 'regtest';
+        chainId: string;
+        target: {
+          /** @enum {string} */
+          kind: 'address' | 'public-key';
+          value: string;
+          scriptTypes: (
+            'p2pk' | 'p2pkh' | 'p2sh' | 'p2wpkh' | 'p2wsh' | 'p2tr' | 'bare-multisig' | 'unknown'
+          )[];
+          descriptor: string;
+        };
+        tipHeight: number;
+        tipHash: string;
+        utxoCount: number;
+        totalSats: string;
+        groups: {
+          /** @enum {string} */
+          scriptType:
+            'p2pk' | 'p2pkh' | 'p2sh' | 'p2wpkh' | 'p2wsh' | 'p2tr' | 'bare-multisig' | 'unknown';
+          /** @enum {string} */
+          keyExposure: 'public-key-in-script' | 'hash-locked' | 'unknown';
+          count: number;
+          sats: string;
+          minConfirmations: number;
+        }[];
+        sampleOutpoints: {
+          txid: string;
+          vout: number;
+          sats: string;
+          height: number;
+          /** @enum {string} */
+          scriptType:
+            'p2pk' | 'p2pkh' | 'p2sh' | 'p2wpkh' | 'p2wsh' | 'p2tr' | 'bare-multisig' | 'unknown';
+        }[];
+        revealedSpend: {
+          txid: string;
+          blockHash: string;
+          confirmations: number;
+          inputIndex: number;
+          /** @enum {string} */
+          source:
+            | 'p2pkh-scriptsig'
+            | 'p2wpkh-witness'
+            | 'p2sh-p2wpkh-witness'
+            | 'p2sh-redeem-script'
+            | 'p2wsh-witness-script';
+          publicKeys: string[];
+          threshold: number | null;
+        } | null;
+        source: string;
+        /** Format: date-time */
+        observedAt: string;
+        /** @constant */
+        parserVersion: 'bitcoin-snapshot/1.0.0';
+        demonstration?: boolean;
+      };
+      evidenceHash: string;
+      /** @enum {string} */
+      assetKind: 'bitcoin-address' | 'bitcoin-public-key';
+      cbom: {
+        /** @constant */
+        format: 'chainvanta-cbom/0.1';
+        components: {
+          algorithm: string;
+          purpose: string;
+          /** @enum {string} */
+          confidence: 'observed' | 'authenticated-integration' | 'inferred' | 'unknown';
+          basis: string;
+          /** @enum {string} */
+          domain?:
+            | 'transaction-signature'
+            | 'account-authorization'
+            | 'application'
+            | 'transport'
+            | 'consensus';
+          evidenceRefs?: string[];
+        }[];
+      };
+      qbom: {
+        /** @constant */
+        format: 'chainvanta-qbom/0.1';
+        /** @constant */
+        ruleVersion: 'bitcoin-quantum-exposure/1.0.0';
+        /** @enum {string} */
+        status: 'public-key-exposed' | 'hash-protected' | 'no-unspent-outputs' | 'unknown';
+        exposedSats: string;
+        hashProtectedSats: string;
+        reason: string;
+        /** @constant */
+        migration: 'requires-further-discovery';
+      };
+      posture: {
+        /** @constant */
+        status: 'needs-review';
+        /** @constant */
+        rulepack: 'bitcoin-baseline/0.1';
+        findings: {
+          ruleId: string;
+          ruleVersion?: string;
+          /** @enum {string} */
+          severity: 'info' | 'medium' | 'high';
+          title: string;
+          rationale: string;
+          /** @enum {string} */
+          confidence: 'observed' | 'authenticated-integration' | 'inferred' | 'unknown';
+          evidenceHash: string;
+        }[];
+      };
+      trustGraph: {
+        nodes: {
+          id: string;
+          kind: string;
+        }[];
+        edges: {
+          from: string;
+          to: string;
+          relation: string;
+        }[];
+      };
+      limitations: string[];
     };
     CpmPolicy: {
       id: string;

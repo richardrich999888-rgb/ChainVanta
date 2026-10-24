@@ -44,6 +44,10 @@ Evidence chosen from block B, strongest first:
 
 Fail closed: probes must be monotone (each agrees with every earlier probe and the snapshot), block transactions must all parse, at most 1024 authorization recoveries per block, and for non-delegated accounts a nonce change with no matching transaction or authorization fails the scan rather than being reported. Full-block responses above the 1 MB RPC limit also fail the scan. For delegated accounts, an inconsistent provider cannot be distinguished from CREATE nonce use; that outcome stays `unknown` and claims no signature.
 
+## Bitcoin
+
+Bitcoin addresses and public keys are assessed through `POST /v1/bitcoin/assessments`. Pure code lives in `src/key-dependencies/bitcoin-codec.ts` (BIP-13/16/141/173/350 address decoding, script classification from bytes, push and multisig parsing), `src/signature-analysis/bitcoin-spend.ts` (key material a confirmed spend revealed) and `src/assessment/bitcoin.ts`. Findings: `CV-BTC-001` key in output scripts, `CV-BTC-002` key reuse proven by a supplied spend, `CV-BTC-003` hash-locked value with unknown spend history, `CV-BTC-004` non-standard scripts, `CV-BTC-005` fewer than 6 confirmations. See the [connector README](../../connectors/blockchains/bitcoin/README.md) for the method and limits.
+
 ## Limitations
 
 No exhaustive wallet discovery, custody inference, complete transaction history or independent consensus validation. A verified historical transaction does not prove the account's current authorization mechanism. CPM policy rules do not yet consume structure evidence for quantum classification: that needs a new evidence requirement in the policy schema. Unknowns remain unknown.
