@@ -20,6 +20,7 @@ Read-only EVM RPC → hash-pinned finalized account state / supplied transaction
 - Evidence-backed CBOM, versioned QBOM rules and posture findings. An observed transaction signature does **not** establish the account's complete authorization policy or private-key custody. Unknowns remain unknown.
 - Account structure for code-bearing accounts: EIP-7702 delegation, EIP-1167 and EIP-1967 proxies, Safe owners/threshold/modules and ERC-4337 entry points, read at the pinned block. Safe and ERC-4337 data are contract-reported accessors and are labelled inferred. See [Wallet Intelligence](modules/01-wallet-intelligence/README.md).
 - Explicit `ownable-erc20` adapter reads `owner()`, `totalSupply()` and `decimals()`. This is a partial Stablecoin Assurance capability; it does not discover stablecoin identity or prove mint/burn rights, reserves, proxy semantics or regulatory compliance.
+- Opt-in `token-authority` adapter discovers who can mint, burn, pause, blacklist or upgrade a token (Ownable/Ownable2Step, AccessControl, DefaultAdminRules, FiatToken roles, EIP-1967 and ZeppelinOS proxy admins plus the ProxyAdmin owner) and classifies each holder by code, flagging supply or upgrade powers held by a single secp256k1 key. Holder claims are accessor responses and are labelled inferred. See [Stablecoin Assurance](modules/09-stablecoin-assurance/README.md).
 - Relational graph edges with bounded traversal; historical snapshot comparison; an immutable findings lifecycle, timed exceptions and technical resolution only after later supporting evidence.
 - Redis-backed request quotas in the running API. Redis failure denies protected API access rather than bypassing quotas.
 - Next.js dark console with inventory, CBOM, QBOM, CPM, interactive relationship inspection, evidence and JSON reports. Counts describe recent observations, not invented risk scores. Demonstration records are visibly marked.
@@ -88,7 +89,7 @@ JWT signatures, issuer, audience, expiry and required subject/issued-at claims a
 
 [OpenAPI](packages/api-contracts/openapi.yaml) · [Generated types](packages/api-contracts/generated.ts) · [TypeScript client](sdks/typescript/src/index.ts)
 
-CLI (`CHAINVANTA_API_KEY` required): `pnpm cli scan|assess|inventory|report|cbom|qbom|posture`. `assess <address> [chainId] [--transaction <hash>] [--adapter ownable-erc20]` exposes the full scan request; `posture <eip155:chain:address | address [chainId]>` prints current CPM posture.
+CLI (`CHAINVANTA_API_KEY` required): `pnpm cli scan|assess|inventory|report|cbom|qbom|posture`. `assess <address> [chainId] [--transaction <hash>] [--adapter ownable-erc20|token-authority]` exposes the full scan request; `posture <eip155:chain:address | address [chainId]>` prints current CPM posture.
 
 ## Verify
 

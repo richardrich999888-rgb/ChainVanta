@@ -227,7 +227,11 @@ export function CpmConsole({
                               ...(selected.observation.signature
                                 ? { transactionHash: selected.observation.signature.hash }
                                 : {}),
-                              ...(selected.observation.token ? { adapter: 'ownable-erc20' } : {}),
+                              ...(selected.observation.token
+                                ? { adapter: 'ownable-erc20' }
+                                : selected.observation.tokenAuthority
+                                  ? { adapter: 'token-authority' }
+                                  : {}),
                             },
                             intervalSeconds: Number(data.get('interval')),
                           }),

@@ -3,12 +3,16 @@ import { CpmPolicy, PostureSnapshot } from '../../../packages/domain-models/src/
 import { evidenceHash } from '../../evidence-engine/evidence-hashing/index.js';
 import { evaluateRules } from '../../policy-engine/evaluators/index.js';
 import { policyHash } from '../../policy-engine/rule-versioning/index.js';
-import { STRUCTURE_RELATIONS } from '../../trust-graph-engine/graph-builders/index.js';
+import {
+  STRUCTURE_RELATIONS,
+  TOKEN_AUTHORITY_RELATIONS,
+} from '../../trust-graph-engine/graph-builders/index.js';
 
 const DEPENDENCY_RELATIONS: readonly string[] = [
   'verified-signature-uses',
   'owner-accessor-reports',
   ...STRUCTURE_RELATIONS,
+  ...TOKEN_AUTHORITY_RELATIONS,
 ];
 
 export function evaluateCpm(input: Assessment, definition: CpmPolicy): PostureSnapshot {

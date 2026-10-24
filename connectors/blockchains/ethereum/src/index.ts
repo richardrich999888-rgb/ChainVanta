@@ -1,6 +1,7 @@
 import { createRpcTransport } from './transport.js';
 import { verifyTransaction } from '../../../../modules/01-wallet-intelligence/src/signature-analysis/verify-transaction.js';
 import { observeToken } from '../../../../modules/09-stablecoin-assurance/src/privileged-roles/index.js';
+import { discoverTokenAuthority } from '../../../../modules/09-stablecoin-assurance/src/mint-burn-authorities/token-authority.js';
 import {
   discoverAccountStructure,
   type ProbeResult,
@@ -197,7 +198,7 @@ export class EvmConnector {
     options: {
       transactionHash?: string;
       discoverTransaction?: true;
-      adapter?: 'ownable-erc20';
+      adapter?: 'ownable-erc20' | 'token-authority';
     } = {},
   ): Promise<Observation> {
     const address = Address.parse(inputAddress);
@@ -253,10 +254,10 @@ export class EvmConnector {
         if (txBlock.hash !== signature.blockHash)
           throw new RpcFailure('Transaction block is not canonical');
       }
+      if (options.adapter && code === '0x')
+        throw new RpcFailure('Selected token adapter requires contract bytecode');
       let token;
-      if (options.adapter) {
-        if (code === '0x')
-          throw new RpcFailure('Selected token adapter requires contract bytecode');
+      if (options.adapter === 'ownable-erc20') {
         token = await observeToken(async (data) =>
           HexData.parse(
             await this.rpc('eth_call', [
@@ -271,6 +272,15 @@ export class EvmConnector {
         address as Hex,
         code as Hex,
       );
+      // Runs after structure discovery so EIP-1967 proxy admins are reused, not re-read.
+      const tokenAuthority =
+        options.adapter === 'token-authority'
+          ? await discoverTokenAuthority(
+              this.structureReader(block.hash),
+              address as Hex,
+              structure ?? undefined,
+            )
+          : undefined;
       const after = Block.parse(await this.rpc('eth_getBlockByNumber', [block.number, false]));
       if (after.hash !== block.hash || after.number !== block.number)
         throw new RpcFailure('Canonical block changed during collection; retry the assessment');
@@ -289,6 +299,7 @@ export class EvmConnector {
         parserVersion: 'evm-snapshot/1.0.0',
         ...(signature ? { signature } : {}),
         ...(token ? { token } : {}),
+        ...(tokenAuthority ? { tokenAuthority } : {}),
         ...(structure ? { structure } : {}),
         ...(discovery ? { discovery } : {}),
         ...(this.chain.demonstration ? { demonstration: true } : {}),

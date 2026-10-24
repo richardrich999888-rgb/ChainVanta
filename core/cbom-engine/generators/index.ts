@@ -4,6 +4,7 @@ import {
   structureFacts,
   type StructureFacts,
 } from '../../cryptographic-inventory/algorithm-classification/account-structure.js';
+import { tokenAuthorityFacts } from '../../cryptographic-inventory/algorithm-classification/token-authority.js';
 import type { Assessment, Observation } from '../../../packages/domain-models/src/index.js';
 
 type Component = Assessment['cbom']['components'][number];
@@ -82,6 +83,37 @@ function structureComponents(facts: StructureFacts, hash: string): Component[] {
   return components;
 }
 
+/** Token administration keys. Only single-key holders imply an algorithm; contracts stay unknown. */
+function tokenAuthorityComponents(observation: Observation, hash: string): Component[] {
+  const facts = tokenAuthorityFacts(observation);
+  if (!facts) return [];
+  const components: Component[] = facts.holders
+    .filter((h) => h.kind === 'no-code' || h.kind === 'eip-7702-delegated')
+    .map((h) => ({
+      algorithm: SECP256K1,
+      purpose: `token administration (${h.roles.join(', ')} held by ${h.address})`,
+      domain: 'token-administration' as const,
+      // Inferred: the role claim comes from accessors; an address without code (or a delegated
+      // account) can only originate transactions with a secp256k1 signature.
+      confidence: 'inferred' as const,
+      basis: `Token accessors report ${h.address} as ${h.roles.join(', ')}; it ${
+        h.kind === 'no-code' ? 'has no code' : 'is EIP-7702 delegated'
+      }, so exercising the role requires a secp256k1 ECDSA signature from its key.`,
+      evidenceRefs: [hash],
+    }));
+  const opaque = facts.holders.filter((h) => h.kind === 'contract' || h.kind === 'not-checked');
+  if (opaque.length)
+    components.push({
+      algorithm: 'unknown',
+      purpose: `token administration (${opaque.length} contract or unchecked holder${opaque.length === 1 ? '' : 's'})`,
+      domain: 'token-administration',
+      confidence: 'unknown',
+      basis:
+        'Contract holders (multisigs, timelocks, governors) authorize through their own logic, which was not analyzed.',
+    });
+  return components;
+}
+
 /** Builds the native CBOM. Unknowns stay explicit; structure adds only protocol-implied facts. */
 export function buildCbom(observation: Observation): Assessment['cbom'] {
   const hash = evidenceHash(observation);
@@ -102,6 +134,7 @@ export function buildCbom(observation: Observation): Assessment['cbom'] {
           ]
         : []),
       ...structureComponents(facts, hash),
+      ...tokenAuthorityComponents(observation, hash),
       ...(observation.discovery?.authorization
         ? [
             {

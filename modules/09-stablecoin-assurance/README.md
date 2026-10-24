@@ -2,8 +2,39 @@
 
 Status: **Partially implemented**.
 
-The explicitly selected `ownable-erc20/1.0.0` adapter reads `owner()`, `totalSupply()` and `decimals()` at the same canonical block hash. It records calldata, raw return data, decoded values and parser version as evidence, with an owner-accessor relationship in the graph. It fails on malformed/unsupported returns or absent code.
+## Adapters
 
-This is not automatic stablecoin discovery. Matching selectors do not prove contract semantics. Minting/burning privileges, reserve backing, proxy resolution, role-grant/revoke event decoding and issuer-specific adapters remain planned. No financial writes are exposed.
+Both adapters are opt-in (`adapter` on the scan request), run only against accounts with code, and read at the observation's pinned block hash.
 
-Threat boundary: arbitrary contract bytecode can return deceptive accessor values; record provider-reported facts without asserting authority semantics. Test specification: valid ABI fixtures, short/malformed return values, large integer preservation, no-code accounts, pinned block calls, reorg rejection and tenant isolation. Current tests: `tests/unit/intelligence.test.ts` and `tests/integration/pipeline.test.ts`.
+### `ownable-erc20/1.0.0`
+
+Reads `owner()`, `totalSupply()` and `decimals()`. It records calldata, raw return data, decoded values and parser version as evidence, with an owner-accessor relationship in the graph. It fails on malformed or unsupported returns.
+
+### `token-authority/1.0.0`
+
+Answers "who can mint, burn, pause, blacklist or upgrade this token, and is each holder a single secp256k1 key?" (`src/mint-burn-authorities/token-authority.ts`).
+
+| Source                               | Reads                                                                                   | Roles                                                                        |
+| ------------------------------------ | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `ownable`                            | `owner()` (Ownable, or ERC-5313 as implemented by `AccessControlDefaultAdminRules`)     | owner                                                                        |
+| `ownable2step`                       | `pendingOwner()`                                                                        | pending-owner                                                                |
+| `access-control-enumerable`          | ERC-165 `0x7965db0b` / `0x5a05180f`, then `getRoleMemberCount` / `getRoleMember`        | default-admin, minter, burner, pauser, upgrader (`keccak256("<NAME>_ROLE")`) |
+| `access-control-default-admin-rules` | `defaultAdmin()`                                                                        | default-admin                                                                |
+| `fiat-token`                         | `masterMinter()`, `pauser()`, `blacklister()`, `rescuer()` (Circle FiatToken)           | master-minter, pauser, blacklister, rescuer                                  |
+| `eip1967-admin-slot`                 | reused from account-structure discovery                                                 | proxy-admin                                                                  |
+| `zeppelinos-admin-slot`              | storage `keccak256("org.zeppelinos.proxy.admin")` (AdminUpgradeabilityProxy, e.g. USDC) | proxy-admin                                                                  |
+| `proxy-admin-owner`                  | `owner()` on each proxy admin (OpenZeppelin `ProxyAdmin`)                               | upgrader                                                                     |
+
+It also reads `symbol()`, `decimals()`, `totalSupply()` and `paused()`. Each distinct holder is classified by `eth_getCode`: `no-code`, `eip-7702-delegated`, `contract`, or `not-checked` (over budget). A zero-address holder means the role was renounced and yields an empty holder list.
+
+Budget (`TOKEN_AUTHORITY_LIMITS`): at most 32 reads, 5 holders per role, 8 classified holders; return data above 4 KB is fingerprinted. Holder classification and proxy-admin hops are reserved before role members, so the budget is never exceeded. Reverts and halts are interface answers; any other provider error fails the observation.
+
+Findings: `CV-TOKEN-002` (authorities reported, inferred), `CV-TOKEN-003` (high: a single-key holder of owner, default-admin, minter, master-minter, upgrader or proxy-admin; one finding listing every such holder, because finding lifecycle is keyed by rule id), `CV-TOKEN-004` (authority set incomplete: non-enumerable AccessControl, truncated roles or unclassified holders), `CV-TOKEN-005` (paused). CBOM: one inferred `ECDSA-secp256k1` component per single-key holder (domain `token-administration`) and one unknown component for contract holders. Trust graph: `token-<role>-accessor-reports`, `zeppelinos-admin-slot-reports` and `proxy-admin-owner-accessor-reports` edges, tracked by CPM, so a holder change is `DEPENDENCY_CHANGED` drift. QBOM status is unchanged: the holders' keys are not the observed account's.
+
+Validated against OpenZeppelin 5.6.1 `AccessControlEnumerable`, `AccessControlDefaultAdminRules`, `Ownable2Step` and `TransparentUpgradeableProxy`/`ProxyAdmin`, compiled with solc 0.8.30, on Hardhat (Prague), including an EIP-7702 delegated minter. FiatToken accessors and the ZeppelinOS slot layout are covered by synthetic fixtures only.
+
+## Limits
+
+Accessor responses come from contract code; a lookalike can return the same data, so holder claims are `inferred`. Custom role names, FiatToken minter allowances (not enumerable from accessors), role-grant/revoke event history, timelock delays and multisig thresholds of holders are not analyzed. Reserve backing, stablecoin identity and issuer-specific adapters remain planned. No financial writes are exposed.
+
+Threat boundary: arbitrary contract bytecode can return deceptive accessor values; record provider-reported facts without asserting authority semantics. Tests: `tests/unit/token-authority.test.ts`, `tests/unit/token-authority-engines.test.ts`, `tests/unit/intelligence.test.ts` and `tests/integration/pipeline.test.ts`.

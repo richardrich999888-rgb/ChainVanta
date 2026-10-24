@@ -2613,6 +2613,62 @@ export interface components {
             nonce: string;
           }[];
         };
+        tokenAuthority?: {
+          /** @constant */
+          adapter: 'token-authority/1.0.0';
+          symbol: string | null;
+          decimals: number | null;
+          totalSupply: string | null;
+          paused: boolean | null;
+          /** @enum {string} */
+          accessControl: 'enumerable' | 'non-enumerable' | 'absent';
+          roles: {
+            /** @enum {string} */
+            role:
+              | 'owner'
+              | 'pending-owner'
+              | 'default-admin'
+              | 'minter'
+              | 'burner'
+              | 'pauser'
+              | 'upgrader'
+              | 'master-minter'
+              | 'blacklister'
+              | 'rescuer'
+              | 'proxy-admin';
+            /** @enum {string} */
+            source:
+              | 'ownable'
+              | 'ownable2step'
+              | 'access-control-enumerable'
+              | 'access-control-default-admin-rules'
+              | 'fiat-token'
+              | 'eip1967-admin-slot'
+              | 'zeppelinos-admin-slot'
+              | 'proxy-admin-owner';
+            holders: string[];
+            holdersComplete: boolean;
+          }[];
+          authorities: {
+            address: string;
+            /** @enum {string} */
+            kind: 'no-code' | 'eip-7702-delegated' | 'contract' | 'not-checked';
+          }[];
+          reads: {
+            /** @enum {string} */
+            method: 'eth_getStorageAt' | 'eth_call' | 'eth_getCode';
+            target: string;
+            input: string;
+            /** @enum {string} */
+            outcome: 'returned' | 'reverted';
+            result?: string;
+            resultHash?: string;
+            resultSize?: number;
+            codeHash?: string;
+            codeSize?: number;
+          }[];
+          limitations: string[];
+        };
         /** @constant */
         parserVersion?: 'evm-snapshot/1.0.0';
         demonstration?: boolean;
@@ -2635,7 +2691,8 @@ export interface components {
             | 'account-authorization'
             | 'application'
             | 'transport'
-            | 'consensus';
+            | 'consensus'
+            | 'token-administration';
           evidenceRefs?: string[];
         }[];
       };
@@ -2799,6 +2856,62 @@ export interface components {
           nonce: string;
         }[];
       };
+      tokenAuthority?: {
+        /** @constant */
+        adapter: 'token-authority/1.0.0';
+        symbol: string | null;
+        decimals: number | null;
+        totalSupply: string | null;
+        paused: boolean | null;
+        /** @enum {string} */
+        accessControl: 'enumerable' | 'non-enumerable' | 'absent';
+        roles: {
+          /** @enum {string} */
+          role:
+            | 'owner'
+            | 'pending-owner'
+            | 'default-admin'
+            | 'minter'
+            | 'burner'
+            | 'pauser'
+            | 'upgrader'
+            | 'master-minter'
+            | 'blacklister'
+            | 'rescuer'
+            | 'proxy-admin';
+          /** @enum {string} */
+          source:
+            | 'ownable'
+            | 'ownable2step'
+            | 'access-control-enumerable'
+            | 'access-control-default-admin-rules'
+            | 'fiat-token'
+            | 'eip1967-admin-slot'
+            | 'zeppelinos-admin-slot'
+            | 'proxy-admin-owner';
+          holders: string[];
+          holdersComplete: boolean;
+        }[];
+        authorities: {
+          address: string;
+          /** @enum {string} */
+          kind: 'no-code' | 'eip-7702-delegated' | 'contract' | 'not-checked';
+        }[];
+        reads: {
+          /** @enum {string} */
+          method: 'eth_getStorageAt' | 'eth_call' | 'eth_getCode';
+          target: string;
+          input: string;
+          /** @enum {string} */
+          outcome: 'returned' | 'reverted';
+          result?: string;
+          resultHash?: string;
+          resultSize?: number;
+          codeHash?: string;
+          codeSize?: number;
+        }[];
+        limitations: string[];
+      };
       /** @constant */
       parserVersion?: 'evm-snapshot/1.0.0';
       demonstration?: boolean;
@@ -2820,8 +2933,8 @@ export interface components {
       transactionHash?: string;
       /** @constant */
       discoverTransaction?: true;
-      /** @constant */
-      adapter?: 'ownable-erc20';
+      /** @enum {string} */
+      adapter?: 'ownable-erc20' | 'token-authority';
     };
     FindingUpdate: {
       /** @enum {string} */
@@ -2983,8 +3096,8 @@ export interface components {
         transactionHash?: string;
         /** @constant */
         discoverTransaction?: true;
-        /** @constant */
-        adapter?: 'ownable-erc20';
+        /** @enum {string} */
+        adapter?: 'ownable-erc20' | 'token-authority';
       };
       policy?: {
         id: string;
@@ -3319,8 +3432,8 @@ export interface components {
         transactionHash?: string;
         /** @constant */
         discoverTransaction?: true;
-        /** @constant */
-        adapter?: 'ownable-erc20';
+        /** @enum {string} */
+        adapter?: 'ownable-erc20' | 'token-authority';
       };
       policy_id: string;
       policy_version: string;
@@ -3353,8 +3466,8 @@ export interface components {
         transactionHash?: string;
         /** @constant */
         discoverTransaction?: true;
-        /** @constant */
-        adapter?: 'ownable-erc20';
+        /** @enum {string} */
+        adapter?: 'ownable-erc20' | 'token-authority';
       };
       policy_id: string;
       policy_version: string;

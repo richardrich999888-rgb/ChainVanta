@@ -10,8 +10,15 @@ import {
 import {
   AccountStructure,
   STRUCTURE_LIMITS,
-  type StructureRead,
 } from '../../../../packages/domain-models/src/index.js';
+import {
+  codeHash,
+  decoded,
+  recording,
+  type ChainReader,
+  type ProbeResult,
+  type Recorder,
+} from '../../../../core/evidence-engine/evidence-collection/read-recorder.js';
 
 /**
  * Discovers EVM account structure: EIP-7702 delegation, EIP-1167 minimal proxies, EIP-1967 proxy
@@ -21,16 +28,9 @@ import {
  * block hash. Everything else here is deterministic decoding of the returned bytes.
  */
 
-/** A read-only call outcome. A revert is an answer ("not this interface"), not a failure. */
-export type ProbeResult = { outcome: 'returned'; data: Hex } | { outcome: 'reverted' };
-
-/** Port implemented by the connector. Every method reads state at the same pinned block. */
-export interface StructureReader {
-  /** Returns the 32-byte storage word, left-padded. */
-  storage(target: Hex, slot: Hex): Promise<Hex>;
-  code(target: Hex): Promise<Hex>;
-  call(target: Hex, data: Hex): Promise<ProbeResult>;
-}
+export type { ProbeResult } from '../../../../core/evidence-engine/evidence-collection/read-recorder.js';
+/** Kept for existing callers; the port is shared by all evidence collectors. */
+export type StructureReader = ChainReader;
 
 // EIP-7702 delegation designator: 0xef0100 followed by the 20-byte delegate address.
 const DELEGATION_PREFIX = '0xef0100';
@@ -98,81 +98,11 @@ export function slotAddress(word: Hex): Hex | 'empty' | 'malformed' {
   return `0x${w.slice(24)}` as Hex;
 }
 
-const codeHash = (code: Hex) => (code === '0x' ? null : keccak256(code));
-
-/** Wraps the port and records every read in invocation order, independent of completion order. */
-function recording(reader: StructureReader) {
-  const reads: StructureRead[] = [];
-  const reserve = () => {
-    if (reads.length >= STRUCTURE_LIMITS.maxReads)
-      throw new Error('Account structure read budget exceeded');
-    reads.push(undefined as unknown as StructureRead);
-    return reads.length - 1;
-  };
-  return {
-    reads,
-    async storage(target: Hex, slot: Hex) {
-      const at = reserve();
-      const result = await reader.storage(target, slot);
-      reads[at] = { method: 'eth_getStorageAt', target, input: slot, outcome: 'returned', result };
-      return result;
-    },
-    async code(target: Hex) {
-      const at = reserve();
-      const code = lower(await reader.code(target));
-      const hash = codeHash(code);
-      reads[at] = {
-        method: 'eth_getCode',
-        target,
-        input: '0x',
-        outcome: 'returned',
-        ...(hash ? { codeHash: hash } : {}),
-        codeSize: (code.length - 2) / 2,
-      };
-      return code;
-    },
-    async call(target: Hex, data: Hex): Promise<ProbeResult> {
-      const at = reserve();
-      const result = await reader.call(target, data);
-      if (result.outcome === 'reverted') {
-        reads[at] = { method: 'eth_call', target, input: data, outcome: 'reverted' };
-        return result;
-      }
-      const size = (result.data.length - 2) / 2;
-      if (size <= STRUCTURE_LIMITS.maxReturnBytes) {
-        reads[at] = {
-          method: 'eth_call',
-          target,
-          input: data,
-          outcome: 'returned',
-          result: result.data,
-        };
-        return result;
-      }
-      // Oversized: keep a verifiable fingerprint, store and decode nothing.
-      reads[at] = {
-        method: 'eth_call',
-        target,
-        input: data,
-        outcome: 'returned',
-        resultHash: keccak256(result.data),
-        resultSize: size,
-      };
-      return { outcome: 'returned', data: '0x' };
-    },
-  };
-}
-type Recorder = ReturnType<typeof recording>;
-
-/** Decodes a probe result; reverts and undecodable data both mean "interface not present". */
-function decoded<T>(result: ProbeResult, decode: (data: Hex) => T): T | null {
-  if (result.outcome !== 'returned' || result.data === '0x') return null;
-  try {
-    return decode(result.data);
-  } catch {
-    return null;
-  }
-}
+const recordingFor = (reader: StructureReader) =>
+  recording(reader, {
+    maxReads: STRUCTURE_LIMITS.maxReads,
+    maxReturnBytes: STRUCTURE_LIMITS.maxReturnBytes,
+  });
 
 async function readEip1967(r: Recorder, words: Record<string, Hex>) {
   const slots = {
@@ -309,7 +239,7 @@ export async function discoverAccountStructure(
   code: Hex,
 ): Promise<AccountStructure | null> {
   if (code === '0x') return null;
-  const r = recording(reader);
+  const r = recordingFor(reader);
   const limitations = [...BASE_LIMITATIONS];
   const delegate = parseDelegation(code);
   const minimal = parseMinimalProxy(code);

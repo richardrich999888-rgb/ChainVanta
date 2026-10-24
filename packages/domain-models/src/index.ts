@@ -15,7 +15,8 @@ export const ScanRequest = z
     transactionHash: Hash.optional(),
     /** Find and verify the account's latest sent transaction. Requires an archive-capable chain. */
     discoverTransaction: z.literal(true).optional(),
-    adapter: z.literal('ownable-erc20').optional(),
+    /** Opt-in token adapters: owner/supply accessors, or full privileged-role discovery. */
+    adapter: z.enum(['ownable-erc20', 'token-authority']).optional(),
   })
   .strict()
   .refine(
@@ -190,6 +191,83 @@ export const TransactionDiscovery = z
   .strict();
 export type TransactionDiscovery = z.infer<typeof TransactionDiscovery>;
 
+// --- Token authority evidence: who can mint, burn, pause, blacklist or upgrade.
+export const TOKEN_AUTHORITY_LIMITS = {
+  /** Holders enumerated per AccessControlEnumerable role. */
+  maxHoldersPerRole: 5,
+  /** Distinct authority addresses whose code is classified. */
+  maxClassifiedAuthorities: 8,
+  /** Reads per token, kept so a monitored job stays within the worker's 60-call cap. */
+  maxReads: 32,
+  maxReturnBytes: 4096,
+} as const;
+export const TokenRole = z.enum([
+  'owner',
+  'pending-owner',
+  'default-admin',
+  'minter',
+  'burner',
+  'pauser',
+  'upgrader',
+  'master-minter',
+  'blacklister',
+  'rescuer',
+  'proxy-admin',
+]);
+export type TokenRole = z.infer<typeof TokenRole>;
+/** Roles that can create supply or replace contract logic. */
+export const SUPPLY_OR_LOGIC_ROLES: readonly TokenRole[] = [
+  'owner',
+  'default-admin',
+  'minter',
+  'master-minter',
+  'upgrader',
+  'proxy-admin',
+];
+export const TokenAuthority = z
+  .object({
+    adapter: z.literal('token-authority/1.0.0'),
+    symbol: z.string().max(32).nullable(),
+    decimals: z.number().int().min(0).max(255).nullable(),
+    totalSupply: z.string().regex(/^\d+$/).nullable(),
+    paused: z.boolean().nullable(),
+    /** ERC-165 support for IAccessControl / IAccessControlEnumerable. */
+    accessControl: z.enum(['enumerable', 'non-enumerable', 'absent']),
+    roles: z.array(
+      z
+        .object({
+          role: TokenRole,
+          /** Interface the holder was read from. */
+          source: z.enum([
+            'ownable',
+            'ownable2step',
+            'access-control-enumerable',
+            'access-control-default-admin-rules',
+            'fiat-token',
+            'eip1967-admin-slot',
+            'zeppelinos-admin-slot',
+            'proxy-admin-owner',
+          ]),
+          holders: z.array(Address).max(TOKEN_AUTHORITY_LIMITS.maxHoldersPerRole),
+          /** False when the role has more holders than were enumerated. */
+          holdersComplete: z.boolean(),
+        })
+        .strict(),
+    ),
+    authorities: z.array(
+      z
+        .object({
+          address: Address,
+          kind: z.enum(['no-code', 'eip-7702-delegated', 'contract', 'not-checked']),
+        })
+        .strict(),
+    ),
+    reads: z.array(StructureRead).max(TOKEN_AUTHORITY_LIMITS.maxReads),
+    limitations: z.array(z.string()),
+  })
+  .strict();
+export type TokenAuthority = z.infer<typeof TokenAuthority>;
+
 export const Observation = z.object({
   chainId: z.number().int().positive().safe(),
   address: Address,
@@ -206,6 +284,7 @@ export const Observation = z.object({
   token: TokenEvidence.optional(),
   structure: AccountStructure.optional(),
   discovery: TransactionDiscovery.optional(),
+  tokenAuthority: TokenAuthority.optional(),
   parserVersion: z.literal('evm-snapshot/1.0.0').optional(),
   demonstration: z.boolean().optional(),
 });
@@ -232,6 +311,7 @@ export const Component = z.object({
       'application',
       'transport',
       'consensus',
+      'token-administration',
     ])
     .optional(),
   evidenceRefs: z.array(Digest).optional(),

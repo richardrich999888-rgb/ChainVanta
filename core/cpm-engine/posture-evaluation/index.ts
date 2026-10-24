@@ -7,6 +7,7 @@ import {
   safePolicy,
   structureFacts,
 } from '../../cryptographic-inventory/algorithm-classification/account-structure.js';
+import { tokenAuthorityFacts } from '../../cryptographic-inventory/algorithm-classification/token-authority.js';
 
 /** Findings from transaction discovery. A found transaction is reported via the signature rules. */
 function discoveryFindings(observation: Observation, hash: string): Finding[] {
@@ -126,6 +127,67 @@ function structureFindings(observation: Observation, hash: string): Finding[] {
   return findings;
 }
 
+/** Findings from token authority discovery. Holder claims are accessor responses (inferred). */
+function tokenAuthorityFindings(observation: Observation, hash: string): Finding[] {
+  const facts = tokenAuthorityFacts(observation);
+  if (!facts) return [];
+  const findings: Finding[] = [];
+  const add = (finding: Omit<Finding, 'ruleVersion' | 'evidenceHash'>) =>
+    findings.push({ ...finding, ruleVersion: '1.0.0', evidenceHash: hash });
+  const roleSummary = facts.authority.roles
+    .map((r) => `${r.role} (${r.source}): ${r.holders.length ? r.holders.join(', ') : 'none'}`)
+    .join('; ');
+  add({
+    ruleId: 'CV-TOKEN-002',
+    severity: 'info',
+    confidence: 'inferred',
+    title: `Token authorities reported for ${facts.holders.length} address${facts.holders.length === 1 ? '' : 'es'}`,
+    rationale: `${roleSummary || 'No standard authority accessor answered.'}. Accessor responses do not prove the contract enforces these roles, and custom roles are not read.`,
+  });
+  // One finding per rule: finding lifecycle (exceptions, closure) is keyed by rule id.
+  const singleKey = facts.singleKeySupplyOrLogic;
+  if (singleKey.length)
+    add({
+      ruleId: 'CV-TOKEN-003',
+      severity: 'high',
+      confidence: 'inferred',
+      title: 'Single secp256k1 key can mint or replace token logic',
+      rationale: `${singleKey
+        .map(
+          (h) =>
+            `${h.address} (${h.kind === 'no-code' ? 'no code' : 'EIP-7702 delegated'}) is reported as ${h.roles.join(', ')}`,
+        )
+        .join(
+          '; ',
+        )}. Each is one elliptic-curve key, recoverable by a sufficiently capable quantum computer once its public key is exposed, that controls supply or upgrades. Key custody (HSM, MPC) is not observable on-chain.`,
+    });
+  const { roles, unclassified, nonEnumerable } = facts.incomplete;
+  if (roles.length || unclassified || nonEnumerable)
+    add({
+      ruleId: 'CV-TOKEN-004',
+      severity: 'medium',
+      confidence: 'unknown',
+      title: 'Token authority set is incomplete',
+      rationale: [
+        nonEnumerable ? 'AccessControl is not enumerable; role holders require event history.' : '',
+        roles.length ? `Holders beyond the read limit exist for: ${roles.join(', ')}.` : '',
+        unclassified ? `${unclassified} holder(s) were not classified by code.` : '',
+      ]
+        .filter(Boolean)
+        .join(' '),
+    });
+  if (facts.authority.paused === true)
+    add({
+      ruleId: 'CV-TOKEN-005',
+      severity: 'medium',
+      confidence: 'inferred',
+      title: 'Token reports paused',
+      rationale:
+        'paused() returned true at the observed block. Transfers may be blocked; whether pausing covers all functions depends on the implementation.',
+    });
+  return findings;
+}
+
 export function evaluatePosture(observation: Observation, hash: string): Assessment['posture'] {
   const findings: Finding[] = [
     {
@@ -172,6 +234,10 @@ export function evaluatePosture(observation: Observation, hash: string): Assessm
       rationale:
         'The selected ownable ERC20 adapter read owner(), totalSupply() and decimals(). Accessor responses do not prove mint/burn permissions, proxy implementation, reserve backing or stablecoin identity.',
     });
-  findings.push(...structureFindings(observation, hash), ...discoveryFindings(observation, hash));
+  findings.push(
+    ...structureFindings(observation, hash),
+    ...discoveryFindings(observation, hash),
+    ...tokenAuthorityFindings(observation, hash),
+  );
   return { status: 'needs-review', rulepack: 'wallet-baseline/0.1', findings };
 }
