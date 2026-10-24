@@ -29,7 +29,7 @@ try {
         await readFile(new URL('../../database/policies/cpm-runtime.sql', import.meta.url), 'utf8')
       ).replaceAll('chainvanta_runtime', 'chainvanta_app'),
     );
-  console.log('Applied migrations through 010_cpm and provisioned configured tenants.');
+  console.log('Applied migrations through 011_bitcoin and provisioned configured tenants.');
 } finally {
   await pool.end();
 }

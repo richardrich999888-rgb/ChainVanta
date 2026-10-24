@@ -1,5 +1,9 @@
 import { canonicalAssetId, type Assessment } from '../../../packages/domain-models/src/index.js';
 import {
+  bitcoinAssetId,
+  type BitcoinAssessment,
+} from '../../../packages/domain-models/src/bitcoin.js';
+import {
   CDX_SPEC_VERSION,
   validateCycloneDxCbom,
   type AlgorithmProperties,
@@ -15,11 +19,22 @@ type Component = Assessment['cbom']['components'][number];
  * Reviewed algorithm descriptions. Only facts that follow from the algorithm itself are stated:
  * - secp256k1 ECDSA: 256-bit curve, about 128-bit classical security (Pollard rho, sqrt(2^256)).
  *   Shor's algorithm breaks elliptic-curve discrete logarithms, so no NIST PQC category is met (0).
+ * - secp256k1 Schnorr (BIP-340): same curve and group, so the same classical and quantum levels.
  * Execution environment, platform and certification describe the signer's implementation, which
  * an on-chain observation cannot reveal; they are therefore always `unknown`.
  */
 const KNOWN_ALGORITHMS: Readonly<Record<string, AlgorithmProperties>> = {
   'ECDSA-secp256k1': {
+    primitive: 'signature',
+    curve: 'secp256k1',
+    executionEnvironment: 'unknown',
+    implementationPlatform: 'unknown',
+    certificationLevel: ['unknown'],
+    cryptoFunctions: ['sign', 'verify'],
+    classicalSecurityLevel: 128,
+    nistQuantumSecurityLevel: 0,
+  },
+  'Schnorr-secp256k1': {
     primitive: 'signature',
     curve: 'secp256k1',
     executionEnvironment: 'unknown',
@@ -67,6 +82,34 @@ function exportComponent(component: Component, index: number) {
   };
 }
 
+/** Shared BOM assembly; callers supply only the asset-specific metadata properties. */
+function assembleBom(
+  id: string,
+  createdAt: string,
+  metadata: { name: string; value: string }[],
+  components: Component[],
+): CycloneDxCbom {
+  const bom = {
+    bomFormat: 'CycloneDX' as const,
+    specVersion: CDX_SPEC_VERSION,
+    serialNumber: `urn:uuid:${id.toLowerCase()}`,
+    version: 1,
+    metadata: {
+      timestamp: createdAt,
+      tools: {
+        components: [
+          { type: 'application' as const, name: 'ChainVanta', version: CDX_EXPORTER_VERSION },
+        ],
+      },
+      properties: metadata,
+    },
+    components: components.map(exportComponent),
+    compositions: [{ aggregate: 'incomplete' as const }],
+  };
+  // Fail closed: never return a document that violates the reviewed subset.
+  return validateCycloneDxCbom(bom);
+}
+
 /**
  * Exports an assessment's CBOM as a CycloneDX 1.6 JSON document.
  *
@@ -78,34 +121,44 @@ function exportComponent(component: Component, index: number) {
  */
 export function toCycloneDx(assessment: Assessment): CycloneDxCbom {
   const o = assessment.observation;
-  const bom = {
-    bomFormat: 'CycloneDX' as const,
-    specVersion: CDX_SPEC_VERSION,
-    serialNumber: `urn:uuid:${assessment.id.toLowerCase()}`,
-    version: 1,
-    metadata: {
-      timestamp: assessment.createdAt,
-      tools: {
-        components: [
-          { type: 'application' as const, name: 'ChainVanta', version: CDX_EXPORTER_VERSION },
-        ],
-      },
-      properties: [
-        property('asset', canonicalAssetId(o.chainId, o.address)),
-        property('assetKind', assessment.assetKind),
-        property('evidenceHash', assessment.evidenceHash),
-        property('blockHash', o.blockHash),
-        property('blockNumber', o.blockNumber),
-        property('finality', o.finality),
-        property('source', o.source),
-        property('nativeCbomFormat', assessment.cbom.format),
-        property('qbomStatus', assessment.qbom.status),
-        property('demonstration', String(o.demonstration === true)),
-      ],
-    },
-    components: assessment.cbom.components.map(exportComponent),
-    compositions: [{ aggregate: 'incomplete' as const }],
-  };
-  // Fail closed: never return a document that violates the reviewed subset.
-  return validateCycloneDxCbom(bom);
+  return assembleBom(
+    assessment.id,
+    assessment.createdAt,
+    [
+      property('asset', canonicalAssetId(o.chainId, o.address)),
+      property('assetKind', assessment.assetKind),
+      property('evidenceHash', assessment.evidenceHash),
+      property('blockHash', o.blockHash),
+      property('blockNumber', o.blockNumber),
+      property('finality', o.finality),
+      property('source', o.source),
+      property('nativeCbomFormat', assessment.cbom.format),
+      property('qbomStatus', assessment.qbom.status),
+      property('demonstration', String(o.demonstration === true)),
+    ],
+    assessment.cbom.components,
+  );
+}
+
+/** CycloneDX export for a Bitcoin assessment; same guarantees as `toCycloneDx`. */
+export function toCycloneDxBitcoin(assessment: BitcoinAssessment): CycloneDxCbom {
+  const o = assessment.observation;
+  return assembleBom(
+    assessment.id,
+    assessment.createdAt,
+    [
+      property('asset', bitcoinAssetId(o.network, o.target.value)),
+      property('assetKind', assessment.assetKind),
+      property('evidenceHash', assessment.evidenceHash),
+      property('blockHash', o.tipHash),
+      property('blockHeight', String(o.tipHeight)),
+      // Bitcoin has no finality; the snapshot is a UTXO set at the reported tip.
+      property('finality', 'none (utxo snapshot at tip)'),
+      property('source', o.source),
+      property('nativeCbomFormat', assessment.cbom.format),
+      property('qbomStatus', assessment.qbom.status),
+      property('demonstration', String(o.demonstration === true)),
+    ],
+    assessment.cbom.components,
+  );
 }

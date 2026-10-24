@@ -32,6 +32,9 @@ import type { Config } from '../../../packages/config/src/index.js';
 import { Authenticator } from '../../identity-service/auth.js';
 import { TenantGuard, type TenantRequest } from './tenant-guard.js';
 import { CpmController } from './cpm-controller.js';
+import { BitcoinController } from './bitcoin-controller.js';
+import { BitcoinAssessmentService } from '../../assessment-service/src/bitcoin.js';
+import { BitcoinRpcFailure } from '../../../connectors/blockchains/bitcoin/src/index.js';
 import { CpmRepository } from '../../inventory-service/src/cpm-repository.js';
 import {
   TestLimiter,
@@ -52,7 +55,7 @@ class ApiErrors implements ExceptionFilter {
     if (error instanceof z.ZodError) {
       status = 400;
       message = 'Invalid request input';
-    } else if (error instanceof RpcFailure) {
+    } else if (error instanceof RpcFailure || error instanceof BitcoinRpcFailure) {
       status = 502;
       message = error.message;
     } else if (error instanceof HttpException) {
@@ -188,14 +191,20 @@ class HealthController {
 }
 
 export async function createApp(
-  config: Pick<Config, 'tenantKeys' | 'chains'> & Partial<Pick<Config, 'oidc'>>,
+  config: Pick<Config, 'tenantKeys' | 'chains'> & Partial<Pick<Config, 'oidc' | 'bitcoinNodes'>>,
   repository: Repository,
   transport: typeof fetch = fetch,
   limiter: RequestLimiter = new TestLimiter(),
+  /** Test seam; production connectors build their own pinned, credentialed transport. */
+  bitcoinTransport?: typeof fetch,
 ) {
   const cpm = repository instanceof PostgresRepository ? new CpmRepository(repository) : null;
+  const bitcoin =
+    repository instanceof PostgresRepository && config.bitcoinNodes?.length
+      ? new BitcoinAssessmentService(repository, config.bitcoinNodes, bitcoinTransport)
+      : null;
   @Module({
-    controllers: [ApiController, HealthController, CpmController],
+    controllers: [ApiController, HealthController, CpmController, BitcoinController],
     providers: [
       { provide: 'AUTH', useValue: new Authenticator(config.tenantKeys, config.oidc) },
       { provide: 'LIMITER', useValue: limiter },
@@ -204,6 +213,7 @@ export async function createApp(
         useValue: new AssessmentService(repository, config.chains, transport, cpm ?? undefined),
       },
       { provide: 'CPM', useValue: cpm },
+      { provide: 'BITCOIN', useValue: bitcoin },
       TenantGuard,
     ],
   })

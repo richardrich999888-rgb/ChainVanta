@@ -39,6 +39,30 @@ export class ChainVantaClient {
       `/assessments/${encodeURIComponent(id)}/cbom`,
     );
   }
+  /** Assesses a Bitcoin address or public key. Mainnet UTXO scans can take minutes. */
+  bitcoinAssess(
+    input: components['schemas']['BitcoinScanRequest'],
+    idempotencyKey = crypto.randomUUID(),
+  ) {
+    return this.request<components['schemas']['BitcoinAssessment']>('/bitcoin/assessments', {
+      method: 'POST',
+      headers: { 'idempotency-key': idempotencyKey },
+      body: JSON.stringify(input),
+    });
+  }
+  bitcoinList() {
+    return this.request<components['schemas']['BitcoinAssessment'][]>('/bitcoin/assessments');
+  }
+  bitcoinGet(id: string) {
+    return this.request<components['schemas']['BitcoinAssessment']>(
+      `/bitcoin/assessments/${encodeURIComponent(id)}`,
+    );
+  }
+  bitcoinCbom(id: string) {
+    return this.request<components['schemas']['CycloneDxCbom']>(
+      `/bitcoin/assessments/${encodeURIComponent(id)}/cbom`,
+    );
+  }
   cpmAssess(input: components['schemas']['CpmAssessRequest']) {
     return this.request<components['schemas']['PostureSnapshot']>('/cpm/assess', {
       method: 'POST',
