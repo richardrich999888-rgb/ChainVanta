@@ -7,6 +7,8 @@ export const Chains = z
       chainId: z.number().int().positive().safe(),
       name: z.string().min(1).max(80),
       demonstration: z.boolean().optional(),
+      /** Provider serves historical state; required for transaction discovery. */
+      archive: z.boolean().optional(),
       rpcUrl: z.url().refine((value) => {
         const url = new URL(value);
         return (

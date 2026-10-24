@@ -2586,6 +2586,33 @@ export interface components {
           }[];
           limitations: string[];
         };
+        discovery?: {
+          /** @constant */
+          method: 'nonce-bisection/1.0.0';
+          accountNonce: string;
+          /** @enum {string} */
+          outcome:
+            | 'found'
+            | 'no-sent-transactions'
+            | 'unsupported-transaction-type'
+            | 'authorization-signature'
+            | 'no-matching-transaction'
+            | 'not-applicable';
+          blockNumber: string | null;
+          transactionHash: string | null;
+          transactionType: string | null;
+          authorization: {
+            transactionHash: string;
+            nonce: string;
+            chainId: string;
+            delegate: string;
+            authority: string;
+          } | null;
+          probes: {
+            blockNumber: string;
+            nonce: string;
+          }[];
+        };
         /** @constant */
         parserVersion?: 'evm-snapshot/1.0.0';
         demonstration?: boolean;
@@ -2745,6 +2772,33 @@ export interface components {
         }[];
         limitations: string[];
       };
+      discovery?: {
+        /** @constant */
+        method: 'nonce-bisection/1.0.0';
+        accountNonce: string;
+        /** @enum {string} */
+        outcome:
+          | 'found'
+          | 'no-sent-transactions'
+          | 'unsupported-transaction-type'
+          | 'authorization-signature'
+          | 'no-matching-transaction'
+          | 'not-applicable';
+        blockNumber: string | null;
+        transactionHash: string | null;
+        transactionType: string | null;
+        authorization: {
+          transactionHash: string;
+          nonce: string;
+          chainId: string;
+          delegate: string;
+          authority: string;
+        } | null;
+        probes: {
+          blockNumber: string;
+          nonce: string;
+        }[];
+      };
       /** @constant */
       parserVersion?: 'evm-snapshot/1.0.0';
       demonstration?: boolean;
@@ -2764,6 +2818,8 @@ export interface components {
       address: string;
       chainId: number;
       transactionHash?: string;
+      /** @constant */
+      discoverTransaction?: true;
       /** @constant */
       adapter?: 'ownable-erc20';
     };
@@ -2925,6 +2981,8 @@ export interface components {
         address: string;
         chainId: number;
         transactionHash?: string;
+        /** @constant */
+        discoverTransaction?: true;
         /** @constant */
         adapter?: 'ownable-erc20';
       };
@@ -3260,6 +3318,8 @@ export interface components {
         chainId: number;
         transactionHash?: string;
         /** @constant */
+        discoverTransaction?: true;
+        /** @constant */
         adapter?: 'ownable-erc20';
       };
       policy_id: string;
@@ -3291,6 +3351,8 @@ export interface components {
         address: string;
         chainId: number;
         transactionHash?: string;
+        /** @constant */
+        discoverTransaction?: true;
         /** @constant */
         adapter?: 'ownable-erc20';
       };

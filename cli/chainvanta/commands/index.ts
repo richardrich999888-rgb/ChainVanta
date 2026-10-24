@@ -10,7 +10,7 @@ import { posture } from './posture/index.js';
 export const USAGE = [
   'Usage: pnpm cli <command>',
   '  scan <address> [chainId]',
-  '  assess <address> [chainId] [--transaction <hash>] [--adapter ownable-erc20]',
+  '  assess <address> [chainId] [--transaction <hash> | --discover] [--adapter ownable-erc20]',
   '  inventory',
   '  report <assessment-id>',
   '  cbom <assessment-id>                 CycloneDX 1.6 export',

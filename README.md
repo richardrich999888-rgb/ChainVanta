@@ -77,7 +77,7 @@ OIDC_CONFIG='{"issuer":"https://identity.example","audience":"chainvanta","jwksU
 
 JWT signatures, issuer, audience, expiry and required subject/issued-at claims are verified with `jose`, using RS256 or ES256. One tenant membership per subject is supported. Interactive browser OIDC login, SCIM and credential rotation remain planned; the console currently uses an HttpOnly, SameSite API-key session cookie.
 
-- `POST /v1/assessments`: `{address, chainId, transactionHash?, adapter?}`. Optional `Idempotency-Key` (8–128 alphanumeric, underscore or hyphen characters) replays the exact stored result. Reusing a key with different input returns 409. Tenant identity is never accepted in the body.
+- `POST /v1/assessments`: `{address, chainId, transactionHash? | discoverTransaction?, adapter?}`. `discoverTransaction: true` finds and verifies the account's latest signature by nonce bisection; the chain must declare `"archive": true` in `CHAINS`. Optional `Idempotency-Key` (8–128 alphanumeric, underscore or hyphen characters) replays the exact stored result. Reusing a key with different input returns 409. Tenant identity is never accepted in the body.
 - `GET /v1/assessments`, `/v1/assessments/:id`, `/v1/reports`.
 - `GET /v1/history?chainId=1&address=...` compares the latest two snapshots.
 - `GET /v1/graph?source=eip155:1:0x...` traverses supported evidence edges, maximum three hops.

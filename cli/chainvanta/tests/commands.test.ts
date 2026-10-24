@@ -49,6 +49,17 @@ it('assess forwards transaction and adapter options through request validation',
   runCommand(api, ['assess', ADDRESS]);
   expect(api.assess).toHaveBeenLastCalledWith({ address: ADDRESS, chainId: 1 });
 });
+it('assess --discover requests transaction discovery, exclusive of --transaction', () => {
+  const api = client();
+  runCommand(api, ['assess', ADDRESS, '--discover']);
+  expect(api.assess).toHaveBeenCalledWith({
+    address: ADDRESS,
+    chainId: 1,
+    discoverTransaction: true,
+  });
+  expect(() => runCommand(api, ['assess', ADDRESS, '--discover', '--transaction', TX])).toThrow();
+  expect(api.assess).toHaveBeenCalledOnce();
+});
 it('assess rejects unknown adapters, malformed hashes, unknown flags and extra arguments', () => {
   const api = client();
   for (const args of [

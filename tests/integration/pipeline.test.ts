@@ -15,6 +15,7 @@ import { assessWallet } from '../../modules/01-wallet-intelligence/src/assessmen
 import { testDatabase } from '../../packages/test-fixtures/src/database.js';
 import {
   ADDRESS,
+  BLOCK_HASH,
   KEY_A,
   KEY_B,
   TENANT_A,
@@ -314,6 +315,74 @@ describe('Authenticated RPC → PostgreSQL → inventory pipeline', () => {
       );
     } finally {
       activeTransport = fixtureTransport;
+    }
+  });
+  it('rejects transaction discovery on chains without archive state', async () => {
+    const response = await request('/v1/assessments', KEY_A, {
+      method: 'POST',
+      body: JSON.stringify({ address: ADDRESS, chainId: 1, discoverTransaction: true }),
+    });
+    expect(response.status).toBe(400);
+    expect((await response.json()).error.message).toContain('archive');
+    const both = await request('/v1/assessments', KEY_A, {
+      method: 'POST',
+      body: JSON.stringify({
+        address: ADDRESS,
+        chainId: 1,
+        discoverTransaction: true,
+        transactionHash: `0x${'ab'.repeat(32)}`,
+      }),
+    });
+    expect(both.status).toBe(400);
+  });
+  it('discovers and verifies the latest sent transaction on an archive chain', async () => {
+    const tx = await signedTransactionFixture();
+    const txBlock = BigInt(tx.raw.blockNumber);
+    const archiveApp = await createApp(
+      { ...testConfig, chains: [{ ...testConfig.chains[0]!, archive: true }] },
+      repository,
+      async (url, init) => {
+        const call = JSON.parse(String(init?.body));
+        const reply = (result: unknown) => Response.json({ jsonrpc: '2.0', id: 1, result });
+        const [first, second] = call.params;
+        if (call.method === 'eth_getTransactionCount')
+          // Snapshot reads are hash-pinned objects; historical bisection reads use block numbers.
+          return reply(
+            typeof second === 'string' ? (BigInt(second) >= txBlock ? '0x1' : '0x0') : '0x1',
+          );
+        if (call.method === 'eth_getBlockByNumber' && second === true)
+          return reply({
+            number: first,
+            hash: BLOCK_HASH,
+            timestamp: '0x65000000',
+            transactions: BigInt(first) === txBlock ? [tx.raw] : [],
+          });
+        if (call.method === 'eth_getTransactionByHash') return reply(tx.raw);
+        if (call.method === 'eth_getTransactionReceipt') return reply(tx.receipt);
+        return fixtureTransport(url, init);
+      },
+    );
+    await archiveApp.listen(0, '127.0.0.1');
+    try {
+      const response = await fetch(`${await archiveApp.getUrl()}/v1/assessments`, {
+        method: 'POST',
+        headers: { authorization: `Bearer ${KEY_A}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ address: tx.address, chainId: 1, discoverTransaction: true }),
+      });
+      expect(response.status).toBe(201);
+      const result = await response.json();
+      expect(result.observation.discovery).toMatchObject({
+        method: 'nonce-bisection/1.0.0',
+        accountNonce: '1',
+        outcome: 'found',
+        blockNumber: tx.raw.blockNumber,
+        transactionHash: tx.hash,
+      });
+      expect(result.observation.discovery.probes.length).toBeLessThanOrEqual(9);
+      expect(result.observation.signature.hash).toBe(tx.hash);
+      expect(result.qbom.status).toBe('classical-signature-observed');
+    } finally {
+      await archiveApp.close();
     }
   });
   it('collects an opt-in token adapter without inventing mint permissions', async () => {

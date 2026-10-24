@@ -13,9 +13,15 @@ export const ScanRequest = z
     address: Address,
     chainId: z.number().int().positive().safe(),
     transactionHash: Hash.optional(),
+    /** Find and verify the account's latest sent transaction. Requires an archive-capable chain. */
+    discoverTransaction: z.literal(true).optional(),
     adapter: z.literal('ownable-erc20').optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (v) => !(v.transactionHash && v.discoverTransaction),
+    'Supply a transaction hash or request discovery, not both',
+  );
 export type ScanInput = z.infer<typeof ScanRequest>;
 export const SignatureEvidence = z.object({
   hash: Hash,
@@ -135,6 +141,55 @@ export const AccountStructure = z
 export type AccountStructure = z.infer<typeof AccountStructure>;
 export type StructureRead = z.infer<typeof StructureRead>;
 
+// --- Transaction discovery evidence (nonce bisection over archive state).
+/** Bisection depth is ceil(log2(finalized block + 1)); 64 covers any 64-bit block number. */
+export const MAX_DISCOVERY_PROBES = 64;
+export const TransactionDiscovery = z
+  .object({
+    method: z.literal('nonce-bisection/1.0.0'),
+    /** Account nonce at the snapshot block: the number of transactions it has sent. */
+    accountNonce: z.string().regex(/^\d+$/),
+    outcome: z.enum([
+      /** Latest sent transaction located; verified evidence is in `signature`. */
+      'found',
+      /** Nonce 0: the account has sent no transaction up to the snapshot block. */
+      'no-sent-transactions',
+      /** Located, but its type (e.g. 0x3 blob, 0x4 set-code) is not supported by the verifier. */
+      'unsupported-transaction-type',
+      /** Nonce consumed by an EIP-7702 authorization whose recovered signer is the account. */
+      'authorization-signature',
+      /**
+       * Delegated accounts only: the nonce changed with no transaction or authorization from the
+       * account, consistent with CREATE executed by delegated code.
+       */
+      'no-matching-transaction',
+      /** Code-bearing account without EIP-7702 delegation: it cannot send transactions. */
+      'not-applicable',
+    ]),
+    blockNumber: HexQuantity.nullable(),
+    transactionHash: Hash.nullable(),
+    transactionType: HexQuantity.nullable(),
+    /** The verified EIP-7702 authorization, for outcome `authorization-signature`. */
+    authorization: z
+      .object({
+        /** Transaction that carried the authorization (sent by any account). */
+        transactionHash: Hash,
+        nonce: z.string().regex(/^\d+$/),
+        chainId: z.string().regex(/^\d+$/),
+        delegate: Address,
+        /** Signer recovered from the authorization's secp256k1 signature. */
+        authority: Address,
+      })
+      .strict()
+      .nullable(),
+    /** Every historical nonce read, in order, so the search can be replayed. */
+    probes: z
+      .array(z.object({ blockNumber: HexQuantity, nonce: z.string().regex(/^\d+$/) }).strict())
+      .max(MAX_DISCOVERY_PROBES),
+  })
+  .strict();
+export type TransactionDiscovery = z.infer<typeof TransactionDiscovery>;
+
 export const Observation = z.object({
   chainId: z.number().int().positive().safe(),
   address: Address,
@@ -150,6 +205,7 @@ export const Observation = z.object({
   signature: SignatureEvidence.optional(),
   token: TokenEvidence.optional(),
   structure: AccountStructure.optional(),
+  discovery: TransactionDiscovery.optional(),
   parserVersion: z.literal('evm-snapshot/1.0.0').optional(),
   demonstration: z.boolean().optional(),
 });
