@@ -66,6 +66,10 @@ export const TOKEN_AUTHORITY_RELATIONS = [
   ...TokenRole.options.map((role) => `token-${role}-accessor-reports` as const),
   'zeppelinos-admin-slot-reports',
   'proxy-admin-owner-accessor-reports',
+  // Holder control (adapter 1.2.0): Safe owners, and the timelock delay as a value node, so an
+  // owner swap or a delay change is DEPENDENCY_CHANGED drift.
+  'authority-safe-owner-accessor-reports',
+  'authority-timelock-delay-reports',
 ] as const;
 
 function tokenRelation(role: TokenAuthority['roles'][number]): string | null {
@@ -87,6 +91,25 @@ function tokenAuthorityGraph(observation: Observation, account: string): Graph {
     for (const holder of role.holders) {
       if (!nodes.has(id(holder))) nodes.set(id(holder), 'token-authority');
       edges.set(`${relation}\n${id(holder)}`, { from: account, to: id(holder), relation });
+    }
+  }
+  // Control edges start at the holder. Edge keys include the source so they stay unique.
+  for (const { address, control } of authority.authorities) {
+    if (control?.type === 'safe')
+      for (const owner of control.owners) {
+        const relation = 'authority-safe-owner-accessor-reports';
+        if (!nodes.has(id(owner))) nodes.set(id(owner), 'reported-owner');
+        edges.set(`${relation}\n${id(address)}\n${id(owner)}`, {
+          from: id(address),
+          to: id(owner),
+          relation,
+        });
+      }
+    if (control?.type === 'timelock') {
+      const relation = 'authority-timelock-delay-reports';
+      const delay = `timelock-delay:${observation.chainId}:${address}:${control.minDelaySeconds}`;
+      nodes.set(delay, 'timelock-delay');
+      edges.set(`${relation}\n${id(address)}`, { from: id(address), to: delay, relation });
     }
   }
   return {
