@@ -161,7 +161,7 @@ function tokenAuthorityFindings(observation: Observation, hash: string): Finding
           '; ',
         )}. Each is one elliptic-curve key, recoverable by a sufficiently capable quantum computer once its public key is exposed, that controls supply or upgrades. Key custody (HSM, MPC) is not observable on-chain.`,
     });
-  const { roles, unclassified, nonEnumerable } = facts.incomplete;
+  const { roles, unclassified, nonEnumerable, history } = facts.incomplete;
   if (roles.length || unclassified || nonEnumerable)
     add({
       ruleId: 'CV-TOKEN-004',
@@ -170,7 +170,13 @@ function tokenAuthorityFindings(observation: Observation, hash: string): Finding
       title: 'Token authority set is incomplete',
       rationale: [
         nonEnumerable ? 'AccessControl is not enumerable; role holders require event history.' : '',
-        roles.length ? `Holders beyond the read limit exist for: ${roles.join(', ')}.` : '',
+        roles.length ? `Holder sets are not proven complete for: ${roles.join(', ')}.` : '',
+        history?.gaps
+          ? `Role event history has ${history.gaps} uncovered block range(s) within the request budget.`
+          : '',
+        history && !history.attested
+          ? 'The provider is not attested to serve full log history, so event-derived role sets are not claimed complete.'
+          : '',
         unclassified ? `${unclassified} holder(s) were not classified by code.` : '',
       ]
         .filter(Boolean)

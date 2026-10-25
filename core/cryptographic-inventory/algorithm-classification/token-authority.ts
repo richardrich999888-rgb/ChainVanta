@@ -24,7 +24,14 @@ export interface TokenAuthorityFacts {
    */
   singleKeySupplyOrLogic: AuthorityHolder[];
   /** Roles whose holder list may be partial, or holders whose code was not classified. */
-  incomplete: { roles: TokenRole[]; unclassified: number; nonEnumerable: boolean };
+  incomplete: {
+    roles: TokenRole[];
+    unclassified: number;
+    /** Not enumerable and no role history was collected. */
+    nonEnumerable: boolean;
+    /** Role history coverage, when collected. */
+    history: { gaps: number; attested: boolean } | null;
+  };
 }
 
 const SINGLE_KEY: readonly AuthorityKind[] = ['no-code', 'eip-7702-delegated'];
@@ -56,7 +63,13 @@ export function tokenAuthorityFacts(observation: Observation): TokenAuthorityFac
     incomplete: {
       roles: [...new Set(authority.roles.filter((r) => !r.holdersComplete).map((r) => r.role))],
       unclassified: holders.filter((h) => h.kind === 'not-checked').length,
-      nonEnumerable: authority.accessControl === 'non-enumerable',
+      nonEnumerable: authority.accessControl === 'non-enumerable' && !authority.roleHistory,
+      history: authority.roleHistory
+        ? {
+            gaps: authority.roleHistory.gaps.length,
+            attested: authority.roleHistory.historyAttested,
+          }
+        : null,
     },
   };
 }

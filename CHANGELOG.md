@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — Token role history
+
+- `token-authority/1.1.0`: for non-enumerable AccessControl, role holders are reconstructed from `RoleGranted`/`RoleRevoked` logs (range-limited requests are bisected, newest-first) and confirmed with `hasRole` at the pinned block. Fixed budget: 8 log requests and 8 checks, inside the worker's 60-call cap.
+- New chain setting `fullLogHistory`; without it, event-derived role sets are never claimed complete. `eth_getLogs` joins the EVM RPC allowlist. Evidence (requests, gaps, events, reads) is stored in `tokenAuthority.roleHistory`; 1.0.0 documents remain valid.
+
 ## Unreleased — Bitcoin collector
 
 - Read-only Bitcoin Core collector (`scantxoutset`) for addresses and public keys on mainnet, testnet3, signet and regtest; network identity proven by the genesis hash; every returned script re-derived against the target.

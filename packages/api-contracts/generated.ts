@@ -2874,8 +2874,8 @@ export interface components {
           }[];
         };
         tokenAuthority?: {
-          /** @constant */
-          adapter: 'token-authority/1.0.0';
+          /** @enum {string} */
+          adapter: 'token-authority/1.0.0' | 'token-authority/1.1.0';
           symbol: string | null;
           decimals: number | null;
           totalSupply: string | null;
@@ -2905,7 +2905,8 @@ export interface components {
               | 'fiat-token'
               | 'eip1967-admin-slot'
               | 'zeppelinos-admin-slot'
-              | 'proxy-admin-owner';
+              | 'proxy-admin-owner'
+              | 'access-control-events';
             holders: string[];
             holdersComplete: boolean;
           }[];
@@ -2927,6 +2928,63 @@ export interface components {
             codeHash?: string;
             codeSize?: number;
           }[];
+          roleHistory?: {
+            /** @constant */
+            method: 'access-control-events/1.0.0';
+            fromBlock: string;
+            toBlock: string;
+            historyAttested: boolean;
+            requests: {
+              fromBlock: string;
+              toBlock: string;
+              /** @enum {string} */
+              outcome: 'returned' | 'range-limited' | 'unavailable';
+              logCount: number;
+            }[];
+            gaps: {
+              fromBlock: string;
+              toBlock: string;
+            }[];
+            events: {
+              roleId: string;
+              role:
+                | (
+                    | 'owner'
+                    | 'pending-owner'
+                    | 'default-admin'
+                    | 'minter'
+                    | 'burner'
+                    | 'pauser'
+                    | 'upgrader'
+                    | 'master-minter'
+                    | 'blacklister'
+                    | 'rescuer'
+                    | 'proxy-admin'
+                  )
+                | null;
+              account: string;
+              /** @enum {string} */
+              kind: 'granted' | 'revoked';
+              blockNumber: string;
+              transactionHash: string;
+              logIndex: number;
+            }[];
+            unrecognizedRoleIds: string[];
+            reads: {
+              /** @enum {string} */
+              method: 'eth_getStorageAt' | 'eth_call' | 'eth_getCode';
+              target: string;
+              input: string;
+              /** @enum {string} */
+              outcome: 'returned' | 'reverted';
+              result?: string;
+              resultHash?: string;
+              resultSize?: number;
+              codeHash?: string;
+              codeSize?: number;
+            }[];
+            complete: boolean;
+          };
           limitations: string[];
         };
         /** @constant */
@@ -3117,8 +3175,8 @@ export interface components {
         }[];
       };
       tokenAuthority?: {
-        /** @constant */
-        adapter: 'token-authority/1.0.0';
+        /** @enum {string} */
+        adapter: 'token-authority/1.0.0' | 'token-authority/1.1.0';
         symbol: string | null;
         decimals: number | null;
         totalSupply: string | null;
@@ -3148,7 +3206,8 @@ export interface components {
             | 'fiat-token'
             | 'eip1967-admin-slot'
             | 'zeppelinos-admin-slot'
-            | 'proxy-admin-owner';
+            | 'proxy-admin-owner'
+            | 'access-control-events';
           holders: string[];
           holdersComplete: boolean;
         }[];
@@ -3170,6 +3229,63 @@ export interface components {
           codeHash?: string;
           codeSize?: number;
         }[];
+        roleHistory?: {
+          /** @constant */
+          method: 'access-control-events/1.0.0';
+          fromBlock: string;
+          toBlock: string;
+          historyAttested: boolean;
+          requests: {
+            fromBlock: string;
+            toBlock: string;
+            /** @enum {string} */
+            outcome: 'returned' | 'range-limited' | 'unavailable';
+            logCount: number;
+          }[];
+          gaps: {
+            fromBlock: string;
+            toBlock: string;
+          }[];
+          events: {
+            roleId: string;
+            role:
+              | (
+                  | 'owner'
+                  | 'pending-owner'
+                  | 'default-admin'
+                  | 'minter'
+                  | 'burner'
+                  | 'pauser'
+                  | 'upgrader'
+                  | 'master-minter'
+                  | 'blacklister'
+                  | 'rescuer'
+                  | 'proxy-admin'
+                )
+              | null;
+            account: string;
+            /** @enum {string} */
+            kind: 'granted' | 'revoked';
+            blockNumber: string;
+            transactionHash: string;
+            logIndex: number;
+          }[];
+          unrecognizedRoleIds: string[];
+          reads: {
+            /** @enum {string} */
+            method: 'eth_getStorageAt' | 'eth_call' | 'eth_getCode';
+            target: string;
+            input: string;
+            /** @enum {string} */
+            outcome: 'returned' | 'reverted';
+            result?: string;
+            resultHash?: string;
+            resultSize?: number;
+            codeHash?: string;
+            codeSize?: number;
+          }[];
+          complete: boolean;
+        };
         limitations: string[];
       };
       /** @constant */

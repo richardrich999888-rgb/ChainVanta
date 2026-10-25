@@ -10,7 +10,7 @@ Both adapters are opt-in (`adapter` on the scan request), run only against accou
 
 Reads `owner()`, `totalSupply()` and `decimals()`. It records calldata, raw return data, decoded values and parser version as evidence, with an owner-accessor relationship in the graph. It fails on malformed or unsupported returns.
 
-### `token-authority/1.0.0`
+### `token-authority/1.1.0`
 
 Answers "who can mint, burn, pause, blacklist or upgrade this token, and is each holder a single secp256k1 key?" (`src/mint-burn-authorities/token-authority.ts`).
 
@@ -29,12 +29,25 @@ It also reads `symbol()`, `decimals()`, `totalSupply()` and `paused()`. Each dis
 
 Budget (`TOKEN_AUTHORITY_LIMITS`): at most 32 reads, 5 holders per role, 8 classified holders; return data above 4 KB is fingerprinted. Holder classification and proxy-admin hops are reserved before role members, so the budget is never exceeded. Reverts and halts are interface answers; any other provider error fails the observation.
 
-Findings: `CV-TOKEN-002` (authorities reported, inferred), `CV-TOKEN-003` (high: a single-key holder of owner, default-admin, minter, master-minter, upgrader or proxy-admin; one finding listing every such holder, because finding lifecycle is keyed by rule id), `CV-TOKEN-004` (authority set incomplete: non-enumerable AccessControl, truncated roles or unclassified holders), `CV-TOKEN-005` (paused). CBOM: one inferred `ECDSA-secp256k1` component per single-key holder (domain `token-administration`) and one unknown component for contract holders. Trust graph: `token-<role>-accessor-reports`, `zeppelinos-admin-slot-reports` and `proxy-admin-owner-accessor-reports` edges, tracked by CPM, so a holder change is `DEPENDENCY_CHANGED` drift. QBOM status is unchanged: the holders' keys are not the observed account's.
+Findings: `CV-TOKEN-002` (authorities reported, inferred), `CV-TOKEN-003` (high: a single-key holder of owner, default-admin, minter, master-minter, upgrader or proxy-admin; one finding listing every such holder, because finding lifecycle is keyed by rule id), `CV-TOKEN-004` (authority set incomplete: non-enumerable AccessControl without history, truncated roles, history gaps or unattested history, or unclassified holders), `CV-TOKEN-005` (paused). CBOM: one inferred `ECDSA-secp256k1` component per single-key holder (domain `token-administration`) and one unknown component for contract holders. Trust graph: `token-<role>-accessor-reports`, `zeppelinos-admin-slot-reports` and `proxy-admin-owner-accessor-reports` edges, tracked by CPM, so a holder change is `DEPENDENCY_CHANGED` drift. QBOM status is unchanged: the holders' keys are not the observed account's.
+
+#### Role history (1.1.0)
+
+When AccessControl is present but not enumerable, holders are reconstructed from events (`src/mint-burn-authorities/role-history.ts`):
+
+1. `eth_getLogs` for `RoleGranted`/`RoleRevoked` from the token over `[0, snapshot block]` (finalized, so results are stable). A range the provider refuses (EIP-1474 `-32005`, result-count or response-size limits, or a body over 1 MB) is split at its midpoint; ranges are processed newest-first. Pruned history is recorded as a gap and not split. Any other provider error, or a log that does not match the filter (wrong address, out-of-range block, `removed`, non-address topic), fails the observation.
+2. Every (role, account) whose latest event is a grant is checked with `hasRole` at the pinned block hash. Only `true` answers become holders, so logs never create a holder on their own. Supply and logic roles are asked first.
+
+`holdersComplete` is true only when coverage has no gaps, every candidate was checked, and the chain sets `"fullLogHistory": true` in `CHAINS`, an operator attestation that the provider serves unpruned log history (history-expiring nodes can return empty ranges). It also assumes the contract emits the standard events for every role change, as OpenZeppelin AccessControl does. Non-standard role ids seen in events are recorded (`unrecognizedRoleIds`) but not analyzed.
+
+Budget (`ROLE_HISTORY_LIMITS`): 8 log requests, 8 `hasRole` checks, 256 events kept. The worst case through the connector is 54 RPC calls, inside the monitoring worker's 60-call cap (`tests/unit/role-history-connector.test.ts`). Requests, gaps, events and `hasRole` reads are stored in `tokenAuthority.roleHistory`, so coverage can be replayed. `token-authority/1.0.0` documents remain valid.
+
+Validated on Hardhat (Prague) with an OpenZeppelin 5.6.1 `AccessControl` token after grants, a revoke and a custom-role grant. The revoked minter was excluded, the custom role recorded, and a provider range cap modelled in front of the node: a 120-block cap still reached full coverage in 7 requests; a 20-block cap produced gaps and an incomplete verdict. Without the attestation, the same history was reported but not claimed complete.
 
 Validated against OpenZeppelin 5.6.1 `AccessControlEnumerable`, `AccessControlDefaultAdminRules`, `Ownable2Step` and `TransparentUpgradeableProxy`/`ProxyAdmin`, compiled with solc 0.8.30, on Hardhat (Prague), including an EIP-7702 delegated minter. FiatToken accessors and the ZeppelinOS slot layout are covered by synthetic fixtures only.
 
 ## Limits
 
-Accessor responses come from contract code; a lookalike can return the same data, so holder claims are `inferred`. Custom role names, FiatToken minter allowances (not enumerable from accessors), role-grant/revoke event history, timelock delays and multisig thresholds of holders are not analyzed. Reserve backing, stablecoin identity and issuer-specific adapters remain planned. No financial writes are exposed.
+Accessor responses come from contract code; a lookalike can return the same data, so holder claims are `inferred`. Custom role names, FiatToken minter allowances (not enumerable from accessors), custom-role semantics, timelock delays and multisig thresholds of holders are not analyzed. Reserve backing, stablecoin identity and issuer-specific adapters remain planned. No financial writes are exposed.
 
 Threat boundary: arbitrary contract bytecode can return deceptive accessor values; record provider-reported facts without asserting authority semantics. Tests: `tests/unit/token-authority.test.ts`, `tests/unit/token-authority-engines.test.ts`, `tests/unit/intelligence.test.ts` and `tests/integration/pipeline.test.ts`.

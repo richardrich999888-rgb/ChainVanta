@@ -12,6 +12,8 @@ import {
   type AccountStructure,
   type TokenRole,
 } from '../../../../packages/domain-models/src/index.js';
+import { IACCESS_CONTROL, IACCESS_CONTROL_ENUMERABLE, ROLE_IDS } from './access-control.js';
+import { discoverRoleHistory, type HistoryReader } from './role-history.js';
 import {
   decoded,
   recording,
@@ -35,14 +37,6 @@ import {
  * claims are `inferred`. The read budget is fixed by construction (see TOKEN_AUTHORITY_LIMITS).
  */
 
-const ROLE_IDS = {
-  // AccessControl's DEFAULT_ADMIN_ROLE is the zero word; the others are keccak256 of the name.
-  'default-admin': toHex(0n, { size: 32 }),
-  minter: keccak256(toHex('MINTER_ROLE')),
-  burner: keccak256(toHex('BURNER_ROLE')),
-  pauser: keccak256(toHex('PAUSER_ROLE')),
-  upgrader: keccak256(toHex('UPGRADER_ROLE')),
-} as const satisfies Partial<Record<TokenRole, Hex>>;
 /** Legacy ZeppelinOS AdminUpgradeabilityProxy slot (used by e.g. USDC's FiatTokenProxy). */
 export const ZEPPELINOS_ADMIN_SLOT = keccak256(toHex('org.zeppelinos.proxy.admin'));
 
@@ -62,9 +56,6 @@ const abi = parseAbi([
   'function getRoleMemberCount(bytes32 role) view returns (uint256)',
   'function getRoleMember(bytes32 role, uint256 index) view returns (address)',
 ]);
-// ERC-165 ids: XOR of each interface's function selectors.
-const IACCESS_CONTROL = '0x7965db0b';
-const IACCESS_CONTROL_ENUMERABLE = '0x5a05180f';
 const ZERO: Hex = '0x0000000000000000000000000000000000000000';
 const MAX_SYMBOL_LENGTH = 32;
 const UINT8_MAX = 255;
@@ -131,11 +122,24 @@ async function enumerateRoles(r: Recorder, token: Hex, budget: () => number): Pr
   return roles;
 }
 
-/** Discovers token authorities. `structure` supplies already-read EIP-1967 proxy slots. */
+/** Event-history access for non-enumerable AccessControl (see role-history.ts). */
+export interface TokenHistoryOptions {
+  reader: HistoryReader;
+  /** Finalized snapshot block; logs are read over [0, snapshotBlock]. */
+  snapshotBlock: bigint;
+  /** Operator attests the provider serves full log history. */
+  attested: boolean;
+}
+
+/**
+ * Discovers token authorities. `structure` supplies already-read EIP-1967 proxy slots; `history`
+ * enables role reconstruction from events when AccessControl cannot enumerate holders.
+ */
 export async function discoverTokenAuthority(
   reader: ChainReader,
   token: Hex,
   structure: AccountStructure | undefined,
+  history?: TokenHistoryOptions,
 ): Promise<TokenAuthority> {
   const r = recording(reader, TOKEN_AUTHORITY_LIMITS);
   const remaining = () => TOKEN_AUTHORITY_LIMITS.maxReads - r.reads.length;
@@ -212,6 +216,18 @@ export async function discoverTokenAuthority(
   const reserve = TOKEN_AUTHORITY_LIMITS.maxClassifiedAuthorities + admins.length;
   if (accessControl === 'enumerable')
     roles.push(...(await enumerateRoles(r, token, () => remaining() - reserve)));
+  // Separate, fixed budget (ROLE_HISTORY_LIMITS); holders found here join classification below.
+  const roleHistory =
+    accessControl === 'non-enumerable' && history
+      ? await discoverRoleHistory(
+          history.reader,
+          reader,
+          token,
+          history.snapshotBlock,
+          history.attested,
+        )
+      : null;
+  if (roleHistory) roles.push(...roleHistory.roles);
 
   // ProxyAdmin contracts (OpenZeppelin 4/5) are themselves owned; their owner can upgrade.
   for (const { address } of admins) {
@@ -257,14 +273,32 @@ export async function discoverTokenAuthority(
     'Only standard roles are read (Ownable, AccessControl MINTER/BURNER/PAUSER/UPGRADER/DEFAULT_ADMIN, DefaultAdminRules, FiatToken). Custom roles, timelock delays and multisig thresholds of holders are not analyzed.',
     'FiatToken minters are configured by the master minter and are not enumerable from accessors.',
   ];
-  if (accessControl === 'non-enumerable')
+  if (accessControl === 'non-enumerable' && !roleHistory)
     limitations.push(
       'AccessControl is present but not enumerable; role holders require event history.',
     );
+  if (roleHistory) {
+    const h = roleHistory.history;
+    limitations.push(
+      'Role history assumes the contract emits RoleGranted/RoleRevoked for every role change, as OpenZeppelin AccessControl does; holders are confirmed with hasRole at the observed block.',
+    );
+    if (!h.historyAttested)
+      limitations.push(
+        'The provider is not attested to serve full log history (chain setting fullLogHistory); pruned history can omit grants, so role sets are not claimed complete.',
+      );
+    if (h.gaps.length)
+      limitations.push(
+        `${h.gaps.length} block range(s) were not covered within the log request budget.`,
+      );
+    if (h.unrecognizedRoleIds.length)
+      limitations.push(
+        `${h.unrecognizedRoleIds.length} non-standard role id(s) appear in events and were not analyzed.`,
+      );
+  }
   if (authorities.some((a) => a.kind === 'not-checked'))
     limitations.push('Some authority addresses were not classified because of the read budget.');
   return TokenAuthority.parse({
-    adapter: 'token-authority/1.0.0',
+    adapter: 'token-authority/1.1.0',
     symbol: symbolValue !== null && symbolValue.length <= MAX_SYMBOL_LENGTH ? symbolValue : null,
     decimals: decimalsValue !== null && decimalsValue <= UINT8_MAX ? Number(decimalsValue) : null,
     totalSupply: supplyValue === null ? null : supplyValue.toString(),
@@ -273,6 +307,7 @@ export async function discoverTokenAuthority(
     roles,
     authorities,
     reads: r.reads,
+    ...(roleHistory ? { roleHistory: roleHistory.history } : {}),
     limitations,
   });
 }

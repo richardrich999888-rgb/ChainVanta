@@ -224,9 +224,74 @@ export const SUPPLY_OR_LOGIC_ROLES: readonly TokenRole[] = [
   'upgrader',
   'proxy-admin',
 ];
+/**
+ * Role history budget. Runs only for non-enumerable AccessControl. Worst case for a proxied token
+ * with 8 classified holders: ~38 snapshot, structure and authority calls + 8 + 8 = ~54, inside the
+ * monitoring worker's 60-call cap (asserted in tests/unit/role-history-connector.test.ts).
+ */
+export const ROLE_HISTORY_LIMITS = {
+  /** eth_getLogs requests, including range splits. */
+  maxLogRequests: 8,
+  /** hasRole verifications at the pinned block. */
+  maxVerifications: 8,
+  /** Decoded events kept; a response above this is treated as range-limited and split. */
+  maxEvents: 256,
+  maxUnrecognizedRoles: 16,
+} as const;
+const BlockNumberText = z.string().regex(/^\d+$/);
+export const RoleHistory = z
+  .object({
+    method: z.literal('access-control-events/1.0.0'),
+    fromBlock: BlockNumberText,
+    toBlock: BlockNumberText,
+    /** Operator attests the provider serves full log history (config `fullLogHistory`). */
+    historyAttested: z.boolean(),
+    /** Every eth_getLogs request in order, so coverage can be replayed. */
+    requests: z
+      .array(
+        z
+          .object({
+            fromBlock: BlockNumberText,
+            toBlock: BlockNumberText,
+            outcome: z.enum(['returned', 'range-limited', 'unavailable']),
+            logCount: z.number().int().min(0),
+          })
+          .strict(),
+      )
+      .max(ROLE_HISTORY_LIMITS.maxLogRequests),
+    /** Block ranges not covered by a returned request. */
+    gaps: z
+      .array(z.object({ fromBlock: BlockNumberText, toBlock: BlockNumberText }).strict())
+      .max(ROLE_HISTORY_LIMITS.maxLogRequests + 1),
+    events: z
+      .array(
+        z
+          .object({
+            roleId: Hash,
+            /** Null for role ids outside the standard set. */
+            role: TokenRole.nullable(),
+            account: Address,
+            kind: z.enum(['granted', 'revoked']),
+            blockNumber: BlockNumberText,
+            transactionHash: Hash,
+            logIndex: z.number().int().min(0),
+          })
+          .strict(),
+      )
+      .max(ROLE_HISTORY_LIMITS.maxEvents),
+    unrecognizedRoleIds: z.array(Hash).max(ROLE_HISTORY_LIMITS.maxUnrecognizedRoles),
+    /** hasRole calls at the pinned block hash. */
+    reads: z.array(StructureRead).max(ROLE_HISTORY_LIMITS.maxVerifications),
+    /** Coverage has no gaps and history is attested. */
+    complete: z.boolean(),
+  })
+  .strict();
+export type RoleHistory = z.infer<typeof RoleHistory>;
+
 export const TokenAuthority = z
   .object({
-    adapter: z.literal('token-authority/1.0.0'),
+    /** 1.1.0 adds role history for non-enumerable AccessControl; 1.0.0 documents stay valid. */
+    adapter: z.enum(['token-authority/1.0.0', 'token-authority/1.1.0']),
     symbol: z.string().max(32).nullable(),
     decimals: z.number().int().min(0).max(255).nullable(),
     totalSupply: z.string().regex(/^\d+$/).nullable(),
@@ -247,6 +312,7 @@ export const TokenAuthority = z
             'eip1967-admin-slot',
             'zeppelinos-admin-slot',
             'proxy-admin-owner',
+            'access-control-events',
           ]),
           holders: z.array(Address).max(TOKEN_AUTHORITY_LIMITS.maxHoldersPerRole),
           /** False when the role has more holders than were enumerated. */
@@ -263,6 +329,7 @@ export const TokenAuthority = z
         .strict(),
     ),
     reads: z.array(StructureRead).max(TOKEN_AUTHORITY_LIMITS.maxReads),
+    roleHistory: RoleHistory.optional(),
     limitations: z.array(z.string()),
   })
   .strict();
