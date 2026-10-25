@@ -2947,8 +2947,8 @@ export interface components {
             codeSize?: number;
           }[];
           roleHistory?: {
-            /** @constant */
-            method: 'access-control-events/1.0.0';
+            /** @enum {string} */
+            method: 'access-control-events/1.0.0' | 'access-control-events/1.1.0';
             fromBlock: string;
             toBlock: string;
             historyAttested: boolean;
@@ -3002,6 +3002,11 @@ export interface components {
               codeSize?: number;
             }[];
             complete: boolean;
+            basedOn?: {
+              evidenceHash: string;
+              toBlock: string;
+              blockHash: string;
+            };
           };
           limitations: string[];
         };
@@ -3266,8 +3271,8 @@ export interface components {
           codeSize?: number;
         }[];
         roleHistory?: {
-          /** @constant */
-          method: 'access-control-events/1.0.0';
+          /** @enum {string} */
+          method: 'access-control-events/1.0.0' | 'access-control-events/1.1.0';
           fromBlock: string;
           toBlock: string;
           historyAttested: boolean;
@@ -3321,6 +3326,11 @@ export interface components {
             codeSize?: number;
           }[];
           complete: boolean;
+          basedOn?: {
+            evidenceHash: string;
+            toBlock: string;
+            blockHash: string;
+          };
         };
         limitations: string[];
       };
