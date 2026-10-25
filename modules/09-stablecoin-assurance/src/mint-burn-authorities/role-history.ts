@@ -122,12 +122,68 @@ interface Coverage {
 }
 
 /**
+ * History carried from an earlier assessment of the same token. The caller guarantees the record
+ * was hash-verified on read and its block hash re-checked as canonical; finalized history at or
+ * below that block cannot change, so its events and gaps are reused instead of re-read.
+ */
+export interface HistorySeed {
+  history: RoleHistory;
+  evidenceHash: string;
+  blockHash: string;
+}
+
+const range = (g: { fromBlock: string; toBlock: string }): [bigint, bigint] => [
+  BigInt(g.fromBlock),
+  BigInt(g.toBlock),
+];
+
+/**
+ * Whether a seed can extend to `snapshotBlock`. A seed from another attestation regime or ahead
+ * of the snapshot (provider head regression) is not used; a seed contradicting its own coverage
+ * (events beyond its range or inside its gaps) is corrupt and fails closed.
+ */
+function usableSeed(seed: HistorySeed | undefined, snapshotBlock: bigint, attested: boolean) {
+  if (!seed) return null;
+  const { history } = seed;
+  const end = BigInt(history.toBlock);
+  if (history.fromBlock !== '0' || history.historyAttested !== attested || end > snapshotBlock)
+    return null;
+  const gaps = history.gaps.map(range);
+  for (const [from, to] of gaps)
+    if (from > to || to > end) throw new InconsistentHistory('Carried gap outside its range');
+  for (const event of history.events) {
+    const block = BigInt(event.blockNumber);
+    if (block > end || gaps.some(([from, to]) => block >= from && block <= to))
+      throw new InconsistentHistory('Carried event outside covered ranges');
+  }
+  return { seed, end, gaps };
+}
+
+/**
  * Covers [0, snapshot] with at most maxLogRequests requests. Ranges are processed newest-first
  * (recent grants matter most when coverage runs out); a rejected range splits at its midpoint.
+ * With a seed, only (seed block, snapshot] and the seed's gaps are requested: the new range first,
+ * then old gaps newest-first, so repeated monitoring runs converge to full coverage.
  */
-async function scan(history: HistoryReader, token: Hex, snapshotBlock: bigint): Promise<Coverage> {
-  const coverage: Coverage = { requests: [], gaps: [], events: [] };
-  const pending: [bigint, bigint][] = [[0n, snapshotBlock]];
+async function scan(
+  history: HistoryReader,
+  token: Hex,
+  snapshotBlock: bigint,
+  carried: ReturnType<typeof usableSeed>,
+): Promise<Coverage> {
+  const coverage: Coverage = {
+    requests: [],
+    gaps: [],
+    events: carried ? [...carried.seed.history.events] : [],
+  };
+  const pending: [bigint, bigint][] = carried
+    ? [
+        ...[...carried.gaps].sort(([a], [b]) => (a < b ? -1 : 1)),
+        ...(carried.end < snapshotBlock
+          ? [[carried.end + 1n, snapshotBlock] as [bigint, bigint]]
+          : []),
+      ]
+    : [[0n, snapshotBlock]];
   const gap = (from: bigint, to: bigint) =>
     coverage.gaps.push({ fromBlock: from.toString(), toBlock: to.toString() });
   while (pending.length && coverage.requests.length < ROLE_HISTORY_LIMITS.maxLogRequests) {
@@ -179,8 +235,10 @@ export async function discoverRoleHistory(
   token: Hex,
   snapshotBlock: bigint,
   attested: boolean,
+  seed?: HistorySeed,
 ): Promise<RoleHistoryResult> {
-  const coverage = await scan(history, token, snapshotBlock);
+  const carried = usableSeed(seed, snapshotBlock, attested);
+  const coverage = await scan(history, token, snapshotBlock, carried);
   const all = candidates(coverage.events);
   const checked = all.slice(0, ROLE_HISTORY_LIMITS.maxVerifications);
   const r = recording(reader, {
@@ -220,7 +278,7 @@ export async function discoverRoleHistory(
   return {
     roles,
     history: {
-      method: 'access-control-events/1.0.0',
+      method: 'access-control-events/1.1.0',
       fromBlock: '0',
       toBlock: snapshotBlock.toString(),
       historyAttested: attested,
@@ -230,6 +288,15 @@ export async function discoverRoleHistory(
       unrecognizedRoleIds: unrecognized,
       reads: r.reads,
       complete,
+      ...(carried
+        ? {
+            basedOn: {
+              evidenceHash: carried.seed.evidenceHash,
+              toBlock: carried.end.toString(),
+              blockHash: carried.seed.blockHash.toLowerCase(),
+            },
+          }
+        : {}),
     },
   };
 }

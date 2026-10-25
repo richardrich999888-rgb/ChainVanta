@@ -2205,7 +2205,11 @@
                                           'method':
                                             {
                                               'type': 'string',
-                                              'const': 'access-control-events/1.0.0',
+                                              'enum':
+                                                [
+                                                  'access-control-events/1.0.0',
+                                                  'access-control-events/1.1.0',
+                                                ],
                                             },
                                           'fromBlock': { 'type': 'string', 'pattern': "^\\d+$" },
                                           'toBlock': { 'type': 'string', 'pattern': "^\\d+$" },
@@ -2416,6 +2420,27 @@
                                                 },
                                             },
                                           'complete': { 'type': 'boolean' },
+                                          'basedOn':
+                                            {
+                                              'type': 'object',
+                                              'properties':
+                                                {
+                                                  'evidenceHash':
+                                                    {
+                                                      'type': 'string',
+                                                      'pattern': '^sha256:[a-f0-9]{64}$',
+                                                    },
+                                                  'toBlock':
+                                                    { 'type': 'string', 'pattern': "^\\d+$" },
+                                                  'blockHash':
+                                                    {
+                                                      'type': 'string',
+                                                      'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                    },
+                                                },
+                                              'required': ['evidenceHash', 'toBlock', 'blockHash'],
+                                              'additionalProperties': false,
+                                            },
                                         },
                                       'required':
                                         [
@@ -3392,7 +3417,14 @@
                               'properties':
                                 {
                                   'method':
-                                    { 'type': 'string', 'const': 'access-control-events/1.0.0' },
+                                    {
+                                      'type': 'string',
+                                      'enum':
+                                        [
+                                          'access-control-events/1.0.0',
+                                          'access-control-events/1.1.0',
+                                        ],
+                                    },
                                   'fromBlock': { 'type': 'string', 'pattern': "^\\d+$" },
                                   'toBlock': { 'type': 'string', 'pattern': "^\\d+$" },
                                   'historyAttested': { 'type': 'boolean' },
@@ -3588,6 +3620,23 @@
                                         },
                                     },
                                   'complete': { 'type': 'boolean' },
+                                  'basedOn':
+                                    {
+                                      'type': 'object',
+                                      'properties':
+                                        {
+                                          'evidenceHash':
+                                            {
+                                              'type': 'string',
+                                              'pattern': '^sha256:[a-f0-9]{64}$',
+                                            },
+                                          'toBlock': { 'type': 'string', 'pattern': "^\\d+$" },
+                                          'blockHash':
+                                            { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                                        },
+                                      'required': ['evidenceHash', 'toBlock', 'blockHash'],
+                                      'additionalProperties': false,
+                                    },
                                 },
                               'required':
                                 [

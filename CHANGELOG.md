@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased — Incremental role history
+
+- Monitoring runs carry verified role history forward from the previous assessment (`roleHistory.basedOn`, method `access-control-events/1.1.0`) and request only new blocks plus old gaps, so range-capped providers converge to complete coverage over successive runs. Holders are re-checked with `hasRole` every run. The seed comes only from the worker's hash-verified, canonicality-checked previous assessment, never from API input; mismatched seeds are ignored and corrupt ones fail closed.
+
 ## Unreleased — Authority holder control
 
 - `token-authority/1.2.0`: up to 2 contract holders of supply or logic roles are profiled as Safe (threshold, owners), OpenZeppelin TimelockController or Compound Timelock (delay), at most 3 reads each, inside the 60-call worker cap (worst case 58).

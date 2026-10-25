@@ -4,6 +4,7 @@ import { observeToken } from '../../../../modules/09-stablecoin-assurance/src/pr
 import { discoverTokenAuthority } from '../../../../modules/09-stablecoin-assurance/src/mint-burn-authorities/token-authority.js';
 import type {
   HistoryReader,
+  HistorySeed,
   LogsResult,
 } from '../../../../modules/09-stablecoin-assurance/src/mint-burn-authorities/role-history.js';
 import {
@@ -35,6 +36,40 @@ export type ChainConfig = {
   /** Operator attests the provider serves full, unpruned log history. */
   fullLogHistory?: boolean;
 };
+/**
+ * Trusted context from the monitoring worker. `previous` must come from the repository's
+ * hash-verified read and must already have passed `isCanonical`; it is never taken from requests.
+ */
+export interface CollectionContext {
+  previous?: { observation: Observation; evidenceHash: string };
+}
+
+/** Seed for role history when the previous assessment observed the same token on this chain. */
+function historySeed(
+  previous: CollectionContext['previous'],
+  chainId: number,
+  address: string,
+): { seed?: HistorySeed } {
+  const history = previous?.observation.tokenAuthority?.roleHistory;
+  if (
+    !previous ||
+    !history ||
+    previous.observation.chainId !== chainId ||
+    previous.observation.address.toLowerCase() !== address.toLowerCase()
+  )
+    return {};
+  // The worker re-checked canonicality of exactly this block; history must end there.
+  if (BigInt(history.toBlock) !== BigInt(previous.observation.blockNumber))
+    throw new RpcFailure('Carried role history does not end at its snapshot block');
+  return {
+    seed: {
+      history,
+      evidenceHash: previous.evidenceHash,
+      blockHash: previous.observation.blockHash,
+    },
+  };
+}
+
 export class RpcFailure extends Error {
   constructor(message = 'Blockchain provider could not complete a consistent finalized snapshot') {
     super(message);
@@ -258,6 +293,8 @@ export class EvmConnector {
       discoverTransaction?: true;
       adapter?: 'ownable-erc20' | 'token-authority';
     } = {},
+    /** Internal collection context, never caller input (see CollectionContext). */
+    context: CollectionContext = {},
   ): Promise<Observation> {
     const address = Address.parse(inputAddress);
     try {
@@ -341,6 +378,7 @@ export class EvmConnector {
                 reader: this.historyReader(),
                 snapshotBlock: BigInt(block.number),
                 attested: this.chain.fullLogHistory === true,
+                ...historySeed(context.previous, this.chain.chainId, address),
               },
             )
           : undefined;

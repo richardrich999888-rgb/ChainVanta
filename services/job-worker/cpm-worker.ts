@@ -63,7 +63,15 @@ export class CpmWorker {
         );
         throw new Error('Canonicality changed');
       }
-      const observation = await connector.observe(job.input.address, job.input);
+      // `previous` is hash-verified on read and passed isCanonical above, so verified role
+      // history up to its block can be carried forward instead of re-read.
+      const observation = await connector.observe(
+        job.input.address,
+        job.input,
+        previous
+          ? { previous: { observation: previous.observation, evidenceHash: previous.evidenceHash } }
+          : {},
+      );
       controller.signal.throwIfAborted();
       if (previous && BigInt(observation.blockNumber) < BigInt(previous.observation.blockNumber))
         throw new Error('Finalized provider head regressed');

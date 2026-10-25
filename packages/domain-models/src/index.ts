@@ -244,7 +244,8 @@ export const ROLE_HISTORY_LIMITS = {
 const BlockNumberText = z.string().regex(/^\d+$/);
 export const RoleHistory = z
   .object({
-    method: z.literal('access-control-events/1.0.0'),
+    /** 1.1.0 can carry history forward from a previous assessment (`basedOn`). */
+    method: z.enum(['access-control-events/1.0.0', 'access-control-events/1.1.0']),
     fromBlock: BlockNumberText,
     toBlock: BlockNumberText,
     /** Operator attests the provider serves full log history (config `fullLogHistory`). */
@@ -287,6 +288,14 @@ export const RoleHistory = z
     reads: z.array(StructureRead).max(ROLE_HISTORY_LIMITS.maxVerifications),
     /** Coverage has no gaps and history is attested. */
     complete: z.boolean(),
+    /**
+     * Events and gaps up to `toBlock` were carried from this earlier assessment, whose stored
+     * record was hash-verified and whose block hash was re-checked as canonical before collection.
+     */
+    basedOn: z
+      .object({ evidenceHash: Digest, toBlock: BlockNumberText, blockHash: Hash })
+      .strict()
+      .optional(),
   })
   .strict();
 export type RoleHistory = z.infer<typeof RoleHistory>;

@@ -13,7 +13,7 @@ import {
   type TokenRole,
 } from '../../../../packages/domain-models/src/index.js';
 import { IACCESS_CONTROL, IACCESS_CONTROL_ENUMERABLE, ROLE_IDS } from './access-control.js';
-import { discoverRoleHistory, type HistoryReader } from './role-history.js';
+import { discoverRoleHistory, type HistoryReader, type HistorySeed } from './role-history.js';
 import { CONTROL_READ_RESERVE, profileControls } from './authority-control.js';
 import {
   decoded,
@@ -130,6 +130,8 @@ export interface TokenHistoryOptions {
   snapshotBlock: bigint;
   /** Operator attests the provider serves full log history. */
   attested: boolean;
+  /** Verified history from the previous assessment of this token, when monitoring. */
+  seed?: HistorySeed;
 }
 
 /**
@@ -227,6 +229,7 @@ export async function discoverTokenAuthority(
           token,
           history.snapshotBlock,
           history.attested,
+          history.seed,
         )
       : null;
   if (roleHistory) roles.push(...roleHistory.roles);
@@ -294,6 +297,10 @@ export async function discoverTokenAuthority(
     if (h.gaps.length)
       limitations.push(
         `${h.gaps.length} block range(s) were not covered within the log request budget.`,
+      );
+    if (h.basedOn)
+      limitations.push(
+        `Role events up to block ${h.basedOn.toBlock} are carried from assessment evidence ${h.basedOn.evidenceHash}, whose block hash was re-checked as canonical before collection.`,
       );
     if (h.unrecognizedRoleIds.length)
       limitations.push(
