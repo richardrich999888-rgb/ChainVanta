@@ -129,7 +129,14 @@ describe('EVM connector role history', () => {
     const implementation = addr('71');
     const candidates = Array.from({ length: 12 }, (_, i) => addr((0x30 + i).toString(16)));
     const chain: FakeChain = {
-      code: { [TOKEN]: RUNTIME, [proxyAdmin]: RUNTIME, [implementation]: RUNTIME },
+      code: {
+        [TOKEN]: RUNTIME,
+        [proxyAdmin]: RUNTIME,
+        [implementation]: RUNTIME,
+        // Contract holders of supply roles that answer no control accessor: 3 profiling reads each.
+        [addr('a1')]: RUNTIME,
+        [addr('a3')]: RUNTIME,
+      },
       storage: {
         [TOKEN]: {
           [EIP1967_SLOTS.implementation]: word(implementation),
@@ -170,6 +177,7 @@ describe('EVM connector role history', () => {
     const authority = (await observe(transport)).tokenAuthority!;
     expect(authority.roleHistory!.requests).toHaveLength(ROLE_HISTORY_LIMITS.maxLogRequests);
     expect(authority.roleHistory!.reads).toHaveLength(ROLE_HISTORY_LIMITS.maxVerifications);
+    expect(authority.authorities.filter((x) => x.control)).toHaveLength(2);
     expect(calls()).toBeLessThanOrEqual(WORKER_RPC_CAP);
   });
 });

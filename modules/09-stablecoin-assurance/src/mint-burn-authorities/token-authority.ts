@@ -14,6 +14,7 @@ import {
 } from '../../../../packages/domain-models/src/index.js';
 import { IACCESS_CONTROL, IACCESS_CONTROL_ENUMERABLE, ROLE_IDS } from './access-control.js';
 import { discoverRoleHistory, type HistoryReader } from './role-history.js';
+import { CONTROL_READ_RESERVE, profileControls } from './authority-control.js';
 import {
   decoded,
   recording,
@@ -211,9 +212,10 @@ export async function discoverTokenAuthority(
   for (const { address, source } of admins)
     roles.push({ role: 'proxy-admin', source, holders: [address], holdersComplete: true });
 
-  // Budget: 14 baseline reads + 5 role counts leave 13; holder classification (8) and one owner()
-  // hop per proxy admin are reserved first, members get what is left.
-  const reserve = TOKEN_AUTHORITY_LIMITS.maxClassifiedAuthorities + admins.length;
+  // Budget: 14 baseline reads + 5 role counts leave 19; holder classification (8), one owner() hop
+  // per proxy admin and control profiling (6) are reserved first, members get what is left.
+  const reserve =
+    TOKEN_AUTHORITY_LIMITS.maxClassifiedAuthorities + admins.length + CONTROL_READ_RESERVE;
   if (accessControl === 'enumerable')
     roles.push(...(await enumerateRoles(r, token, () => remaining() - reserve)));
   // Separate, fixed budget (ROLE_HISTORY_LIMITS); holders found here join classification below.
@@ -243,10 +245,10 @@ export async function discoverTokenAuthority(
   const distinct = [...new Set(roles.flatMap((role) => role.holders))];
   const checked = distinct.slice(
     0,
-    Math.min(TOKEN_AUTHORITY_LIMITS.maxClassifiedAuthorities, remaining()),
+    Math.min(TOKEN_AUTHORITY_LIMITS.maxClassifiedAuthorities, remaining() - CONTROL_READ_RESERVE),
   );
   const codes = await Promise.all(checked.map((address) => r.code(address as Hex)));
-  const authorities = distinct.map((address, i) => {
+  const classified = distinct.map((address, i) => {
     const code = codes[i];
     if (code === undefined) return { address, kind: 'not-checked' as const };
     if (code === '0x') return { address, kind: 'no-code' as const };
@@ -255,6 +257,8 @@ export async function discoverTokenAuthority(
       kind: parseDelegation(code) ? ('eip-7702-delegated' as const) : ('contract' as const),
     };
   });
+
+  const authorities = await profileControls(r, roles, classified);
 
   const symbolValue = decoded(symbol, (data) =>
     decodeFunctionResult({ abi, functionName: 'symbol', data }),
@@ -270,7 +274,8 @@ export async function discoverTokenAuthority(
   );
   const limitations = [
     'Holder claims are accessor responses from contract code; a lookalike can return the same data.',
-    'Only standard roles are read (Ownable, AccessControl MINTER/BURNER/PAUSER/UPGRADER/DEFAULT_ADMIN, DefaultAdminRules, FiatToken). Custom roles, timelock delays and multisig thresholds of holders are not analyzed.',
+    'Only standard roles are read (Ownable, AccessControl MINTER/BURNER/PAUSER/UPGRADER/DEFAULT_ADMIN, DefaultAdminRules, FiatToken). Custom roles are not analyzed.',
+    `Up to ${TOKEN_AUTHORITY_LIMITS.maxProfiledControls} contract holders of supply or logic roles are profiled as Safe or timelock from accessors; Safe owners' own keys, timelock proposers and governor rules are not analyzed.`,
     'FiatToken minters are configured by the master minter and are not enumerable from accessors.',
   ];
   if (accessControl === 'non-enumerable' && !roleHistory)
@@ -298,7 +303,7 @@ export async function discoverTokenAuthority(
   if (authorities.some((a) => a.kind === 'not-checked'))
     limitations.push('Some authority addresses were not classified because of the read budget.');
   return TokenAuthority.parse({
-    adapter: 'token-authority/1.1.0',
+    adapter: 'token-authority/1.2.0',
     symbol: symbolValue !== null && symbolValue.length <= MAX_SYMBOL_LENGTH ? symbolValue : null,
     decimals: decimalsValue !== null && decimalsValue <= UINT8_MAX ? Number(decimalsValue) : null,
     totalSupply: supplyValue === null ? null : supplyValue.toString(),

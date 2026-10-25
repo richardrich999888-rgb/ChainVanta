@@ -233,7 +233,7 @@ describe('token authority with role history', () => {
 
   it('feeds event-derived holders into classification, findings and the graph', async () => {
     const { tokenAuthority, a } = await assessed(true);
-    expect(tokenAuthority.adapter).toBe('token-authority/1.1.0');
+    expect(tokenAuthority.adapter).toBe('token-authority/1.2.0');
     expect(tokenAuthority.authorities).toEqual([
       { address: addr('11'), kind: 'no-code' },
       { address: addr('22'), kind: 'no-code' },

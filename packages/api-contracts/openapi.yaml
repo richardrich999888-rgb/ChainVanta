@@ -1939,7 +1939,12 @@
                                   'adapter':
                                     {
                                       'type': 'string',
-                                      'enum': ['token-authority/1.0.0', 'token-authority/1.1.0'],
+                                      'enum':
+                                        [
+                                          'token-authority/1.0.0',
+                                          'token-authority/1.1.0',
+                                          'token-authority/1.2.0',
+                                        ],
                                     },
                                   'symbol':
                                     {
@@ -2051,6 +2056,80 @@
                                                       'not-checked',
                                                     ],
                                                 },
+                                              'control':
+                                                {
+                                                  'oneOf':
+                                                    [
+                                                      {
+                                                        'type': 'object',
+                                                        'properties':
+                                                          {
+                                                            'type':
+                                                              { 'type': 'string', 'const': 'safe' },
+                                                            'threshold':
+                                                              {
+                                                                'type': 'integer',
+                                                                'minimum': 1,
+                                                                'maximum': 9007199254740991,
+                                                              },
+                                                            'owners':
+                                                              {
+                                                                'minItems': 1,
+                                                                'maxItems': 50,
+                                                                'type': 'array',
+                                                                'items':
+                                                                  {
+                                                                    'type': 'string',
+                                                                    'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                                  },
+                                                              },
+                                                          },
+                                                        'required': ['type', 'threshold', 'owners'],
+                                                        'additionalProperties': false,
+                                                      },
+                                                      {
+                                                        'type': 'object',
+                                                        'properties':
+                                                          {
+                                                            'type':
+                                                              {
+                                                                'type': 'string',
+                                                                'const': 'timelock',
+                                                              },
+                                                            'standard':
+                                                              {
+                                                                'type': 'string',
+                                                                'enum':
+                                                                  [
+                                                                    'openzeppelin-timelock-controller',
+                                                                    'compound-timelock',
+                                                                  ],
+                                                              },
+                                                            'minDelaySeconds':
+                                                              {
+                                                                'type': 'string',
+                                                                'pattern': "^\\d+$",
+                                                              },
+                                                          },
+                                                        'required':
+                                                          ['type', 'standard', 'minDelaySeconds'],
+                                                        'additionalProperties': false,
+                                                      },
+                                                      {
+                                                        'type': 'object',
+                                                        'properties':
+                                                          {
+                                                            'type':
+                                                              {
+                                                                'type': 'string',
+                                                                'const': 'unrecognized',
+                                                              },
+                                                          },
+                                                        'required': ['type'],
+                                                        'additionalProperties': false,
+                                                      },
+                                                    ],
+                                                },
                                             },
                                           'required': ['address', 'kind'],
                                           'additionalProperties': false,
@@ -2058,7 +2137,7 @@
                                     },
                                   'reads':
                                     {
-                                      'maxItems': 32,
+                                      'maxItems': 38,
                                       'type': 'array',
                                       'items':
                                         {
@@ -2271,7 +2350,7 @@
                                             },
                                           'reads':
                                             {
-                                              'maxItems': 8,
+                                              'maxItems': 6,
                                               'type': 'array',
                                               'items':
                                                 {
@@ -3090,7 +3169,12 @@
                           'adapter':
                             {
                               'type': 'string',
-                              'enum': ['token-authority/1.0.0', 'token-authority/1.1.0'],
+                              'enum':
+                                [
+                                  'token-authority/1.0.0',
+                                  'token-authority/1.1.0',
+                                  'token-authority/1.2.0',
+                                ],
                             },
                           'symbol':
                             {
@@ -3191,6 +3275,69 @@
                                               'not-checked',
                                             ],
                                         },
+                                      'control':
+                                        {
+                                          'oneOf':
+                                            [
+                                              {
+                                                'type': 'object',
+                                                'properties':
+                                                  {
+                                                    'type': { 'type': 'string', 'const': 'safe' },
+                                                    'threshold':
+                                                      {
+                                                        'type': 'integer',
+                                                        'minimum': 1,
+                                                        'maximum': 9007199254740991,
+                                                      },
+                                                    'owners':
+                                                      {
+                                                        'minItems': 1,
+                                                        'maxItems': 50,
+                                                        'type': 'array',
+                                                        'items':
+                                                          {
+                                                            'type': 'string',
+                                                            'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                          },
+                                                      },
+                                                  },
+                                                'required': ['type', 'threshold', 'owners'],
+                                                'additionalProperties': false,
+                                              },
+                                              {
+                                                'type': 'object',
+                                                'properties':
+                                                  {
+                                                    'type':
+                                                      { 'type': 'string', 'const': 'timelock' },
+                                                    'standard':
+                                                      {
+                                                        'type': 'string',
+                                                        'enum':
+                                                          [
+                                                            'openzeppelin-timelock-controller',
+                                                            'compound-timelock',
+                                                          ],
+                                                      },
+                                                    'minDelaySeconds':
+                                                      { 'type': 'string', 'pattern': "^\\d+$" },
+                                                  },
+                                                'required': ['type', 'standard', 'minDelaySeconds'],
+                                                'additionalProperties': false,
+                                              },
+                                              {
+                                                'type': 'object',
+                                                'properties':
+                                                  {
+                                                    'type':
+                                                      { 'type': 'string', 'const': 'unrecognized' },
+                                                  },
+                                                'required': ['type'],
+                                                'additionalProperties': false,
+                                              },
+                                            ],
+                                        },
                                     },
                                   'required': ['address', 'kind'],
                                   'additionalProperties': false,
@@ -3198,7 +3345,7 @@
                             },
                           'reads':
                             {
-                              'maxItems': 32,
+                              'maxItems': 38,
                               'type': 'array',
                               'items':
                                 {
@@ -3380,7 +3527,7 @@
                                     },
                                   'reads':
                                     {
-                                      'maxItems': 8,
+                                      'maxItems': 6,
                                       'type': 'array',
                                       'items':
                                         {

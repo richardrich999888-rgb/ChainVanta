@@ -2875,7 +2875,7 @@ export interface components {
         };
         tokenAuthority?: {
           /** @enum {string} */
-          adapter: 'token-authority/1.0.0' | 'token-authority/1.1.0';
+          adapter: 'token-authority/1.0.0' | 'token-authority/1.1.0' | 'token-authority/1.2.0';
           symbol: string | null;
           decimals: number | null;
           totalSupply: string | null;
@@ -2914,6 +2914,24 @@ export interface components {
             address: string;
             /** @enum {string} */
             kind: 'no-code' | 'eip-7702-delegated' | 'contract' | 'not-checked';
+            control?:
+              | {
+                  /** @constant */
+                  type: 'safe';
+                  threshold: number;
+                  owners: string[];
+                }
+              | {
+                  /** @constant */
+                  type: 'timelock';
+                  /** @enum {string} */
+                  standard: 'openzeppelin-timelock-controller' | 'compound-timelock';
+                  minDelaySeconds: string;
+                }
+              | {
+                  /** @constant */
+                  type: 'unrecognized';
+                };
           }[];
           reads: {
             /** @enum {string} */
@@ -3176,7 +3194,7 @@ export interface components {
       };
       tokenAuthority?: {
         /** @enum {string} */
-        adapter: 'token-authority/1.0.0' | 'token-authority/1.1.0';
+        adapter: 'token-authority/1.0.0' | 'token-authority/1.1.0' | 'token-authority/1.2.0';
         symbol: string | null;
         decimals: number | null;
         totalSupply: string | null;
@@ -3215,6 +3233,24 @@ export interface components {
           address: string;
           /** @enum {string} */
           kind: 'no-code' | 'eip-7702-delegated' | 'contract' | 'not-checked';
+          control?:
+            | {
+                /** @constant */
+                type: 'safe';
+                threshold: number;
+                owners: string[];
+              }
+            | {
+                /** @constant */
+                type: 'timelock';
+                /** @enum {string} */
+                standard: 'openzeppelin-timelock-controller' | 'compound-timelock';
+                minDelaySeconds: string;
+              }
+            | {
+                /** @constant */
+                type: 'unrecognized';
+              };
         }[];
         reads: {
           /** @enum {string} */

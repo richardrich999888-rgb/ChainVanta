@@ -5,6 +5,7 @@ import {
   discoverTokenAuthority,
 } from '../../modules/09-stablecoin-assurance/src/mint-burn-authorities/token-authority.js';
 import { TOKEN_AUTHORITY_LIMITS } from '../../packages/domain-models/src/index.js';
+import { CONTROL_READ_RESERVE } from '../../modules/09-stablecoin-assurance/src/mint-burn-authorities/authority-control.js';
 import { ADDRESS } from '../../packages/test-fixtures/src/fixtures.js';
 import {
   addr,
@@ -55,7 +56,7 @@ describe('token authority discovery', () => {
     });
     expect(role(a, 'burner')?.holders).toEqual([]);
     expect(a.authorities).toEqual([
-      { address: multisig, kind: 'contract' },
+      { address: multisig, kind: 'contract', control: { type: 'unrecognized' } },
       { address: addr('11'), kind: 'no-code' },
       { address: addr('33'), kind: 'eip-7702-delegated' },
     ]);
@@ -143,7 +144,8 @@ describe('token authority discovery', () => {
         },
       },
     });
-    expect(a.reads).toHaveLength(TOKEN_AUTHORITY_LIMITS.maxReads);
+    // Every holder here has no code, so the control-profiling reserve stays unspent.
+    expect(a.reads).toHaveLength(TOKEN_AUTHORITY_LIMITS.maxReads - CONTROL_READ_RESERVE);
     const checked = a.authorities.filter((x) => x.kind !== 'not-checked');
     expect(checked).toHaveLength(TOKEN_AUTHORITY_LIMITS.maxClassifiedAuthorities);
     expect(a.limitations.join(' ')).toMatch(/not classified/);

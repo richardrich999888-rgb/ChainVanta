@@ -197,8 +197,10 @@ export const TOKEN_AUTHORITY_LIMITS = {
   maxHoldersPerRole: 5,
   /** Distinct authority addresses whose code is classified. */
   maxClassifiedAuthorities: 8,
+  /** Contract holders of supply or logic roles profiled as Safe or timelock (3 reads each). */
+  maxProfiledControls: 2,
   /** Reads per token, kept so a monitored job stays within the worker's 60-call cap. */
-  maxReads: 32,
+  maxReads: 38,
   maxReturnBytes: 4096,
 } as const;
 export const TokenRole = z.enum([
@@ -226,14 +228,15 @@ export const SUPPLY_OR_LOGIC_ROLES: readonly TokenRole[] = [
 ];
 /**
  * Role history budget. Runs only for non-enumerable AccessControl. Worst case for a proxied token
- * with 8 classified holders: ~38 snapshot, structure and authority calls + 8 + 8 = ~54, inside the
- * monitoring worker's 60-call cap (asserted in tests/unit/role-history-connector.test.ts).
+ * with 8 classified holders and 2 profiled controls: 44 snapshot, structure and authority calls
+ * + 8 + 6 = 58, inside the monitoring worker's 60-call cap (asserted in
+ * tests/unit/role-history-connector.test.ts).
  */
 export const ROLE_HISTORY_LIMITS = {
   /** eth_getLogs requests, including range splits. */
   maxLogRequests: 8,
   /** hasRole verifications at the pinned block. */
-  maxVerifications: 8,
+  maxVerifications: 6,
   /** Decoded events kept; a response above this is treated as range-limited and split. */
   maxEvents: 256,
   maxUnrecognizedRoles: 16,
@@ -288,10 +291,35 @@ export const RoleHistory = z
   .strict();
 export type RoleHistory = z.infer<typeof RoleHistory>;
 
+/** How a contract authority holder is itself controlled, from standard accessors. */
+export const AuthorityControl = z.discriminatedUnion('type', [
+  z
+    .object({
+      type: z.literal('safe'),
+      threshold: z.number().int().min(1),
+      owners: z.array(Address).min(1).max(STRUCTURE_LIMITS.maxSafeOwners),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal('timelock'),
+      /** getMinDelay() (OpenZeppelin TimelockController) or delay() (Compound Timelock). */
+      standard: z.enum(['openzeppelin-timelock-controller', 'compound-timelock']),
+      minDelaySeconds: z.string().regex(/^\d+$/),
+    })
+    .strict(),
+  /** Probed; no Safe or timelock accessor answered consistently. */
+  z.object({ type: z.literal('unrecognized') }).strict(),
+]);
+export type AuthorityControl = z.infer<typeof AuthorityControl>;
+
 export const TokenAuthority = z
   .object({
-    /** 1.1.0 adds role history for non-enumerable AccessControl; 1.0.0 documents stay valid. */
-    adapter: z.enum(['token-authority/1.0.0', 'token-authority/1.1.0']),
+    /**
+     * 1.1.0 adds role history for non-enumerable AccessControl; 1.2.0 profiles contract holders.
+     * Earlier documents stay valid.
+     */
+    adapter: z.enum(['token-authority/1.0.0', 'token-authority/1.1.0', 'token-authority/1.2.0']),
     symbol: z.string().max(32).nullable(),
     decimals: z.number().int().min(0).max(255).nullable(),
     totalSupply: z.string().regex(/^\d+$/).nullable(),
@@ -325,6 +353,8 @@ export const TokenAuthority = z
         .object({
           address: Address,
           kind: z.enum(['no-code', 'eip-7702-delegated', 'contract', 'not-checked']),
+          /** Contract holders only, when profiled (1.2.0). Accessor claims: inferred. */
+          control: AuthorityControl.optional(),
         })
         .strict(),
     ),

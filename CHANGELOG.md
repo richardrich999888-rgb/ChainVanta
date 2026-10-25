@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — Authority holder control
+
+- `token-authority/1.2.0`: up to 2 contract holders of supply or logic roles are profiled as Safe (threshold, owners), OpenZeppelin TimelockController or Compound Timelock (delay), at most 3 reads each, inside the 60-call worker cap (worst case 58).
+- New findings `CV-TOKEN-006` (1-of-N Safe with supply or upgrade power, high) and `CV-TOKEN-007` (zero-delay timelock, medium); unprofiled powerful contract holders are reported in `CV-TOKEN-004`. Safe owners and timelock delays are graph dependencies, so changes drift in CPM.
+- Role history `hasRole` checks drop from 8 to 6 to fund profiling; earlier adapter documents remain valid.
+
 ## Unreleased — Token role history
 
 - `token-authority/1.1.0`: for non-enumerable AccessControl, role holders are reconstructed from `RoleGranted`/`RoleRevoked` logs (range-limited requests are bisected, newest-first) and confirmed with `hasRole` at the pinned block. Fixed budget: 8 log requests and 8 checks, inside the worker's 60-call cap.

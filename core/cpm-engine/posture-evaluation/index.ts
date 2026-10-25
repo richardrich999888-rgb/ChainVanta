@@ -7,7 +7,10 @@ import {
   safePolicy,
   structureFacts,
 } from '../../cryptographic-inventory/algorithm-classification/account-structure.js';
-import { tokenAuthorityFacts } from '../../cryptographic-inventory/algorithm-classification/token-authority.js';
+import {
+  describeControl,
+  tokenAuthorityFacts,
+} from '../../cryptographic-inventory/algorithm-classification/token-authority.js';
 
 /** Findings from transaction discovery. A found transaction is reported via the signature rules. */
 function discoveryFindings(observation: Observation, hash: string): Finding[] {
@@ -137,12 +140,16 @@ function tokenAuthorityFindings(observation: Observation, hash: string): Finding
   const roleSummary = facts.authority.roles
     .map((r) => `${r.role} (${r.source}): ${r.holders.length ? r.holders.join(', ') : 'none'}`)
     .join('; ');
+  const controlSummary = facts.holders
+    .filter((h) => h.control)
+    .map((h) => `${h.address} is a ${describeControl(h.control!)}`)
+    .join('; ');
   add({
     ruleId: 'CV-TOKEN-002',
     severity: 'info',
     confidence: 'inferred',
     title: `Token authorities reported for ${facts.holders.length} address${facts.holders.length === 1 ? '' : 'es'}`,
-    rationale: `${roleSummary || 'No standard authority accessor answered.'}. Accessor responses do not prove the contract enforces these roles, and custom roles are not read.`,
+    rationale: `${roleSummary || 'No standard authority accessor answered.'}.${controlSummary ? ` Controls: ${controlSummary}.` : ''} Accessor responses do not prove the contract enforces these roles, and custom roles are not read.`,
   });
   // One finding per rule: finding lifecycle (exceptions, closure) is keyed by rule id.
   const singleKey = facts.singleKeySupplyOrLogic;
@@ -161,8 +168,38 @@ function tokenAuthorityFindings(observation: Observation, hash: string): Finding
           '; ',
         )}. Each is one elliptic-curve key, recoverable by a sufficiently capable quantum computer once its public key is exposed, that controls supply or upgrades. Key custody (HSM, MPC) is not observable on-chain.`,
     });
-  const { roles, unclassified, nonEnumerable, history } = facts.incomplete;
-  if (roles.length || unclassified || nonEnumerable)
+  if (facts.singleSignerSafes.length)
+    add({
+      ruleId: 'CV-TOKEN-006',
+      severity: 'high',
+      confidence: 'inferred',
+      title: '1-of-N Safe can mint or replace token logic',
+      rationale: `${facts.singleSignerSafes
+        .map(
+          (h) =>
+            `${h.address} (${describeControl(h.control!)}) is reported as ${h.roles.join(', ')}`,
+        )
+        .join(
+          '; ',
+        )}. With threshold 1, any single owner can act alone, so the multisig adds no approval requirement. Owners' own keys and Safe modules were not analyzed.`,
+    });
+  if (facts.zeroDelayTimelocks.length)
+    add({
+      ruleId: 'CV-TOKEN-007',
+      severity: 'medium',
+      confidence: 'inferred',
+      title: 'Zero-delay timelock holds supply or upgrade power',
+      rationale: `${facts.zeroDelayTimelocks
+        .map(
+          (h) =>
+            `${h.address} (${describeControl(h.control!)}) is reported as ${h.roles.join(', ')}`,
+        )
+        .join(
+          '; ',
+        )}. A zero minimum delay gives holders and users no window to react before an operation executes. Proposer and executor roles were not analyzed.`,
+    });
+  const { roles, unclassified, unprofiled, nonEnumerable, history } = facts.incomplete;
+  if (roles.length || unclassified || unprofiled || nonEnumerable)
     add({
       ruleId: 'CV-TOKEN-004',
       severity: 'medium',
@@ -178,6 +215,9 @@ function tokenAuthorityFindings(observation: Observation, hash: string): Finding
           ? 'The provider is not attested to serve full log history, so event-derived role sets are not claimed complete.'
           : '',
         unclassified ? `${unclassified} holder(s) were not classified by code.` : '',
+        unprofiled
+          ? `${unprofiled} contract holder(s) of supply or logic roles were not profiled as Safe or timelock within the read budget.`
+          : '',
       ]
         .filter(Boolean)
         .join(' '),
