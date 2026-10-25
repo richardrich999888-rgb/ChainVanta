@@ -2,6 +2,10 @@ import { createRpcTransport } from './transport.js';
 import { verifyTransaction } from '../../../../modules/01-wallet-intelligence/src/signature-analysis/verify-transaction.js';
 import { observeToken } from '../../../../modules/09-stablecoin-assurance/src/privileged-roles/index.js';
 import { discoverTokenAuthority } from '../../../../modules/09-stablecoin-assurance/src/mint-burn-authorities/token-authority.js';
+import type {
+  HistoryReader,
+  LogsResult,
+} from '../../../../modules/09-stablecoin-assurance/src/mint-burn-authorities/role-history.js';
 import {
   discoverAccountStructure,
   type ProbeResult,
@@ -28,6 +32,8 @@ export type ChainConfig = {
   rpcUrl: string;
   demonstration?: boolean;
   archive?: boolean;
+  /** Operator attests the provider serves full, unpruned log history. */
+  fullLogHistory?: boolean;
 };
 export class RpcFailure extends Error {
   constructor(message = 'Blockchain provider could not complete a consistent finalized snapshot') {
@@ -57,6 +63,29 @@ const EXECUTION_FAILURE =
   /\brevert|invalid opcode|out of gas|stack (?:underflow|overflow)|invalid jump|\bVM (?:Exception|execution error)|\bEVM ?error/i;
 const isExecutionFailure = (reply: Extract<RpcReply, { ok: false }>) =>
   reply.code === 3 || EXECUTION_FAILURE.test(reply.message);
+
+/**
+ * eth_getLogs refusals. Providers signal range or result limits differently, e.g. EIP-1474 code
+ * -32005 "limit exceeded", Infura "query returned more than 10000 results", Alchemy "Log response
+ * size exceeded"; an oversized body is treated the same way. A smaller range may succeed, so these
+ * split the range. Pruned or expired history cannot be fixed by splitting. Everything else fails.
+ * Some providers also use -32005 for rate limits; misreading one as a range limit can only add
+ * coverage gaps, never a false completeness claim.
+ */
+const LOG_HISTORY_UNAVAILABLE = /prun|history (?:is )?(?:not available|unavailable|expired)/i;
+const LOG_RANGE_LIMITED =
+  /limit exceeded|more than \d+ results|too many (?:results|logs)|response size|block range|range (?:is )?too (?:large|wide)/i;
+const RESPONSE_TOO_LARGE = 'response too large';
+function logRefusal(reply: Extract<RpcReply, { ok: false }>): LogsResult['outcome'] | null {
+  if (LOG_HISTORY_UNAVAILABLE.test(reply.message)) return 'unavailable';
+  if (
+    reply.message === RESPONSE_TOO_LARGE ||
+    reply.code === -32005 ||
+    LOG_RANGE_LIMITED.test(reply.message)
+  )
+    return 'range-limited';
+  return null;
+}
 
 export class EvmConnector {
   constructor(
@@ -92,7 +121,11 @@ export class EvmConnector {
       }
     }
   }
-  private async rpcOnce(method: string, params: unknown[]): Promise<RpcReply> {
+  private async rpcOnce(
+    method: string,
+    params: unknown[],
+    oversizeAsRefusal = false,
+  ): Promise<RpcReply> {
     try {
       const response = await this.transport(this.chain.rpcUrl, {
         method: 'POST',
@@ -111,6 +144,7 @@ export class EvmConnector {
         size += value.length;
         if (size > MAX_RESPONSE_BYTES) {
           await reader.cancel();
+          if (oversizeAsRefusal) return { ok: false, code: null, message: RESPONSE_TOO_LARGE };
           throw new RpcFailure();
         }
         chunks.push(value);
@@ -155,6 +189,30 @@ export class EvmConnector {
         );
         if (BigInt(block.number) !== blockNumber) throw new RpcFailure();
         return block.transactions;
+      },
+    };
+  }
+
+  /**
+   * Role history port. Ranges never exceed the finalized snapshot block, so results are stable;
+   * the snapshot block hash is re-checked after collection. Refusals are deterministic and not retried.
+   */
+  private historyReader(): HistoryReader {
+    const hex = (value: bigint) => `0x${value.toString(16)}`;
+    return {
+      logs: async (address, topic0, fromBlock, toBlock) => {
+        const reply = await this.withRetry(async () => {
+          const value = await this.rpcOnce(
+            'eth_getLogs',
+            [{ address, topics: [topic0], fromBlock: hex(fromBlock), toBlock: hex(toBlock) }],
+            true,
+          );
+          if (!value.ok && logRefusal(value) === null) throw new RpcFailure();
+          return value;
+        });
+        if (!reply.ok) return { outcome: logRefusal(reply)! } as LogsResult;
+        if (!Array.isArray(reply.result)) throw new RpcFailure();
+        return { outcome: 'returned', logs: reply.result };
       },
     };
   }
@@ -279,6 +337,11 @@ export class EvmConnector {
               this.structureReader(block.hash),
               address as Hex,
               structure ?? undefined,
+              {
+                reader: this.historyReader(),
+                snapshotBlock: BigInt(block.number),
+                attested: this.chain.fullLogHistory === true,
+              },
             )
           : undefined;
       const after = Block.parse(await this.rpc('eth_getBlockByNumber', [block.number, false]));

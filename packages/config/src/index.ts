@@ -22,6 +22,11 @@ export const Chains = z
       demonstration: z.boolean().optional(),
       /** Provider serves historical state; required for transaction discovery. */
       archive: z.boolean().optional(),
+      /**
+       * Provider serves full, unpruned eth_getLogs history. Without it, role sets reconstructed
+       * from events are never claimed complete (history-expiring nodes can return empty ranges).
+       */
+      fullLogHistory: z.boolean().optional(),
       rpcUrl: RpcUrl,
     }),
   )

@@ -1936,7 +1936,11 @@
                               'type': 'object',
                               'properties':
                                 {
-                                  'adapter': { 'type': 'string', 'const': 'token-authority/1.0.0' },
+                                  'adapter':
+                                    {
+                                      'type': 'string',
+                                      'enum': ['token-authority/1.0.0', 'token-authority/1.1.0'],
+                                    },
                                   'symbol':
                                     {
                                       'anyOf':
@@ -2003,6 +2007,7 @@
                                                       'eip1967-admin-slot',
                                                       'zeppelinos-admin-slot',
                                                       'proxy-admin-owner',
+                                                      'access-control-events',
                                                     ],
                                                 },
                                               'holders':
@@ -2112,6 +2117,241 @@
                                           'required': ['method', 'target', 'input', 'outcome'],
                                           'additionalProperties': false,
                                         },
+                                    },
+                                  'roleHistory':
+                                    {
+                                      'type': 'object',
+                                      'properties':
+                                        {
+                                          'method':
+                                            {
+                                              'type': 'string',
+                                              'const': 'access-control-events/1.0.0',
+                                            },
+                                          'fromBlock': { 'type': 'string', 'pattern': "^\\d+$" },
+                                          'toBlock': { 'type': 'string', 'pattern': "^\\d+$" },
+                                          'historyAttested': { 'type': 'boolean' },
+                                          'requests':
+                                            {
+                                              'maxItems': 8,
+                                              'type': 'array',
+                                              'items':
+                                                {
+                                                  'type': 'object',
+                                                  'properties':
+                                                    {
+                                                      'fromBlock':
+                                                        { 'type': 'string', 'pattern': "^\\d+$" },
+                                                      'toBlock':
+                                                        { 'type': 'string', 'pattern': "^\\d+$" },
+                                                      'outcome':
+                                                        {
+                                                          'type': 'string',
+                                                          'enum':
+                                                            [
+                                                              'returned',
+                                                              'range-limited',
+                                                              'unavailable',
+                                                            ],
+                                                        },
+                                                      'logCount':
+                                                        {
+                                                          'type': 'integer',
+                                                          'minimum': 0,
+                                                          'maximum': 9007199254740991,
+                                                        },
+                                                    },
+                                                  'required':
+                                                    ['fromBlock', 'toBlock', 'outcome', 'logCount'],
+                                                  'additionalProperties': false,
+                                                },
+                                            },
+                                          'gaps':
+                                            {
+                                              'maxItems': 9,
+                                              'type': 'array',
+                                              'items':
+                                                {
+                                                  'type': 'object',
+                                                  'properties':
+                                                    {
+                                                      'fromBlock':
+                                                        { 'type': 'string', 'pattern': "^\\d+$" },
+                                                      'toBlock':
+                                                        { 'type': 'string', 'pattern': "^\\d+$" },
+                                                    },
+                                                  'required': ['fromBlock', 'toBlock'],
+                                                  'additionalProperties': false,
+                                                },
+                                            },
+                                          'events':
+                                            {
+                                              'maxItems': 256,
+                                              'type': 'array',
+                                              'items':
+                                                {
+                                                  'type': 'object',
+                                                  'properties':
+                                                    {
+                                                      'roleId':
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                        },
+                                                      'role':
+                                                        {
+                                                          'anyOf':
+                                                            [
+                                                              {
+                                                                'type': 'string',
+                                                                'enum':
+                                                                  [
+                                                                    'owner',
+                                                                    'pending-owner',
+                                                                    'default-admin',
+                                                                    'minter',
+                                                                    'burner',
+                                                                    'pauser',
+                                                                    'upgrader',
+                                                                    'master-minter',
+                                                                    'blacklister',
+                                                                    'rescuer',
+                                                                    'proxy-admin',
+                                                                  ],
+                                                              },
+                                                              { 'type': 'null' },
+                                                            ],
+                                                        },
+                                                      'account':
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                        },
+                                                      'kind':
+                                                        {
+                                                          'type': 'string',
+                                                          'enum': ['granted', 'revoked'],
+                                                        },
+                                                      'blockNumber':
+                                                        { 'type': 'string', 'pattern': "^\\d+$" },
+                                                      'transactionHash':
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                        },
+                                                      'logIndex':
+                                                        {
+                                                          'type': 'integer',
+                                                          'minimum': 0,
+                                                          'maximum': 9007199254740991,
+                                                        },
+                                                    },
+                                                  'required':
+                                                    [
+                                                      'roleId',
+                                                      'role',
+                                                      'account',
+                                                      'kind',
+                                                      'blockNumber',
+                                                      'transactionHash',
+                                                      'logIndex',
+                                                    ],
+                                                  'additionalProperties': false,
+                                                },
+                                            },
+                                          'unrecognizedRoleIds':
+                                            {
+                                              'maxItems': 16,
+                                              'type': 'array',
+                                              'items':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                },
+                                            },
+                                          'reads':
+                                            {
+                                              'maxItems': 8,
+                                              'type': 'array',
+                                              'items':
+                                                {
+                                                  'type': 'object',
+                                                  'properties':
+                                                    {
+                                                      'method':
+                                                        {
+                                                          'type': 'string',
+                                                          'enum':
+                                                            [
+                                                              'eth_getStorageAt',
+                                                              'eth_call',
+                                                              'eth_getCode',
+                                                            ],
+                                                        },
+                                                      'target':
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                        },
+                                                      'input':
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x(?:[0-9a-fA-F]{2})*$',
+                                                        },
+                                                      'outcome':
+                                                        {
+                                                          'type': 'string',
+                                                          'enum': ['returned', 'reverted'],
+                                                        },
+                                                      'result':
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x(?:[0-9a-fA-F]{2})*$',
+                                                        },
+                                                      'resultHash':
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                        },
+                                                      'resultSize':
+                                                        {
+                                                          'type': 'integer',
+                                                          'minimum': 0,
+                                                          'maximum': 9007199254740991,
+                                                        },
+                                                      'codeHash':
+                                                        {
+                                                          'type': 'string',
+                                                          'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                        },
+                                                      'codeSize':
+                                                        {
+                                                          'type': 'integer',
+                                                          'minimum': 0,
+                                                          'maximum': 9007199254740991,
+                                                        },
+                                                    },
+                                                  'required':
+                                                    ['method', 'target', 'input', 'outcome'],
+                                                  'additionalProperties': false,
+                                                },
+                                            },
+                                          'complete': { 'type': 'boolean' },
+                                        },
+                                      'required':
+                                        [
+                                          'method',
+                                          'fromBlock',
+                                          'toBlock',
+                                          'historyAttested',
+                                          'requests',
+                                          'gaps',
+                                          'events',
+                                          'unrecognizedRoleIds',
+                                          'reads',
+                                          'complete',
+                                        ],
+                                      'additionalProperties': false,
                                     },
                                   'limitations': { 'type': 'array', 'items': { 'type': 'string' } },
                                 },
@@ -2847,7 +3087,11 @@
                       'type': 'object',
                       'properties':
                         {
-                          'adapter': { 'type': 'string', 'const': 'token-authority/1.0.0' },
+                          'adapter':
+                            {
+                              'type': 'string',
+                              'enum': ['token-authority/1.0.0', 'token-authority/1.1.0'],
+                            },
                           'symbol':
                             {
                               'anyOf': [{ 'type': 'string', 'maxLength': 32 }, { 'type': 'null' }],
@@ -2910,6 +3154,7 @@
                                               'eip1967-admin-slot',
                                               'zeppelinos-admin-slot',
                                               'proxy-admin-owner',
+                                              'access-control-events',
                                             ],
                                         },
                                       'holders':
@@ -2993,6 +3238,224 @@
                                   'required': ['method', 'target', 'input', 'outcome'],
                                   'additionalProperties': false,
                                 },
+                            },
+                          'roleHistory':
+                            {
+                              'type': 'object',
+                              'properties':
+                                {
+                                  'method':
+                                    { 'type': 'string', 'const': 'access-control-events/1.0.0' },
+                                  'fromBlock': { 'type': 'string', 'pattern': "^\\d+$" },
+                                  'toBlock': { 'type': 'string', 'pattern': "^\\d+$" },
+                                  'historyAttested': { 'type': 'boolean' },
+                                  'requests':
+                                    {
+                                      'maxItems': 8,
+                                      'type': 'array',
+                                      'items':
+                                        {
+                                          'type': 'object',
+                                          'properties':
+                                            {
+                                              'fromBlock':
+                                                { 'type': 'string', 'pattern': "^\\d+$" },
+                                              'toBlock': { 'type': 'string', 'pattern': "^\\d+$" },
+                                              'outcome':
+                                                {
+                                                  'type': 'string',
+                                                  'enum':
+                                                    ['returned', 'range-limited', 'unavailable'],
+                                                },
+                                              'logCount':
+                                                {
+                                                  'type': 'integer',
+                                                  'minimum': 0,
+                                                  'maximum': 9007199254740991,
+                                                },
+                                            },
+                                          'required':
+                                            ['fromBlock', 'toBlock', 'outcome', 'logCount'],
+                                          'additionalProperties': false,
+                                        },
+                                    },
+                                  'gaps':
+                                    {
+                                      'maxItems': 9,
+                                      'type': 'array',
+                                      'items':
+                                        {
+                                          'type': 'object',
+                                          'properties':
+                                            {
+                                              'fromBlock':
+                                                { 'type': 'string', 'pattern': "^\\d+$" },
+                                              'toBlock': { 'type': 'string', 'pattern': "^\\d+$" },
+                                            },
+                                          'required': ['fromBlock', 'toBlock'],
+                                          'additionalProperties': false,
+                                        },
+                                    },
+                                  'events':
+                                    {
+                                      'maxItems': 256,
+                                      'type': 'array',
+                                      'items':
+                                        {
+                                          'type': 'object',
+                                          'properties':
+                                            {
+                                              'roleId':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                },
+                                              'role':
+                                                {
+                                                  'anyOf':
+                                                    [
+                                                      {
+                                                        'type': 'string',
+                                                        'enum':
+                                                          [
+                                                            'owner',
+                                                            'pending-owner',
+                                                            'default-admin',
+                                                            'minter',
+                                                            'burner',
+                                                            'pauser',
+                                                            'upgrader',
+                                                            'master-minter',
+                                                            'blacklister',
+                                                            'rescuer',
+                                                            'proxy-admin',
+                                                          ],
+                                                      },
+                                                      { 'type': 'null' },
+                                                    ],
+                                                },
+                                              'account':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                },
+                                              'kind':
+                                                {
+                                                  'type': 'string',
+                                                  'enum': ['granted', 'revoked'],
+                                                },
+                                              'blockNumber':
+                                                { 'type': 'string', 'pattern': "^\\d+$" },
+                                              'transactionHash':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                },
+                                              'logIndex':
+                                                {
+                                                  'type': 'integer',
+                                                  'minimum': 0,
+                                                  'maximum': 9007199254740991,
+                                                },
+                                            },
+                                          'required':
+                                            [
+                                              'roleId',
+                                              'role',
+                                              'account',
+                                              'kind',
+                                              'blockNumber',
+                                              'transactionHash',
+                                              'logIndex',
+                                            ],
+                                          'additionalProperties': false,
+                                        },
+                                    },
+                                  'unrecognizedRoleIds':
+                                    {
+                                      'maxItems': 16,
+                                      'type': 'array',
+                                      'items':
+                                        { 'type': 'string', 'pattern': '^0x[0-9a-fA-F]{64}$' },
+                                    },
+                                  'reads':
+                                    {
+                                      'maxItems': 8,
+                                      'type': 'array',
+                                      'items':
+                                        {
+                                          'type': 'object',
+                                          'properties':
+                                            {
+                                              'method':
+                                                {
+                                                  'type': 'string',
+                                                  'enum':
+                                                    ['eth_getStorageAt', 'eth_call', 'eth_getCode'],
+                                                },
+                                              'target':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{40}$',
+                                                },
+                                              'input':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x(?:[0-9a-fA-F]{2})*$',
+                                                },
+                                              'outcome':
+                                                {
+                                                  'type': 'string',
+                                                  'enum': ['returned', 'reverted'],
+                                                },
+                                              'result':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x(?:[0-9a-fA-F]{2})*$',
+                                                },
+                                              'resultHash':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                },
+                                              'resultSize':
+                                                {
+                                                  'type': 'integer',
+                                                  'minimum': 0,
+                                                  'maximum': 9007199254740991,
+                                                },
+                                              'codeHash':
+                                                {
+                                                  'type': 'string',
+                                                  'pattern': '^0x[0-9a-fA-F]{64}$',
+                                                },
+                                              'codeSize':
+                                                {
+                                                  'type': 'integer',
+                                                  'minimum': 0,
+                                                  'maximum': 9007199254740991,
+                                                },
+                                            },
+                                          'required': ['method', 'target', 'input', 'outcome'],
+                                          'additionalProperties': false,
+                                        },
+                                    },
+                                  'complete': { 'type': 'boolean' },
+                                },
+                              'required':
+                                [
+                                  'method',
+                                  'fromBlock',
+                                  'toBlock',
+                                  'historyAttested',
+                                  'requests',
+                                  'gaps',
+                                  'events',
+                                  'unrecognizedRoleIds',
+                                  'reads',
+                                  'complete',
+                                ],
+                              'additionalProperties': false,
                             },
                           'limitations': { 'type': 'array', 'items': { 'type': 'string' } },
                         },

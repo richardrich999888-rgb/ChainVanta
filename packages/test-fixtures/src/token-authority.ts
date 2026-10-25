@@ -1,4 +1,5 @@
 import {
+  encodeEventTopics,
   encodeFunctionData,
   encodeFunctionResult,
   keccak256,
@@ -99,3 +100,83 @@ export const erc20 = (symbol = 'TKN', decimals = 6, supply = 1_000_000n): Record
 });
 
 export type { FakeChain };
+
+// --- Role history fixtures. Event selectors are derived from the signature strings.
+const historyAbi = parseAbi([
+  'function hasRole(bytes32 role, address account) view returns (bool)',
+  'event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender)',
+  'event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender)',
+]);
+const SENDER = `0x${'ab'.repeat(20)}` as Hex;
+/** A provider-shaped RoleGranted/RoleRevoked log built with viem's event encoder. */
+export function roleLog(
+  token: Hex,
+  kind: 'granted' | 'revoked',
+  role: Hex,
+  account: Hex,
+  block: bigint,
+  logIndex = 0,
+) {
+  const topics = encodeEventTopics({
+    abi: historyAbi,
+    eventName: kind === 'granted' ? 'RoleGranted' : 'RoleRevoked',
+    args: { role, account, sender: SENDER },
+  } as never);
+  return {
+    address: token,
+    topics,
+    data: '0x',
+    blockNumber: toHex(block),
+    transactionHash: keccak256(toHex(`${block}:${logIndex}`)),
+    logIndex: toHex(logIndex),
+    removed: false,
+  };
+}
+
+/** hasRole call-map entries: every listed (role, account) answers `holds`. */
+export function hasRoleCalls(entries: [Hex, Hex, boolean][]): Record<string, Hex> {
+  return Object.fromEntries(
+    entries.map(([role, account, holds]) => [
+      encodeFunctionData({
+        abi: historyAbi,
+        functionName: 'hasRole',
+        args: [role, account],
+      }).toLowerCase(),
+      encodeFunctionResult({ abi: historyAbi, functionName: 'hasRole', result: holds }),
+    ]),
+  );
+}
+
+type RawLog = ReturnType<typeof roleLog>;
+/**
+ * In-memory log provider. `maxRange` models a block-range cap (wider requests are refused);
+ * `unavailableBelow` models pruned history. Logs are filtered exactly like eth_getLogs.
+ */
+export function fakeLogs(
+  logs: RawLog[],
+  options: { maxRange?: bigint; unavailableBelow?: bigint } = {},
+) {
+  const requests: [bigint, bigint][] = [];
+  return {
+    requests,
+    reader: {
+      logs: async (address: Hex, topic0: readonly Hex[], fromBlock: bigint, toBlock: bigint) => {
+        requests.push([fromBlock, toBlock]);
+        if (options.unavailableBelow !== undefined && fromBlock < options.unavailableBelow)
+          return { outcome: 'unavailable' as const };
+        if (options.maxRange !== undefined && toBlock - fromBlock + 1n > options.maxRange)
+          return { outcome: 'range-limited' as const };
+        return {
+          outcome: 'returned' as const,
+          logs: logs.filter(
+            (l) =>
+              l.address.toLowerCase() === address.toLowerCase() &&
+              topic0.includes(l.topics[0]!) &&
+              BigInt(l.blockNumber) >= fromBlock &&
+              BigInt(l.blockNumber) <= toBlock,
+          ),
+        };
+      },
+    },
+  };
+}

@@ -61,6 +61,8 @@ const methods = new Set([
   'eth_getTransactionByHash',
   'eth_getTransactionReceipt',
   'eth_call',
+  // Role history: AccessControl events for one address (see role-history.ts).
+  'eth_getLogs',
 ]);
 const genericError = () => new Error('Approved RPC transport failed');
 type Resolver = (hostname: string) => Promise<{ address: string; family: number }[]>;
